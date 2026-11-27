@@ -5,6 +5,7 @@
 <p align="center"><strong>Your models. Your tools. Your phone.</strong></p>
 <p align="center">An Android-first AI workspace built with React Native.<br />Chat with Claude and OpenAI, connect MCP tools, and bring your own API keys.</p>
 <p align="center">
+  <a href="https://github.com/AIM-IT4/slate/releases/download/v1.5.1/Slate-1.5.1.apk">Download Android</a> ·
   <a href="#get-started">Get started</a> ·
   <a href="docs/slate/getting-started.md">Set up your tools</a> ·
   <a href="ROADMAP.md">Roadmap</a> ·
@@ -36,7 +37,7 @@ Slate is preview software. Model features depend on the selected provider, and c
 
 ### Use the app
 
-1. Check [GitHub Releases](https://github.com/AIM-IT4/slate/releases) for a signed Android APK. If no APK asset is available, use the source build below.
+1. Download the signed [Slate 1.5.1 Android ARM64 APK](https://github.com/AIM-IT4/slate/releases/download/v1.5.1/Slate-1.5.1.apk). [Release notes](https://github.com/AIM-IT4/slate/releases/tag/v1.5.1) and [SHA-256 checksum](https://github.com/AIM-IT4/slate/releases/download/v1.5.1/SHA256SUMS) are available on GitHub.
 2. Open Slate and add your OpenAI or Anthropic API key under provider settings.
 3. Pick a model and start a conversation. Add a remote MCP server when you need tools.
 
