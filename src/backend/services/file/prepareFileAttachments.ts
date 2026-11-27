@@ -110,7 +110,36 @@ export async function prepareFileAttachments(
             fileEntryId: file.fileEntryId,
             name: file.name,
           });
-        const content = await input.readVideo(file, input.signal, maxFrames);
+        const preparedVideo = await input.readVideo(file, input.signal, maxFrames);
+        const content = { ...preparedVideo };
+        const maxAudioCharacters = Math.min(
+          Math.floor(remainingCharacters / count),
+          input.target.maxInputTokens === undefined
+            ? 50_000
+            : Math.max(
+                0,
+                input.target.maxInputTokens - (imageCount + content.frames.length) * 4096 - 1024,
+              ) * 3,
+          50_000,
+        );
+        let includedAudioCharacters = 0;
+        if (content.audio) {
+          const audio = { ...content.audio, segments: [] as typeof content.audio.segments };
+          for (const segment of content.audio.segments) {
+            const text = takeCodePoints(
+              segment.text,
+              Math.max(0, maxAudioCharacters - includedAudioCharacters),
+            );
+            if (text.value) audio.segments.push({ ...segment, text: text.value });
+            includedAudioCharacters += text.characters;
+            if (text.didTruncate || includedAudioCharacters >= maxAudioCharacters) {
+              audio.status = 'partial';
+              break;
+            }
+          }
+          content.audio = audio;
+          remainingCharacters -= includedAudioCharacters * count;
+        }
         input.signal.throwIfAborted();
         const bytes = content.frames.reduce(
           (sum, frame) => sum + Math.ceil((frame.uri.length * 3) / 4),
@@ -133,6 +162,15 @@ export async function prepareFileAttachments(
           content,
           report: {
             mode: 'video',
+            ...(content.audio
+              ? {
+                  audio: {
+                    status: content.audio.status,
+                    processedSeconds: content.audio.processedSeconds,
+                  },
+                }
+              : {}),
+            includedCharacters: includedAudioCharacters,
             sourceTruncated: true,
             requestTruncated: false,
             images: { sent: content.frames.length, omitted: 0 },

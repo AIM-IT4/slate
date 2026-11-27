@@ -92,8 +92,8 @@ android {
         applicationId 'com.desk2quant.slate'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 12
-        versionName "1.4.2"
+        versionCode 13
+        versionName "1.5.0"
 // @generated begin expo-localization-supported-locales - expo prebuild (DO NOT MODIFY) sync-4ded41b88db40ded5e2ff9cf7fb8c15627c020f4
         resourceConfigurations += ["b+zh+CN", "b+zh+TW", "b+en+US", "b+de+DE", "b+ja+JP", "b+ru+RU", "b+el+GR", "b+es+ES", "b+fr+FR", "b+pt+PT", "b+ro+RO", "b+vi+VN", "b+tr+TR"]
 // @generated end expo-localization-supported-locales
@@ -184,3 +184,12 @@ dependencies {
         implementation jscFlavor
     }
 }
+
+// Keep release speech recognition available without an account or a first-use download.
+tasks.register('prepareSlateAudio', Exec) {
+    workingDir rootDir.parentFile
+    commandLine 'node', 'scripts/prepareSlateAudio.mjs'
+    inputs.files(new File(rootDir.parentFile, 'src/backend/services/voice/videoAudio/modelAssets.json'), new File(rootDir.parentFile, 'scripts/prepareSlateAudio.mjs'), new File(rootDir.parentFile, 'scripts/slateAudioNOTICE.txt'))
+    outputs.dir(new File(projectDir, 'src/main/assets/slate-whisper'))
+}
+tasks.named('preBuild').configure { dependsOn 'prepareSlateAudio' }

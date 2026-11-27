@@ -14,6 +14,7 @@ import {
 import { loggerService } from '@/shared/core/logger/LoggerService';
 
 import { getVoiceInput } from '../../../../modules/voice-input';
+import { acquireAsrWork } from './asrWorkLock';
 import { normalizeDeepseekAudio } from './deepseekAudio';
 import type { SystemPromptQueue } from './microphoneAccess';
 import { createRecordedDictationEngine } from './recordedDictation';
@@ -82,8 +83,13 @@ export function createDeepseekTranscription() {
       return status(signal);
     },
     async transcribe(uri: string, options: AudioTranscriptionOptions & { signal: AbortSignal }) {
-      const recognizer = await openRecognizer(options.signal, { normalizeSampleRate: true });
-      return transcribeAudioChunks(uri, recognizer.recognize, options);
+      const releaseWork = await acquireAsrWork(options.signal);
+      try {
+        const recognizer = await openRecognizer(options.signal, { normalizeSampleRate: true });
+        return await transcribeAudioChunks(uri, recognizer.recognize, options);
+      } finally {
+        releaseWork();
+      }
     },
   };
 }

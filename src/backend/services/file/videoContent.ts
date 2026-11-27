@@ -7,6 +7,7 @@ import {
 import * as z from 'zod';
 
 import { mcpServerService } from '@/backend/data/services/McpServerService';
+import { transcribeVideoAudio } from '@/backend/services/voice/videoAudio';
 import {
   FileAttachmentError,
   type FileAttachmentContent,
@@ -94,7 +95,10 @@ export async function readVideoUriContent(
       parsed.frames.some((frame) => frame.timestampSeconds > parsed.durationSeconds)
     )
       throw new Error('Invalid video samples');
+    clearTimeout(timeout);
+    const audio = await transcribeVideoAudio(uri, signal);
     const result: VideoContent = {
+      audio,
       kind: 'video',
       durationSeconds: parsed.durationSeconds,
       workspacePath: parsed.workspacePath,

@@ -6,6 +6,17 @@ A personal Android fork of Cherry Studio Mobile 0.6.3, rebuilt from its publishe
 
 Light-first white surfaces, cobalt emphasis, labelled bottom navigation, a flat Tools list with direct provider/privacy/appearance shortcuts, new Slate launcher/splash artwork and identity. Original model, MCP, file, image and agent implementations are retained.
 
+## Video audio
+
+Video attachments include sampled frames from Slate Execution plus a locally generated, timestamped
+speech transcript and basic audio-level measurements. The Android APK bundles verified Whisper tiny
+INT8 model assets. Gradle prepares those assets through `scripts/prepareSlateAudio.mjs`; first use
+copies them into private no-backup model storage, without requiring an API key or an extra download.
+
+Audio runs in bounded windows. Attachment notices distinguish completed, partial, failed, missing
+and unrecognized speech. Window timestamps are approximate; RMS/peak values are dBFS, not LUFS.
+Phone codec/asset-copy integration still requires device acceptance.
+
 ## Security changes
 
 Provider API keys, provider auth configuration and MCP headers use device-bound native secure storage with opaque references in SQLite. Personal and enterprise snapshot exports omit these credentials and search-provider overrides. Restores require reconnecting credentials. HTTPS is required for provider URLs; Android cleartext traffic and system backups are disabled. APK self-updates and the upstream Expo update channel are disabled. Sentry, Observe, Insights and product analytics are disabled. Overlay, package-installer and legacy external-write permissions are removed.

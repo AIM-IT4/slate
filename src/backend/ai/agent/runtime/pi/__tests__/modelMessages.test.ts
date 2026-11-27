@@ -198,3 +198,36 @@ test('projects uploaded video frames into model vision content with timestamps a
     { type: 'image', data: '/9j/', mimeType: 'image/jpeg' },
   ]);
 });
+
+test('delivers video speech transcript and audio measurements together with sampled frames', () => {
+  const conversation = toPiConversation(
+    request({
+      input: [
+        {
+          type: 'video-attachment',
+          fileEntryId: image.fileEntryId,
+          name: 'reel.mp4',
+          mediaType: 'video/mp4',
+          trust: 'untrusted-user-content',
+          durationSeconds: 30,
+          workspacePath: 'uploads/clip/source.video',
+          frames: [{ timestampSeconds: 0, uri: 'data:image/jpeg;base64,/9j/' }],
+          audio: {
+            status: 'transcribed',
+            processedSeconds: 30,
+            segments: [{ startSeconds: 0, endSeconds: 30, text: 'The yield curve inverted.' }],
+            levels: { rmsDbfs: -18, peakDbfs: -3, clippedSamplePercent: 0, quietWindowPercent: 10 },
+          },
+        },
+      ],
+    }),
+    model,
+  );
+  const content = conversation.prompt.content;
+  expect(Array.isArray(content)).toBe(true);
+  const text = JSON.stringify(content);
+  expect(text).toContain('The yield curve inverted.');
+  expect(text).toContain('rmsDbfs');
+  expect(text).toContain('approximate window timestamps');
+  expect(text).not.toContain('Audio was not supplied.');
+});

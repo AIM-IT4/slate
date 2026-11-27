@@ -54,6 +54,12 @@ export const FileAttachmentReportSchema = z.strictObject({
     'audio',
     'video',
   ]),
+  audio: z
+    .strictObject({
+      status: z.enum(['transcribed', 'partial', 'no-speech', 'no-audio', 'failed', 'unsupported']),
+      processedSeconds: z.number().nonnegative(),
+    })
+    .optional(),
   sourceTruncated: z.boolean(),
   /** One-based PDF pages whose visual content did not yield recognized text. */
   unrecognizedPages: z.array(z.number().int().positive()).optional(),
@@ -103,12 +109,25 @@ export type DocumentAssetDelivery = {
   status: 'sent' | 'model-unsupported' | 'unsupported-type' | 'budget';
 };
 
+export type VideoAudioAnalysis = {
+  status: 'transcribed' | 'partial' | 'no-speech' | 'no-audio' | 'failed' | 'unsupported';
+  processedSeconds: number;
+  segments: { startSeconds: number; endSeconds: number; text: string }[];
+  levels?: {
+    rmsDbfs: number;
+    peakDbfs: number;
+    clippedSamplePercent: number;
+    quietWindowPercent: number;
+  };
+};
+
 /** Ephemeral send-time content. Neither IR nor derived image bytes are persisted. */
 export type FileAttachmentContent =
   | { kind: 'text'; text: string }
   | {
       kind: 'video';
       durationSeconds: number;
+      audio?: VideoAudioAnalysis;
       workspacePath: string;
       frames: { timestampSeconds: number; uri: string }[];
     }

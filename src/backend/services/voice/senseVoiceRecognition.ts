@@ -4,6 +4,7 @@ import { VoiceError, type VoiceEngineStatus } from '@/shared/contracts/voice';
 import { loggerService } from '@/shared/core/logger/LoggerService';
 
 import { getVoiceInput } from '../../../../modules/voice-input';
+import { acquireAsrWork } from './asrWorkLock';
 import type { VoiceModel } from './voiceModel';
 
 const logger = loggerService.withContext('SenseVoice');
@@ -28,7 +29,14 @@ export async function getSenseVoiceStatus(
 /** Dictation and file transcription share the native singleton under VoiceRuntime's activity. */
 export async function openSenseVoiceRecognizer(model: VoiceModel, signal: AbortSignal) {
   signal.throwIfAborted();
-  const lease = await model.acquire(signal);
+  const releaseLock = await acquireAsrWork(signal);
+  let lease: Awaited<ReturnType<VoiceModel['acquire']>>;
+  try {
+    lease = await model.acquire(signal);
+  } catch (error) {
+    releaseLock();
+    throw error;
+  }
   let sherpa: typeof import('@siteed/sherpa-onnx.rn') | undefined;
   async function release() {
     try {
@@ -38,6 +46,7 @@ export async function openSenseVoiceRecognizer(model: VoiceModel, signal: AbortS
       logger.warn('Offline recognizer cleanup failed');
     } finally {
       lease.release();
+      releaseLock();
     }
   }
   try {

@@ -68,3 +68,42 @@ test('distinguishes OCR text delivery from native image delivery', () => {
     [],
   );
 });
+
+test('reports a transcribed video without a frames-only warning', () => {
+  const result = attachmentNotices(
+    [
+      attachment('reel.mp4', {
+        mode: 'video',
+        sourceTruncated: true,
+        requestTruncated: false,
+        images: { sent: 12, omitted: 0 },
+        audio: { status: 'transcribed', processedSeconds: 60 },
+      }),
+    ],
+    t,
+  );
+  expect(result).toEqual([
+    {
+      key: '0:videoComplete',
+      tone: 'neutral',
+      text: 'attachments.video.audio.transcribed {"count":12,"seconds":60}',
+    },
+  ]);
+});
+test('preserves the visible warning when video audio processing fails', () => {
+  const result = attachmentNotices(
+    [
+      attachment('reel.mp4', {
+        mode: 'video',
+        sourceTruncated: true,
+        requestTruncated: false,
+        audio: { status: 'failed', processedSeconds: 0 },
+      }),
+    ],
+    t,
+  );
+  expect(result[0]).toMatchObject({
+    tone: 'warning',
+    text: expect.stringContaining('attachments.video.audio.failed'),
+  });
+});

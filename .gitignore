@@ -58,3 +58,6 @@ yarn-error.*
 
 # eslint
 .eslintcache
+
+# Verified release speech models are prepared from src/backend/services/voice/videoAudio/modelAssets.json.
+/android/app/src/main/assets/slate-whisper/
