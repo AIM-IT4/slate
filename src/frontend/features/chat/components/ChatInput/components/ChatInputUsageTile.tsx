@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
 import { useQuery } from '@/frontend/data';
-import { useElapsedTime } from '@/frontend/hooks/useElapsedTime';
+import { useCurrentTime } from '@/frontend/hooks/useCurrentTime';
 import { formatAiUsageCost } from '@/frontend/utils/aiUsage';
 
 /** Recorded usage for the current local day; the existing usage screen owns the breakdown. */
@@ -14,8 +14,8 @@ export function ChatInputUsageTile() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const isFocused = useIsFocused();
-  useElapsedTime(isFocused, 60_000);
-  const dayStart = startOfToday();
+  const now = useCurrentTime(isFocused);
+  const dayStart = startOfDay(now);
   const query = useMemo(() => {
     const tomorrow = new Date(dayStart);
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -57,8 +57,8 @@ export function ChatInputUsageTile() {
   );
 }
 
-function startOfToday(): number {
-  const date = new Date();
+function startOfDay(now: number): number {
+  const date = new Date(now);
   date.setHours(0, 0, 0, 0);
   return date.getTime();
 }

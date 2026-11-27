@@ -12,7 +12,7 @@ jest.mock('expo-router', () => ({
 jest.mock('@/frontend/data', () => ({
   useQuery: (path: string, options: any) => mockQuery(path, options),
 }));
-jest.mock('@/frontend/hooks/useElapsedTime', () => ({ useElapsedTime: () => 0 }));
+jest.mock('@/frontend/hooks/useCurrentTime', () => ({ useCurrentTime: () => Date.now() }));
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'en-US' } }),
 }));

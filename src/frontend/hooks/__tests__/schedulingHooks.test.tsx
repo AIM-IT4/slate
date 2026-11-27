@@ -1,5 +1,6 @@
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 
+import { useCurrentTime } from '../useCurrentTime';
 import { useDebouncedValue } from '../useDebouncedValue';
 import { useElapsedTime } from '../useElapsedTime';
 import { useAfterNextFrame, useNextFrame } from '../useNextFrame';
@@ -97,6 +98,30 @@ describe('shared scheduling hooks', () => {
     expect(elapsed).toBe(2000);
 
     act(() => renderer.unmount());
+  });
+
+  it('useCurrentTime refreshes after inactivity and releases its clock when unmounted', () => {
+    jest.setSystemTime(new Date(2026, 10, 27, 23, 59, 30));
+    let now = 0;
+    function Probe({ active }: { active: boolean }) {
+      now = useCurrentTime(active);
+      return null;
+    }
+    let renderer!: ReactTestRenderer;
+    act(() => {
+      renderer = create(<Probe active />);
+    });
+    act(() => jest.advanceTimersByTime(60_000));
+    expect(now).toBe(new Date(2026, 10, 28, 0, 0, 30).getTime());
+    act(() => renderer.update(<Probe active={false} />));
+    const pausedAt = now;
+    act(() => jest.advanceTimersByTime(120_000));
+    expect(now).toBe(pausedAt);
+    act(() => renderer.update(<Probe active />));
+    act(() => jest.advanceTimersByTime(0));
+    expect(now).toBe(Date.now());
+    act(() => renderer.unmount());
+    expect(jest.getTimerCount()).toBe(0);
   });
 
   it('useNextFrame replaces pending frames and cancels on unmount', () => {
