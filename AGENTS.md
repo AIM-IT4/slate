@@ -1,6 +1,7 @@
-# Cherry Studio Mobile
+# Slate
 
-Cherry Mobile is Cherry Studio's Expo and React Native client.
+Slate is an Android-first AI workspace built with Expo and React Native, independently
+maintained from Cherry Studio Mobile. Preserve upstream license and copyright notices.
 
 Use `pnpm@12.2.1`. This repository has no root application build script. Run the complete
 repository type check with `pnpm typecheck`.

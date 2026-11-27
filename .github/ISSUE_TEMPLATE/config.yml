@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security reporting
+    url: https://github.com/AIM-IT4/slate/blob/main/SECURITY.md
+    about: Please read the security policy before sharing vulnerability details.
+  - name: Setup and troubleshooting
+    url: https://github.com/AIM-IT4/slate/blob/main/docs/slate/getting-started.md
+    about: Provider, MCP, execution, video, and usage setup.
