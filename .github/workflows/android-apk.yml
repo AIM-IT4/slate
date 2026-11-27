@@ -16,8 +16,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 150
     steps:
-      - name: Free disk space
-        run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" && df -h /
+      - name: Free disk space and add swap
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost /usr/local/share/powershell "$AGENT_TOOLSDIRECTORY"
+          sudo docker image prune --all --force > /dev/null || true
+          sudo swapoff -a || true
+          sudo fallocate -l 10G /swapfile2 && sudo chmod 600 /swapfile2 && sudo mkswap /swapfile2 > /dev/null && sudo swapon /swapfile2
+          df -h / && free -m
+
+      # The first run's runner died mid-compile without logs (memory or disk). Log both every
+      # two minutes so a repeat is visible.
+      - name: Resource monitor
+        run: nohup bash -c 'while true; do echo "[monitor] $(date -u +%H:%M) $(free -m | awk "/Mem/{print \"mem used \" \$3 \"/\" \$2 \" MB\"}") $(free -m | awk "/Swap/{print \"swap \" \$3 \" MB\"}") $(df -h / | awk "NR==2{print \"disk free \" \$4}")"; sleep 120; done' > "$RUNNER_TEMP/monitor.log" 2>&1 &
 
       - uses: actions/checkout@v4
 
@@ -48,7 +58,17 @@ jobs:
 
       - name: Build unsigned release APK
         working-directory: android
-        run: ./gradlew :app:assembleRelease -PreactNativeArchitectures=arm64-v8a --no-daemon
+        env:
+          # Fewer parallel native compiles keeps peak memory inside the 16 GB runner.
+          CMAKE_BUILD_PARALLEL_LEVEL: 2
+          GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx3g -XX:MaxMetaspaceSize=768m" -Dkotlin.daemon.jvm.options=-Xmx2g
+        run: |
+          ( while sleep 120; do tail -n 1 "$RUNNER_TEMP/monitor.log"; done ) &
+          ./gradlew :app:assembleRelease -PreactNativeArchitectures=arm64-v8a --no-daemon --max-workers=2
+
+      - name: Resource history
+        if: always()
+        run: cat "$RUNNER_TEMP/monitor.log" || true
 
       - uses: actions/upload-artifact@v4
         with:
