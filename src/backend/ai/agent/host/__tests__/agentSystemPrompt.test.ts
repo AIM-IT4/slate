@@ -86,7 +86,7 @@ describe('buildAgentSystemPrompt', () => {
       tools: [],
     });
 
-    expect(prompt).toContain('# Cherry Studio Mobile Runtime');
+    expect(prompt).toContain('# Slate Runtime');
     expect(prompt).toContain("Use only this turn's tools, including those available on demand");
     expect(prompt).toContain('carry it through the necessary tool steps');
     expect(prompt).toContain('For a question, answer as soon as you have enough to answer well');
@@ -350,4 +350,21 @@ describe('buildAgentSystemPrompt', () => {
       buildAgentSystemPrompt({ agentInstructions: '', appLanguage: 'en-US', tools: [] }),
     ).not.toContain('## Reading Attachments');
   });
+});
+
+test('describes HTTPS execution only while its MCP command tool is available', () => {
+  const input = {
+    agentInstructions: '',
+    appLanguage: 'en-US' as const,
+    tools: [
+      {
+        ...mcpTool(),
+        ref: { source: 'mcp' as const, serverId: 'execution', rawToolName: 'run_command' },
+      },
+    ],
+  };
+  expect(buildAgentSystemPrompt(input)).toContain('## Cloud Command Execution');
+  expect(buildAgentSystemPrompt({ ...input, tools: [] })).not.toContain(
+    '## Cloud Command Execution',
+  );
 });

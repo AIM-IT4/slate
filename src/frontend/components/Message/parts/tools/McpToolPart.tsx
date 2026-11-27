@@ -20,6 +20,7 @@ import {
   readCherryToolMetadata,
 } from '@/shared/data/types/uiParts';
 
+import { ExecutionPreview } from './ExecutionPreview';
 import { McpResourceLink } from './McpResourceLink';
 import {
   getToolDisplayState,
@@ -46,39 +47,44 @@ export function McpToolPart({ part }: McpToolPartProps) {
   const statusText = getMcpToolStatusText(part, isRemoteError, t);
 
   return (
-    <MessagePart.Tool
-      state={getToolDisplayState(part)}
-      statusText={statusText}
-      statusTone={getToolStatusTone(
-        part,
-        readCherryMeta(part)?.settledByApp || part.state === 'output-error' || isRemoteError,
-      )}
-      testID="mcp-tool-part"
-      title={title}
-    >
-      <McpAppConversationBridge value={conversation}>
-        {part.state === 'output-available' && part.mcpApp ? (
-          <McpAppLauncher reference={part.mcpApp} input={part.input} result={part.output} />
-        ) : null}
-        {normalizedOutput ? (
-          <McpOutputSection normalized={normalizedOutput} source={part.mcpSource} />
-        ) : null}
-        {readCherryMeta(part)?.settledByApp ? (
-          <MessageDetailText
-            tone="danger"
-            title={t('chat.mcpTool.response')}
-            value={t('chat.mcpTool.unfinishedDetail')}
-          />
-        ) : part.state === 'output-error' ? (
-          <MessageDetailText
-            tone="danger"
-            title={t('chat.mcpTool.response')}
-            value={part.errorText}
-          />
-        ) : null}
-        <MessageDetailValue title={t('chat.mcpTool.arguments')} value={part.input} />
-      </McpAppConversationBridge>
-    </MessagePart.Tool>
+    <>
+      <MessagePart.Tool
+        state={getToolDisplayState(part)}
+        statusText={statusText}
+        statusTone={getToolStatusTone(
+          part,
+          readCherryMeta(part)?.settledByApp || part.state === 'output-error' || isRemoteError,
+        )}
+        testID="mcp-tool-part"
+        title={title}
+      >
+        <McpAppConversationBridge value={conversation}>
+          {part.state === 'output-available' && part.mcpApp ? (
+            <McpAppLauncher reference={part.mcpApp} input={part.input} result={part.output} />
+          ) : null}
+          {normalizedOutput ? (
+            <McpOutputSection normalized={normalizedOutput} source={part.mcpSource} />
+          ) : null}
+          {readCherryMeta(part)?.settledByApp ? (
+            <MessageDetailText
+              tone="danger"
+              title={t('chat.mcpTool.response')}
+              value={t('chat.mcpTool.unfinishedDetail')}
+            />
+          ) : part.state === 'output-error' ? (
+            <MessageDetailText
+              tone="danger"
+              title={t('chat.mcpTool.response')}
+              value={part.errorText}
+            />
+          ) : null}
+          <MessageDetailValue title={t('chat.mcpTool.arguments')} value={part.input} />
+        </McpAppConversationBridge>
+      </MessagePart.Tool>
+      {normalizedOutput && toolMetadata?.serverName === 'Slate Cloud Execution' ? (
+        <ExecutionPreview result={normalizedOutput} />
+      ) : null}
+    </>
   );
 }
 

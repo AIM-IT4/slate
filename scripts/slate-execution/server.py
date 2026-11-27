@@ -73,7 +73,7 @@ def validate(name, args):
 
 
 def drain(pipe, job, stream):
-    while chunk := pipe.read(4096):
+    while chunk := pipe.read1(4096):
         with LOCK:
             job[stream + '_bytes'] += len(chunk)
             job[stream] = (job[stream] + chunk)[-LIMIT:]
@@ -130,7 +130,7 @@ def execute(args):
             if len(JOBS) >= 1000:
                 raise ValueError('Job history limit reached. Restart the workspace to begin a new session.')
             # Only the workspace environment goes to commands. Model credentials stay on the phone.
-            env = {'PATH': os.environ.get('PATH', '/usr/local/bin:/usr/bin:/bin'),
+            env = {'PATH': str(ROOT / 'bin') + ':' + os.environ.get('PATH', '/usr/local/bin:/usr/bin:/bin'),
                    'HOME': str(ROOT), 'LANG': 'C.UTF-8', 'PYTHONUNBUFFERED': '1',
                    'MPLCONFIGDIR': str(ROOT / '.matplotlib')}
             proc = subprocess.Popen(['/bin/bash', '-c', args['command']], cwd=cwd, env=env,
@@ -286,4 +286,12 @@ if __name__ == '__main__':
     if len(TOKEN_HASH) != 64:
         raise SystemExit('Set SLATE_TOKEN_SHA256 to the SHA-256 of a unique access key')
     bytes.fromhex(TOKEN_HASH)
+    try:
+        import imageio_ffmpeg
+        (ROOT / 'bin').mkdir(exist_ok=True)
+        ffmpeg = ROOT / 'bin' / 'ffmpeg'
+        if not ffmpeg.exists():
+            ffmpeg.symlink_to(imageio_ffmpeg.get_ffmpeg_exe())
+    except ImportError:
+        pass  # Docker builds already include the system ffmpeg package.
     ThreadingHTTPServer(('0.0.0.0', int(os.environ.get('PORT', '10000'))), Handler).serve_forever()
