@@ -13,7 +13,7 @@ This is a direction for contributions, not a release schedule. Proposed work is 
 
 ## Next: make the preview easier to trust and try
 
-- [x] Publish signed Android release assets with checksums and matching source references: [1.5.1 preview](https://github.com/AIM-IT4/slate/releases/tag/v1.5.1).
+- [x] Publish signed Android release assets with checksums and matching source references: [1.6.0 preview](https://github.com/AIM-IT4/slate/releases/tag/v1.6.0).
 - [ ] Add a clean, consented screenshot gallery and a short real-device demo.
 - [ ] Expand Android device testing for video codecs, audio extraction, long-running tools, keyboard behavior, and memory pressure.
 - [ ] Make video-service configuration portable beyond the current fixed Slate Execution integration.
