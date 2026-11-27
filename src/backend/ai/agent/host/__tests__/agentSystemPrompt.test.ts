@@ -368,3 +368,19 @@ test('describes HTTPS execution only while its MCP command tool is available', (
     '## Cloud Command Execution',
   );
 });
+
+test('prefers available Instabox execution and delivers completed files to the phone', () => {
+  const tools = ['slate_save_file_to_phone', 'exec', 'run_command'].map((rawToolName) => ({
+    ...mcpTool(),
+    ref: {
+      source: 'mcp' as const,
+      serverId: rawToolName === 'run_command' ? 'legacy' : 'instabox',
+      rawToolName,
+    },
+  }));
+  const prompt = buildAgentSystemPrompt({ agentInstructions: '', appLanguage: 'en-US', tools });
+  expect(prompt).toContain('## Instabox Execution and Automatic File Delivery');
+  expect(prompt).not.toContain('## Cloud Command Execution');
+  expect(prompt).toContain('sha256sum');
+  expect(prompt).toContain('do not render it again merely to repair a download');
+});

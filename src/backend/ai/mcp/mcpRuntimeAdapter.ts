@@ -87,8 +87,14 @@ export type McpToolInvocationCapability = {
     result: unknown,
     signal: AbortSignal,
     workspaceFolderId?: string | null,
+    invocation?: {
+      ref: Extract<RuntimeToolRef, { source: 'mcp' }>;
+      input: RuntimeJsonValue;
+      discovered: McpToolInvocationSnapshot;
+    },
   ): Promise<{
     value: unknown;
+    modelResult?: unknown;
     artifacts: import('../agent/runtime/types').RuntimeArtifact[];
     images?: McpRetainedImage[];
     /** Managed file holding model text that exceeded the model budget. */
@@ -316,21 +322,28 @@ async function executeMcpRuntimeTool(input: {
     );
     if (bound.didTimeout() || call.signal.aborted) throw incomplete();
 
+    // The remote transport deadline ends here; file retention owns its bounded transfer budget.
+    bound.done();
     const stored: {
       value: unknown;
+      modelResult?: unknown;
       artifacts: RuntimeToolResult['artifacts'];
       images?: McpRetainedImage[];
       fullTextFileEntryId?: string;
-    } = (await input.storeResult?.(remoteResult, call.signal, input.workspaceFolderId)) ?? {
+    } = (await input.storeResult?.(remoteResult, call.signal, input.workspaceFolderId, {
+      ref: input.ref,
+      input: call.input,
+      discovered: input.discovered,
+    })) ?? {
       value: remoteResult,
       artifacts: [],
     };
     const value = projectMcpResult(stored.value);
     const isToolError =
-      remoteResult !== null &&
-      typeof remoteResult === 'object' &&
-      'isError' in remoteResult &&
-      remoteResult.isError === true;
+      stored.value !== null &&
+      typeof stored.value === 'object' &&
+      'isError' in stored.value &&
+      stored.value.isError === true;
     trace?.end(
       isToolError ? 'error' : 'ok',
       isToolError ? { 'error.category': 'tool_result' } : undefined,
@@ -339,7 +352,7 @@ async function executeMcpRuntimeTool(input: {
       artifacts: stored.artifacts,
       value,
       modelContent: projectMcpModelContent(
-        remoteResult,
+        stored.modelResult ?? remoteResult,
         stored.fullTextFileEntryId
           ? `Full text: read_file with file_entry_id ${stored.fullTextFileEntryId}, paging with start_line and limit.`
           : undefined,

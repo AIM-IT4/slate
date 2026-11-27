@@ -26,6 +26,7 @@ A conversation can be a place to think, write code, inspect a repository, or wor
 
 - **Claude and OpenAI, together.** Configure your providers, pick models, and switch between agents with different instructions and tools.
 - **MCP from your phone.** Connect remote HTTPS MCP servers and enable their tools for an agent. Compatible execution servers can run code on a remote machine without an SSH setup.
+- **Instabox execution with local delivery.** Run code and render on your connected Instabox machine, then let the Agent save verified completed files into Slate on your phone for inline viewing. [Setup](docs/slate/getting-started.md#instabox-execution-and-on-device-deliverables).
 - **Files and media in the conversation.** View interactive HTML charts, images and supported documents inside chat, with inline audio and video playback.
 - **Video, with more context.** The attachment pipeline can combine sampled frames with an on-device Whisper speech transcript. See [media support and limits](docs/slate/getting-started.md#video-and-audio).
 - **Usage within reach.** A compact chat tile shows today's recorded tokens and cost. Open the full statistics view for the breakdown.

@@ -15,6 +15,7 @@ import type { McpServer, RemoteMcpServer } from '@/shared/data/types/mcpServer';
 
 import type { TraceRecorder } from '../../observability';
 import { createTraceRecorder } from '../../observability/__tests__/_traceRecorder';
+import * as instaboxFiles from '../instaboxFiles';
 import type { McpExecutableToolDescriptor } from '../mcpRuntimeAdapter';
 import { McpRuntimeService } from '../McpRuntimeService';
 import { createMcpConnectionKey } from '../mcpToolCatalogStore';
@@ -1994,4 +1995,90 @@ describe('cached MCP prompts', () => {
     ).rejects.toMatchObject({ code: 'mcp_tool_unavailable' });
     expect(client.getPrompt).toHaveBeenCalledTimes(2);
   });
+});
+
+describe('Instabox phone delivery authority', () => {
+  it('publishes a managed artifact locally without sending a fake tool or credentials to the remote MCP server', async () => {
+    const server = makeServer({
+      endpointUrl: 'https://api.instabox.sh/mcp',
+      headers: { 'X-API-Key': 'private-test-key' },
+    });
+    const client = makeClient(makeRawTools(['exec']));
+    mockCreateMCPClient.mockResolvedValue(client);
+    const { service } = makeService([server]);
+    const saved = {
+      value: { content: [{ type: 'text', text: 'Saved to phone' }] },
+      modelResult: { content: [{ type: 'text', text: 'Saved to phone' }] },
+      artifacts: [
+        {
+          ref: { kind: 'managed-file' as const, fileEntryId: 'entry-1' },
+          kind: 'created' as const,
+          name: 'reel.mp4',
+          mediaType: 'video/mp4',
+        },
+      ],
+    };
+    const save = jest.spyOn(instaboxFiles, 'saveInstaboxFileToPhone').mockResolvedValue(saved);
+    try {
+      const descriptors = await service.listExecutableToolDescriptors(server.id);
+      const descriptor = descriptors.find(
+        (tool) => tool.rawToolName === instaboxFiles.INSTABOX_SAVE_FILE_TOOL,
+      )!;
+      expect(descriptor).toBeDefined();
+      const [tool] = service.createRuntimeTools([{ approval: 'ask', descriptor }]);
+      const result = await tool!.execute({
+        input: {
+          machine_id: 'm_1',
+          path: '/data/slate/outputs/reel.mp4',
+          bytes: 123,
+          sha256: 'a'.repeat(64),
+        },
+        signal: new AbortController().signal,
+        toolCallId: 'delivery-1',
+        turnId: 'turn-1',
+      });
+      expect(result.artifacts).toEqual(saved.artifacts);
+      expect(result.modelContent).toEqual([{ type: 'text', text: 'Saved to phone' }]);
+      expect(save).toHaveBeenCalledWith(expect.objectContaining({ headers: server.headers }));
+      expect(client.callTool).not.toHaveBeenCalled();
+      expect(JSON.stringify(result)).not.toContain('private-test-key');
+    } finally {
+      await service._doStop();
+    }
+  });
+
+  it.each(['disabled', 'endpoint', 'credentials'])(
+    'revokes a frozen delivery capability after %s changes',
+    async (change) => {
+      const server = makeServer({
+        endpointUrl: 'https://api.instabox.sh/mcp',
+        headers: { Authorization: 'Bearer old-test-key' },
+      });
+      const client = makeClient(makeRawTools(['exec']));
+      mockCreateMCPClient.mockResolvedValue(client);
+      const { service } = makeService([server]);
+      const save = jest.spyOn(instaboxFiles, 'saveInstaboxFileToPhone');
+      try {
+        const descriptor = (await service.listExecutableToolDescriptors(server.id)).find(
+          (tool) => tool.rawToolName === instaboxFiles.INSTABOX_SAVE_FILE_TOOL,
+        )!;
+        const [tool] = service.createRuntimeTools([{ approval: 'ask', descriptor }]);
+        if (change === 'disabled') server.disabledTools = [instaboxFiles.INSTABOX_SAVE_FILE_TOOL];
+        else if (change === 'endpoint') server.endpointUrl = 'https://evil.test/mcp';
+        else server.headers = { Authorization: 'Bearer changed-test-key' };
+        await expect(
+          tool!.execute({
+            input: { machine_id: 'm_1', path: '/data/reel.mp4', bytes: 1, sha256: 'a'.repeat(64) },
+            signal: new AbortController().signal,
+            toolCallId: 'delivery-1',
+            turnId: 'turn-1',
+          }),
+        ).rejects.toMatchObject({ code: 'mcp_tool_unavailable' });
+        expect(save).not.toHaveBeenCalled();
+        expect(client.callTool).not.toHaveBeenCalled();
+      } finally {
+        await service._doStop();
+      }
+    },
+  );
 });

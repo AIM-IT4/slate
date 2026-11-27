@@ -57,6 +57,12 @@ import { isSameMcpConnectionConfig } from '@/shared/utils/mcpConnectionConfig';
 
 import type { TraceRecorder } from '../observability';
 import { endMcpTrace } from './endMcpTrace';
+import {
+  INSTABOX_SAVE_FILE_TOOL,
+  isInstaboxEndpoint,
+  saveInstaboxFileToPhone,
+  withInstaboxFileTool,
+} from './instaboxFiles';
 import { McpAppAccess, type McpAppConnection } from './McpAppAccess';
 import { mcpToolAppUri, mcpToolVisible } from './mcpAppMetadata';
 import { McpAppRuntime } from './McpAppRuntime';
@@ -617,7 +623,7 @@ export class McpRuntimeService extends BaseService implements McpModule {
     }
 
     const rawTools = await this.fetchTools(server, this.getRuntimeState(server));
-    return rawTools.map((tool) => ({
+    return withInstaboxFileTool(server.endpointUrl, rawTools).map((tool) => ({
       description: tool.description,
       name: tool.name,
     }));
@@ -665,7 +671,7 @@ export class McpRuntimeService extends BaseService implements McpModule {
     if (!this.isCurrentState(state)) {
       throw unavailableToolError();
     }
-    const definitions = catalog.tools;
+    const definitions = withInstaboxFileTool(server.endpointUrl, catalog.tools);
     const connectionKey =
       server.origin === 'builtin' ? undefined : await this.getConnectionKey(state);
     const disabledTools = new Set(server.disabledTools);
@@ -722,7 +728,31 @@ export class McpRuntimeService extends BaseService implements McpModule {
   /** Adapt an already selected catalog without reading Agent bindings or injecting the Host. */
   createRuntimeTools(selections: readonly McpRuntimeToolSelection[]): RuntimeTool[] {
     return createMcpRuntimeTools(selections, {
-      storeResult: storeMcpResultFiles,
+      storeResult: async (result, signal, workspaceFolderId, invocation) => {
+        if (
+          invocation?.ref.rawToolName === INSTABOX_SAVE_FILE_TOOL &&
+          isInstaboxEndpoint(invocation.discovered.endpointUrl)
+        ) {
+          const server = await mcpServerService.getById(invocation.ref.serverId);
+          const state = this.runtimeStates.get(server.id);
+          if (
+            !server.isEnabled ||
+            server.disabledTools.includes(INSTABOX_SAVE_FILE_TOOL) ||
+            server.endpointUrl !== invocation.discovered.endpointUrl ||
+            !state ||
+            state.catalogGeneration !== invocation.discovered.generation ||
+            !isSameMcpConnectionConfig(state.connectionConfig, toMcpConnectionConfig(server))
+          )
+            throw unavailableToolError();
+          return saveInstaboxFileToPhone({
+            input: invocation.input,
+            headers: server.headers,
+            folderId: workspaceFolderId,
+            signal: AbortSignal.any([signal, state.abort.signal]),
+          });
+        }
+        return storeMcpResultFiles(result, signal, workspaceFolderId);
+      },
       traces: this.traces,
       invoke: (ref, input, signal, discovered, progress) =>
         this.invokeTool(ref, input, signal, discovered, progress),
@@ -1186,6 +1216,18 @@ export class McpRuntimeService extends BaseService implements McpModule {
       state.catalogGeneration !== discovered.generation
     ) {
       throw unavailableToolError();
+    }
+    if (ref.rawToolName === INSTABOX_SAVE_FILE_TOOL && isInstaboxEndpoint(server.endpointUrl)) {
+      if (
+        !withInstaboxFileTool(server.endpointUrl, state.catalog?.tools ?? []).some(
+          (tool) => tool.name === INSTABOX_SAVE_FILE_TOOL,
+        )
+      )
+        throw unavailableToolError();
+      signal.throwIfAborted();
+      return {
+        content: [{ type: 'text', text: 'Preparing completed file transfer to this phone.' }],
+      };
     }
     const generation = state.generation;
     const invocationSignal = AbortSignal.any([signal, state.abort.signal]);

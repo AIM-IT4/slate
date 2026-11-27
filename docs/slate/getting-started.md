@@ -44,3 +44,26 @@ The compact tile above the chat input shows today's recorded token usage and ava
 ## Get help
 
 Use the [bug report form](https://github.com/AIM-IT4/slate/issues/new?template=0_bug_report.yml). Include the app version, device, Android version, steps, and a redacted error. Report vulnerabilities through [SECURITY.md](../../SECURITY.md).
+
+## Instabox execution and on-device deliverables
+
+Add the hosted Instabox MCP connection (`https://api.instabox.sh/mcp`) with its API key in the
+connection's saved request headers, then enable that server in the chosen Agent's Tools. Merely
+saving a server does not bind it to an Agent. When available, Instabox takes precedence in the
+execution guidance over the legacy Slate Cloud Execution service. No Render relay or SSH is used
+for this file-delivery path. Keep work under `/data/slate`, with finished outputs under
+`/data/slate/outputs`, and preserve the machine.
+
+After finishing a render, the Agent computes the final file's byte count and SHA-256 and calls
+`slate_save_file_to_phone`. Slate adds this local delivery tool to a verified Instabox catalog; it
+is not a tool implemented by the remote server. It uses the saved connection's authentication to
+stream the file directly from Instabox's file API, verifies size and SHA-256, and attaches the
+managed on-device file to the conversation. Supported formats use the existing inline player or
+preview. It does not synchronize every file on the VM or watch a running job while the app is closed.
+
+The file limit is 2 GiB and each transfer has a five-minute timeout. The machine must be available
+for the transfer. Cancellation, HTTP errors, incomplete bytes and checksum mismatches do not
+publish a completed attachment. The remote original is not deleted, so a failed download can be
+retried without rendering again. Files saved successfully remain in Slate's private on-device
+file library after the machine stops. Share/Open with exports a copy; uninstalling Slate can
+remove its private files. This connection and phone transfer require live device acceptance.

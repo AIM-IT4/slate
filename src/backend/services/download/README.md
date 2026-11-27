@@ -22,3 +22,9 @@ Domains own storage directories, active-job deduplication, retry/mirror choices,
 deletion and disposal. Closing a screen need not cancel a transfer; shutting down its owner must
 abort and await it. Retries reuse completed verified files and restart the interrupted file.
 There is no background execution lease or automatic restart after process death.
+
+`downloadAuthenticatedFile` owns private authenticated streaming downloads. Unlike the native
+anonymous asset downloader, it uses Expo's streaming fetch with redirect mode `error` and omitted
+cookies, then writes bounded chunks to a private partial file. Callers pin the HTTPS origin and
+supply an exact byte count and SHA-256. A file is published only after both pass. Instabox uses
+this path because its large-file API requires authentication; no public bearer links are created.

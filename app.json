@@ -2,7 +2,7 @@
   "expo": {
     "name": "Slate",
     "slug": "slate-ai",
-    "version": "1.6.0",
+    "version": "1.7.0",
     "locales": {
       "de": "./assets/permissions/locales/de.json",
       "el": "./assets/permissions/locales/el.json",
@@ -154,7 +154,7 @@
         "android.permission.POST_NOTIFICATIONS"
       ],
       "allowBackup": false,
-      "versionCode": 15
+      "versionCode": 16
     },
     "web": {
       "output": "static",
