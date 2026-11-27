@@ -1,5 +1,5 @@
 /**
- * Backend cache corresponding to Cherry Desktop's Main CacheService.
+ * Backend cache corresponding to Slate Desktop's Main CacheService.
  *
  * Mobile keeps the Main-owned memory and persist tiers. Electron-only shared
  * cache relay, BrowserWindow synchronization, and IPC handlers are omitted

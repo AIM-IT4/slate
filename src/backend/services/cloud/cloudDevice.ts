@@ -70,13 +70,13 @@ export function cloudSignatureHeaders(
   const requestId = Crypto.randomUUID().toLowerCase();
   const digest = sha256HexOfText(body);
   return {
-    'Cherry-Device-ID': deviceId,
-    'Cherry-Machine-Code': device.machineCode,
-    'Cherry-Request-ID': requestId,
-    'Cherry-Timestamp': timestamp,
-    'Cherry-Body-SHA256': digest,
-    'Cherry-Signature-Version': '2',
-    'Cherry-Signature': device.sign(
+    'Slate-Device-ID': deviceId,
+    'Slate-Machine-Code': device.machineCode,
+    'Slate-Request-ID': requestId,
+    'Slate-Timestamp': timestamp,
+    'Slate-Body-SHA256': digest,
+    'Slate-Signature-Version': '2',
+    'Slate-Signature': device.sign(
       [
         'cherry-device-signature-v2',
         method,

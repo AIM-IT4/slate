@@ -38,7 +38,7 @@ type PiSessionBinding = {
   revision: number;
 };
 
-/** The binding identifies a disposable copy of a Cherry transcript revision. */
+/** The binding identifies a disposable copy of a Slate transcript revision. */
 const SessionBinding = defineDocFamily<PiSessionBinding, number>({
   kind: 'cherry.session',
   version: 1,
@@ -116,7 +116,7 @@ const UsagePending = defineDocFamily<{ ids: string[] }, null>({
   initial: () => ({ ids: [] }),
 });
 
-/** Managed-file authorization is rebuilt from Cherry and extended by admitted inputs/tools. */
+/** Managed-file authorization is rebuilt from Slate and extended by admitted inputs/tools. */
 const ResourceScope = defineDoc<{ fileEntryIds: string[] }>({
   kind: 'cherry.resources',
   version: 1,
@@ -584,7 +584,7 @@ export class PiDurableRuntime {
         );
         metadata.editBoundary = entry.id;
       }
-      // Until Cherry commits this same revision, recovery rejects this copy.
+      // Until Slate commits this same revision, recovery rejects this copy.
       binding.revision = input.revision + 1;
     }, context);
   }
@@ -847,7 +847,7 @@ export class PiDurableRuntime {
     }, context);
   }
 
-  /** Discover working copies so the Host can compare their revisions with Cherry before recovery. */
+  /** Discover working copies so the Host can compare their revisions with Slate before recovery. */
   async sessions(context: Context = BACKGROUND_CONTEXT) {
     const sessions: { sessionId: string; binding: Readonly<PiSessionBinding> }[] = [];
     let next: Cursor | undefined;
@@ -1130,7 +1130,7 @@ export class PiDurableRuntime {
 function assertWorkingCopy(binding: Readonly<PiSessionBinding>) {
   if (!Number.isSafeInteger(binding.revision) || binding.revision < 0)
     throw new Error(
-      'This Pi database predates Cherry-owned transcripts. Preserve it for migration; it cannot be discarded as a working copy.',
+      'This Pi database predates Slate-owned transcripts. Preserve it for migration; it cannot be discarded as a working copy.',
     );
 }
 

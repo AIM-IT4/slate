@@ -11,7 +11,7 @@
  * access remains unknown after prompting, so queries can return no data.
  *
  * Resolution is per turn on purpose. Permissions and the drawing-model setting
- * change outside Cherry, so a catalog cached across turns would offer tools the
+ * change outside Slate, so a catalog cached across turns would offer tools the
  * user just revoked.
  */
 

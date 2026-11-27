@@ -41,12 +41,12 @@ export interface RuntimeSqlDatabase extends RuntimeSqlExecutor {
 }
 
 /**
- * One engine working copy of a Cherry Session. A Session whose message tree
+ * One engine working copy of a Slate Session. A Session whose message tree
  * branches keeps up to {@link LANES_PER_SESSION} copies in fixed slots; slot 0
  * is the copy every Session had before branching. Copies are disposable: the
- * Host rebuilds a missing one from Cherry history.
+ * Host rebuilds a missing one from Slate history.
  *
- * A lane is an object, not a string, so it can never be passed where a Cherry
+ * A lane is an object, not a string, so it can never be passed where a Slate
  * Session id is expected.
  */
 export type RuntimeLane = Readonly<{ sessionId: string; slot: number }>;
@@ -71,7 +71,7 @@ export function parseLaneKey(key: string): RuntimeLane {
     : runtimeLane(key.slice(0, index), Number(key.slice(index + 1)));
 }
 
-/** `sessionId` is always the Cherry Session; `slot` names the working copy that runs the input. */
+/** `sessionId` is always the Slate Session; `slot` names the working copy that runs the input. */
 export type RuntimeExecutionIdentity = RuntimeLane & { turnId: string; requestId: string };
 export type RuntimeUsageOwner =
   | RuntimeExecutionIdentity
@@ -143,7 +143,7 @@ export type RuntimeConversationConfiguration = {
 
 export type RuntimeConversationSeed = {
   lane: RuntimeLane;
-  /** Cherry-owned history revision. A different revision must never resume this working copy. */
+  /** Slate-owned history revision. A different revision must never resume this working copy. */
   revision: number;
   configuration: RuntimeConversationConfiguration;
   history?: {
@@ -244,7 +244,7 @@ export type RuntimeConversationEvent =
   | { type: 'context.usage.updated'; usage: RuntimeContextUsage | null }
   | { type: 'queue.updated'; queue: readonly RuntimeDurableTurn[] };
 
-/** Persistent execution working copies. Cherry owns the user transcript and its lifecycle. */
+/** Persistent execution working copies. Slate owns the user transcript and its lifecycle. */
 export interface DurableAgentRuntime {
   /** Inspect existing storage without opening it, scheduling tasks or resuming work. */
   inspectStorage?(signal: AbortSignal): Promise<'ready' | 'not_initialized' | 'failed'>;
@@ -303,8 +303,8 @@ export interface DurableAgentRuntime {
   configure(lane: RuntimeLane, configuration: RuntimeConversationConfiguration): Promise<void>;
   /**
    * Replaces answer text parts anywhere in this copy's history without replaying tools or changing
-   * provider affinity. Undefined means this copy cannot represent the edit and Cherry must rebuild
-   * it. On success, atomically advances the binding to revision + 1 before Cherry commits the same
+   * provider affinity. Undefined means this copy cannot represent the edit and Slate must rebuild
+   * it. On success, atomically advances the binding to revision + 1 before Slate commits the same
    * history revision. A compacted copy returns its refreshed context for its newest answer.
    */
   editReply(

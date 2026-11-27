@@ -49,7 +49,7 @@ export function streamVertexAnthropic(
     // Pi consumes beta.messages.create; Vertex intentionally omits the unrelated batch APIs.
     client: client as unknown as AnthropicOptions['client'],
     toolChoice: options?.toolChoice,
-    // Cherry's existing onPayload mapping owns the exact reasoning parameters. This flag also
+    // Slate's existing onPayload mapping owns the exact reasoning parameters. This flag also
     // lets Pi select the appropriate thinking beta headers without duplicating its converter.
     thinkingEnabled: Boolean(options?.reasoning),
   });

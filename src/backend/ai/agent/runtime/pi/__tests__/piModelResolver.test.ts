@@ -774,7 +774,7 @@ describe('Pi model resolver', () => {
       expect.objectContaining({
         apiKey: 'secret-key',
         headers: expect.objectContaining({
-          'X-App-Name': 'CherryStudioMobile',
+          'X-App-Name': 'Slate',
           'X-Custom': 'custom',
         }),
         maxRetries: 0,
@@ -891,7 +891,7 @@ describe('Pi model resolver', () => {
         api,
         baseUrl,
         headers: {
-          'User-Agent': 'CherryStudioMobile/1.0',
+          'User-Agent': 'Slate/1.0',
           'x-opencode-session': 'conversation-session',
         },
       });

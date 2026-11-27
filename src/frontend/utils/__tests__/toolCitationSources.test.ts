@@ -1,6 +1,6 @@
 import { citableToolName, resolveMessageCitations, toolCitationSources } from '../messageCitations';
 
-test('only declared built-ins and exact Cherry runtime names can supply tool citations', () => {
+test('only declared built-ins and exact Slate runtime names can supply tool citations', () => {
   expect(citableToolName('web_search')).toBeUndefined();
   expect(citableToolName('web_search', undefined, true)).toBe('web_search');
   expect(citableToolName('mcp__other__web_search')).toBeUndefined();

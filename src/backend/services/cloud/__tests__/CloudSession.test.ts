@@ -14,7 +14,7 @@ jest.mock('../cloudDevice', () => ({
     method: string,
     path: string,
     body: string,
-  ) => ({ 'Cherry-Device-ID': id, signatureInput: [method, path, body].join('\n') }),
+  ) => ({ 'Slate-Device-ID': id, signatureInput: [method, path, body].join('\n') }),
 }));
 
 function setup() {
@@ -118,13 +118,13 @@ test('concurrent reads share device-bound product entry and never send IdP crede
     expect.objectContaining({
       headers: expect.objectContaining({
         authorization: 'Bearer cloud-access',
-        'Cherry-Device-ID': 'device-id',
+        'Slate-Device-ID': 'device-id',
       }),
     }),
     expect.objectContaining({
       headers: expect.objectContaining({
         authorization: 'Bearer cloud-access',
-        'Cherry-Device-ID': 'device-id',
+        'Slate-Device-ID': 'device-id',
       }),
     }),
   ]);

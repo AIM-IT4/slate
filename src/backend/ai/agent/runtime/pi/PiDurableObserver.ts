@@ -34,7 +34,7 @@ type InputView = {
 };
 const logger = loggerService.withContext('PiDurableObserver');
 
-/** A disposable presentation mount. Cherry owns settled history; Pi supplies current execution. */
+/** A disposable presentation mount. Slate owns settled history; Pi supplies current execution. */
 export class PiDurableObserver {
   private stream: WatchHandle<ConversationView> | undefined;
   private unsubscribeSubmissions: (() => void) | undefined;

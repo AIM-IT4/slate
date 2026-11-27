@@ -39,7 +39,7 @@ it('uses only the matching organization when the contact profile contains multip
             {
               orgEmployeeModel: {
                 corpId: 'org-1',
-                orgName: 'Cherry',
+                orgName: 'Slate',
                 userId: 'user-1',
                 orgUserName: 'Sam',
               },
@@ -50,7 +50,7 @@ it('uses only the matching organization when the contact profile contains multip
     ],
   });
   expect(await enrichDingtalkAccount(credential, signal)).toMatchObject({
-    account: { corpId: 'org-1', userId: 'user-1', userName: 'Sam', corpName: 'Cherry' },
+    account: { corpId: 'org-1', userId: 'user-1', userName: 'Sam', corpName: 'Slate' },
   });
   expect(remote.close).toHaveBeenCalledTimes(1);
 });

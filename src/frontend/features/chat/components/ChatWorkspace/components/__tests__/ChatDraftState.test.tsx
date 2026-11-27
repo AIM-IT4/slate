@@ -238,7 +238,7 @@ describe('ChatDraftState', () => {
       const element = (
         <I18nextProvider i18n={i18n}>
           <ChatDraftState
-            assistantName="Cherry Assistant"
+            assistantName="Slate Assistant"
             contentBottomInset={24}
             modelSetup={modelSetup}
           />

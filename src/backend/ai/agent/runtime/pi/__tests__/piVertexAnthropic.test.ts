@@ -55,7 +55,7 @@ async function bind(fetch: FetchFunction) {
     accessToken: 'host-token',
     vertex: { projectId: 'project-id', location: 'us-east5' },
     fetch,
-    headers: { Authorization: 'wrong-token', 'X-Goog-Api-Key': 'wrong-key', 'X-App': 'Cherry' },
+    headers: { Authorization: 'wrong-token', 'X-Goog-Api-Key': 'wrong-key', 'X-App': 'Slate' },
     maxRetries: 0,
     maxTokens: 4096,
     temperature: 0.5,
@@ -154,7 +154,7 @@ describe('Vertex Claude official SDK integration', () => {
     expect(headers.get('authorization')).toBe('Bearer host-token');
     for (const name of ['x-api-key', 'x-goog-api-key', 'api-key'])
       expect(headers.has(name)).toBe(false);
-    expect(headers.get('x-app')).toBe('Cherry');
+    expect(headers.get('x-app')).toBe('Slate');
     expect(headers.get('user-agent')).toBe('CherryMobile/Test');
     const body = JSON.parse(String(init?.body));
     expect(body).toMatchObject({

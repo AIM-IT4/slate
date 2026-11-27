@@ -61,14 +61,14 @@ test('signs exact UTF-8 body bytes and the idempotency key using the published v
     body,
     device.machineCode,
   );
-  expect(headers['Cherry-Body-SHA256']).toBe(
+  expect(headers['Slate-Body-SHA256']).toBe(
     '862ece927adfbee83d138acac6f093c1d67272618334e96886fb8c11a62097ff',
   );
-  expect(headers['Cherry-Signature']).toBe(
+  expect(headers['Slate-Signature']).toBe(
     'KLBGmwxKvF2sGoRzNxN_xOMX3gYL864mZp32sZKUITjEEpKm9i661GVtkdPJ6rrvSO4RlCtylFJXKCtjISduCw',
   );
   expect(headers['Idempotency-Key']).toBe(device.machineCode);
-  expect(headers['Cherry-Request-ID']).toBe('018f47a2-7d3b-7c91-b8f5-8b3f4c6d2a10');
+  expect(headers['Slate-Request-ID']).toBe('018f47a2-7d3b-7c91-b8f5-8b3f4c6d2a10');
   expect(
     cloudSignatureHeaders(
       device,
@@ -77,13 +77,13 @@ test('signs exact UTF-8 body bytes and the idempotency key using the published v
       '/v1/messages',
       `${body}\n`,
       device.machineCode,
-    )['Cherry-Signature'],
-  ).not.toBe(headers['Cherry-Signature']);
+    )['Slate-Signature'],
+  ).not.toBe(headers['Slate-Signature']);
   expect(
     cloudSignatureHeaders(device, 'device-id', 'POST', '/v1/messages', body, 'another-key')[
-      'Cherry-Signature'
+      'Slate-Signature'
     ],
-  ).not.toBe(headers['Cherry-Signature']);
+  ).not.toBe(headers['Slate-Signature']);
 });
 
 test('signs the raw query and includes an empty idempotency field for GET', () => {
@@ -100,16 +100,16 @@ test('signs the raw query and includes an empty idempotency field for GET', () =
     'GET',
     '/v1/models?limit=01000&catalog=full',
   );
-  expect(first['Cherry-Body-SHA256']).toBe(
+  expect(first['Slate-Body-SHA256']).toBe(
     'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
   );
   expect(first).not.toHaveProperty('Idempotency-Key');
-  expect(second['Cherry-Signature']).not.toBe(first['Cherry-Signature']);
+  expect(second['Slate-Signature']).not.toBe(first['Slate-Signature']);
   const reordered = cloudSignatureHeaders(
     device,
     'device-id',
     'GET',
     '/v1/models?catalog=full&limit=1000',
   );
-  expect(reordered['Cherry-Signature']).not.toBe(first['Cherry-Signature']);
+  expect(reordered['Slate-Signature']).not.toBe(first['Slate-Signature']);
 });

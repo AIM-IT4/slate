@@ -348,7 +348,7 @@ describe('ModelService reordering (#1757)', () => {
       createUniqueModelId('p1', 'o3-mini'),
     ]);
 
-    // Reject cross-provider anchor and Cherry Cloud ids.
+    // Reject cross-provider anchor and Slate Cloud ids.
     await expect(models.reorder(idC, { after: idOther })).rejects.toMatchObject({
       code: ErrorCode.NOT_FOUND,
     });

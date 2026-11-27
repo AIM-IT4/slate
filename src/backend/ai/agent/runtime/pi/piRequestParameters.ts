@@ -43,7 +43,7 @@ export function applyPiRequestParameters(
   }
   removePath(result, ['config', 'thinkingConfig']);
 
-  // Pi may add a thinking budget to Anthropic's output cap; Cherry's cap already includes it.
+  // Pi may add a thinking budget to Anthropic's output cap; Slate's cap already includes it.
   if (api === 'anthropic-messages' && typeof result.max_tokens === 'number') {
     maxTokens = Math.min(maxTokens, result.max_tokens);
     result.max_tokens = maxTokens;

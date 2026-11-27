@@ -1095,7 +1095,7 @@ describe('durable capability boundary', () => {
             providerName: 'mcp_widget',
             displayName: 'Widget',
             approval: 'auto',
-            // Raw MCP metadata cannot describe Cherry's bounded script-visible projection.
+            // Raw MCP metadata cannot describe Slate's bounded script-visible projection.
             outputSchema: { type: 'object', required: ['counter'] },
             execute,
           }),

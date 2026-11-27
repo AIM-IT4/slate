@@ -12,7 +12,7 @@ const RESPONSES_APIS = new Set([
   'openai-codex-responses',
 ]);
 
-/** Preserve the original transcript's IDs and usage while presenting Cherry's explicit text edits. */
+/** Preserve the original transcript's IDs and usage while presenting Slate's explicit text edits. */
 export function applyPiReplyEdits(entries: readonly EntryRecord[]): readonly EntryRecord[] {
   const edits = new Map<EntryId, ContextEdit>();
   for (const entry of entries)
@@ -39,7 +39,7 @@ export function applyPiReplyEdits(entries: readonly EntryRecord[]): readonly Ent
 /**
  * Text part IDs identify native content blocks of the answer's own turn. The current context, with
  * earlier edits applied, must still show each part's expected text. Compacted/imported answers and
- * provider web replay cannot safely be rewritten this way; those use the Cherry rebuild path.
+ * provider web replay cannot safely be rewritten this way; those use the Slate rebuild path.
  */
 export function createPiReplyEdits(
   view: ContextView,

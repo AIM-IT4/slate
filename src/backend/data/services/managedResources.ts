@@ -13,7 +13,7 @@ const MANAGED = 'managed by the enterprise server';
 /** Cloud catalog configuration is supplied by the signed-in account, never by provider settings. */
 export function assertUserOwnedProvider(providerId: string): void {
   if (providerId === CLOUD_PROVIDER_ID || providerId.startsWith(`${CLOUD_PROVIDER_ID}::`))
-    throw DataApiErrorFactory.invalidOperation('provider.edit', 'managed by Cherry Cloud');
+    throw DataApiErrorFactory.invalidOperation('provider.edit', 'managed by Slate Cloud');
 }
 
 let admitEnterpriseSession: () => Promise<void> = async () => {};

@@ -1008,7 +1008,7 @@ describe('Skill turn preparation', () => {
     },
   );
 
-  test('a native Pi turn restores activations from the Cherry transcript', async () => {
+  test('a native Pi turn restores activations from the Slate transcript', async () => {
     const harness = createHarness();
     harness.dependencies.skills = { resolve: async () => scope };
     harness.loadSkillActivations.mockResolvedValue([{ messageId: 'old-answer', activation }]);

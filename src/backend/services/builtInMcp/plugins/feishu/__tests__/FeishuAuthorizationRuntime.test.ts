@@ -57,7 +57,7 @@ beforeEach(() => {
   jest.mocked(feishuOauth.beginUser).mockResolvedValue(challenge);
   jest.mocked(feishuOauth.pollRegistration).mockResolvedValue({ status: 'approved', application });
   jest.mocked(feishuOauth.pollUser).mockResolvedValue({ status: 'approved', tokens });
-  jest.mocked(feishuOauth.getAccountLabel).mockResolvedValue('Cherry (ou_cherry)');
+  jest.mocked(feishuOauth.getAccountLabel).mockResolvedValue('Slate (ou_cherry)');
 });
 afterEach(async () => {
   await Promise.all(runtimes.splice(0).map((runtime) => runtime.stop()));

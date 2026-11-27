@@ -20,7 +20,7 @@ describe('splitToolMentions', () => {
   });
 
   it('leaves the retired web-search mention as plain text', () => {
-    const text = '[Web search](tool://web-search) Cherry Studio';
+    const text = '[Web search](tool://web-search) Slate';
 
     expect(splitToolMentions(text)).toEqual([{ text }]);
   });

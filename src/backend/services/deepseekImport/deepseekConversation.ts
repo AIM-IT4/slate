@@ -13,7 +13,7 @@ export function deepseekFileKey(conversationId: string, file: DeepseekFile): str
 }
 
 /**
- * Keep all branches of the repaired tree; remap conversation-local numeric IDs into Cherry-owned
+ * Keep all branches of the repaired tree; remap conversation-local numeric IDs into Slate-owned
  * identities. A missing time falls back to the index, then to the surrounding messages, then `now`.
  */
 export function convertDeepseekConversation(

@@ -57,7 +57,7 @@ describe('chooseLanes', () => {
     ]);
   });
 
-  test('rebuilds from Cherry history when no current copy holds the parent', async () => {
+  test('rebuilds from Slate history when no current copy holds the parent', async () => {
     await expect(
       chooseLanes(readers({}), { sessionId: SESSION, parent: 'gone', count: 1, current: [] }),
     ).resolves.toEqual([{ lane: lane(0), mode: 'rebuild' }]);

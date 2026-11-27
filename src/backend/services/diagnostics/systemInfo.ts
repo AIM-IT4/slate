@@ -21,7 +21,7 @@ export function collectDiagnosticSystemInfo(warnings: Set<DiagnosticWarning>) {
   return {
     application: collectValue(warnings, () => ({
       isPackaged: !__DEV__,
-      name: Constants.expoConfig?.name ?? 'Cherry Studio',
+      name: Constants.expoConfig?.name ?? 'Slate',
       version: Application.nativeApplicationVersion ?? 'unknown',
       buildNumber: Application.nativeBuildVersion,
       profile: ['development', 'development-simulator', 'preview', 'production'].includes(

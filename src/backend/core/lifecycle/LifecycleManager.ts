@@ -75,7 +75,7 @@ function logTeardownSummary(
 /**
  * Drives services through their lifecycle for one host generation.
  *
- * Ported from Cherry Desktop `src/main/core/lifecycle/LifecycleManager.ts`,
+ * Ported from Slate Desktop `src/main/core/lifecycle/LifecycleManager.ts`,
  * minus the pieces that do not apply: it is not a singleton (one per host), it
  * emits no lifecycle event bus (nothing consumes it), it carries no CPU profiler
  * or event-loop lag sampler (Node-only), and it has no cascade pause/stop

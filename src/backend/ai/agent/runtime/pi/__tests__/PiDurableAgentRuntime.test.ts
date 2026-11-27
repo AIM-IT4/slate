@@ -1064,7 +1064,7 @@ describe('Persistent Agent facade', () => {
         await completed.promise;
         expect(state.requests).toHaveLength(1);
         const prompt = getCurrentSystemPrompt(state.requests[0]!.messages);
-        expect(prompt.match(/# Cherry Studio Mobile Runtime/g)).toHaveLength(1);
+        expect(prompt.match(/# Slate Runtime/g)).toHaveLength(1);
         expect(prompt).toContain('2027-01-01');
         expect(prompt).not.toContain('2026-12-31');
         expect(prompt).toContain(initial.text);
@@ -1452,7 +1452,7 @@ describe('Persistent Agent facade', () => {
         await submitAndWait(runtime, { ...input('first'), input: [{ type: 'text', text }] });
         const serialized = JSON.stringify(payload);
         expect(serialized).toContain(text);
-        expect(serialized).toContain('# Cherry Studio Mobile Runtime');
+        expect(serialized).toContain('# Slate Runtime');
         expect(serialized).toContain('<current-date>');
         expect(serialized).toContain('zh-CN');
         expect(serialized).toContain('Help me inspect my GitHub repositories.');
@@ -2291,7 +2291,7 @@ describe('Native web tools', () => {
           {
             type: 'url_citation',
             url: 'https://example.com/cherry',
-            title: 'Cherry',
+            title: 'Slate',
             start_index: 17,
             end_index: 20,
           },
@@ -2636,7 +2636,7 @@ describe('Native web tools', () => {
               {
                 type: 'web_search_result',
                 url: 'https://example.com/cherry',
-                title: 'Cherry',
+                title: 'Slate',
                 encrypted_content: 'sealed',
               },
             ],
@@ -2799,7 +2799,7 @@ describe('Native web tools', () => {
       await runtime.initialize(state.database, state.ports);
       const parts = (await runtime.message(lane, 'answer-first'))!.turn.parts;
       const source = parts.find((part) => part.type === 'source-url');
-      expect(source).toMatchObject({ url: 'https://example.com/cherry', title: 'Cherry' });
+      expect(source).toMatchObject({ url: 'https://example.com/cherry', title: 'Slate' });
       // The appended source facts are model context, never a second visible answer.
       expect(parts.filter((part) => part.type === 'text')).toEqual([
         expect.objectContaining({
@@ -2907,7 +2907,7 @@ describe('Native web tools', () => {
           {
             type: 'web_search_result',
             url: 'https://example.com/cherry',
-            title: 'Cherry',
+            title: 'Slate',
             encrypted_content: 'sealed',
           },
         ],
@@ -2922,7 +2922,7 @@ describe('Native web tools', () => {
           citation: {
             type: 'web_search_result_location',
             url: 'https://example.com/cherry',
-            title: 'Cherry',
+            title: 'Slate',
             encrypted_index: 'sealed',
             cited_text: 'red',
           },
@@ -2987,7 +2987,7 @@ describe('Native web tools', () => {
           },
           finishReason: 'STOP',
           groundingMetadata: {
-            groundingChunks: [{ web: { uri: 'https://example.com/cherry', title: 'Cherry' } }],
+            groundingChunks: [{ web: { uri: 'https://example.com/cherry', title: 'Slate' } }],
           },
         },
       ],
@@ -3112,7 +3112,7 @@ describe('Native web tools', () => {
             id: 'chat',
             object: 'chat.completion.chunk',
             choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
-            web_search: [{ title: 'Cherry', link: 'https://example.com/cherry', refer: 'ref_1' }],
+            web_search: [{ title: 'Slate', link: 'https://example.com/cherry', refer: 'ref_1' }],
             usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
           })}\n\ndata: [DONE]\n\n`,
       ],

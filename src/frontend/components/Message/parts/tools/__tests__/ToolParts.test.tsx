@@ -429,7 +429,7 @@ describe('tool message detail sheets', () => {
     await render(
       <McpToolPart
         part={makeToolPart({
-          input: { query: 'Cherry Studio' },
+          input: { query: 'Slate' },
           output: { content: [{ text: 'Search result', type: 'text' }] },
           toolMetadata: {
             cherry: { tool: { serverName: 'Exa', type: 'mcp' } },
@@ -454,9 +454,9 @@ describe('tool message detail sheets', () => {
     await render(
       <WebSearchToolPart
         part={makeToolPart({
-          input: { query: 'Cherry Studio' },
+          input: { query: 'Slate' },
           output: {
-            results: [{ id: 'result-1', title: 'Cherry Studio', url: 'https://cherry-ai.com' }],
+            results: [{ id: 'result-1', title: 'Slate', url: 'https://cherry-ai.com' }],
           },
           toolName: 'builtin_web_search',
         })}
@@ -475,14 +475,14 @@ describe('tool message detail sheets', () => {
     expect(findByTestID('web-search-tool-part-detail').props.title).toBe(
       'chat.webSearch.detailTitle',
     );
-    expect(findText('Cherry Studio')).not.toHaveLength(0);
+    expect(findText('Slate')).not.toHaveLength(0);
   });
 
   it('keeps the searching label while using the shared running state', async () => {
     await render(
       <WebSearchToolPart
         part={makeToolPart({
-          input: { query: 'Cherry Studio' },
+          input: { query: 'Slate' },
           state: 'input-available',
           toolName: 'builtin_web_search',
         })}

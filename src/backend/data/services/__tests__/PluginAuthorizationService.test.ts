@@ -62,7 +62,7 @@ it('persists Feishu credential references without exposing them in connection or
     pluginId: 'feishu',
     authMethod: 'feishu_user',
     serverName: 'Feishu',
-    accountLabel: 'Cherry (ou_cherry)',
+    accountLabel: 'Slate (ou_cherry)',
     credentialReference: credential,
   });
   const server = await new McpServerService().getById(connection.serverId);

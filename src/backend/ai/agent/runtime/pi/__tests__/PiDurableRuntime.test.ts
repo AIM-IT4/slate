@@ -792,7 +792,7 @@ describe('PiDurableRuntime identity and handoff', () => {
     await old.close(BACKGROUND_CONTEXT);
     const runtime = await PiDurableRuntime.open(storage, options());
     try {
-      await expect(runtime.sessions()).rejects.toThrow('predates Cherry-owned transcripts');
+      await expect(runtime.sessions()).rejects.toThrow('predates Slate-owned transcripts');
       const history = await storage.scanEntries(
         { conversationId: id },
         10,

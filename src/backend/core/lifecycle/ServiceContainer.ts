@@ -22,7 +22,7 @@ const logger = loggerService.withContext('Lifecycle');
 /**
  * Registration and resolution for one ApplicationHost generation.
  *
- * Ported from Cherry Desktop `src/main/core/lifecycle/ServiceContainer.ts` with
+ * Ported from Slate Desktop `src/main/core/lifecycle/ServiceContainer.ts` with
  * two structural changes:
  *
  * - It is **not** a singleton. Desktop's container is process-global because a

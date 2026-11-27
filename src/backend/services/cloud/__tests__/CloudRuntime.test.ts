@@ -398,7 +398,7 @@ test.each([
   async (endpoint, path, query, use) => {
     mockHeaders.mockImplementation(async (_method, _path, _body, key) => ({
       authorization: 'Bearer product-session',
-      'Cherry-Signature': 'device-signature',
+      'Slate-Signature': 'device-signature',
       'Idempotency-Key': key,
     }));
     mockGet.mockImplementation(async (account: string, resource: string) => {
@@ -444,7 +444,7 @@ test.each([
         expect(mockClientSignatureHeaders).not.toHaveBeenCalled();
         expect(init.headers.get('X-Signature')).toBeNull();
         expect(init.headers.get('Authorization')).toBe('Bearer product-session');
-        expect(init.headers.get('Cherry-Signature')).toBe('device-signature');
+        expect(init.headers.get('Slate-Signature')).toBe('device-signature');
       }
     } finally {
       await runtime._doStop();
@@ -1354,7 +1354,7 @@ test('guest discovery and inference sign the exact request without sending accou
     const init = {
       method: 'POST',
       body,
-      headers: { authorization: 'Bearer sdk', 'Cherry-Device-ID': 'stale', Cookie: 'stale' },
+      headers: { authorization: 'Bearer sdk', 'Slate-Device-ID': 'stale', Cookie: 'stale' },
     };
     const send = runtime.createModelFetch('public', 'agent');
     mockInference.mockResolvedValue(new Response(null, { status: 200 }));
@@ -1369,7 +1369,7 @@ test('guest discovery and inference sign the exact request without sending accou
     const sent = mockInference.mock.lastCall![1];
     expect(sent.body).toBe(body);
     expect(sent.headers.get('X-Signature')).toBe('signed');
-    for (const key of ['Authorization', 'Cherry-Device-ID', 'Cherry-Signature', 'Cookie'])
+    for (const key of ['Authorization', 'Slate-Device-ID', 'Slate-Signature', 'Cookie'])
       expect(sent.headers.get(key)).toBeNull();
     expect(mockGet).not.toHaveBeenCalled();
     expect(mockHeaders).not.toHaveBeenCalled();

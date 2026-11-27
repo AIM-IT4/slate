@@ -33,7 +33,7 @@ const LOG_MESSAGES = new Set([
   'Agent listener failed',
   'Agent status listener failed',
   'Agent projection failed',
-  'Agent result remains in Pi until Cherry settlement can be retried',
+  'Agent result remains in Pi until Slate settlement can be retried',
   'Agent reservation recovered as interrupted',
   'Pi durable extension failed',
   'Pi durable runtime reported a failure',

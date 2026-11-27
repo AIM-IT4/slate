@@ -225,12 +225,12 @@ test.each(requests)(
       format: request.format,
       output: 'file:///output',
       label,
-      author: { name: 'Cherry Studio', replace: true },
+      author: { name: 'Slate', replace: true },
       sandbox: worker.sandbox,
     });
     const parts = unzipSync(worker.output());
     const core = strFromU8(parts['docProps/core.xml']);
-    expect(core).toContain('<dc:creator>Cherry Studio</dc:creator>');
+    expect(core).toContain('<dc:creator>Slate</dc:creator>');
     expect(core.match(/<dc:creator>/g)).toHaveLength(1);
     expect(core).toContain('<dc:title>原文 😀</dc:title>');
     expect(core).toContain('<cp:lastModifiedBy>Editor</cp:lastModifiedBy>');
@@ -264,7 +264,7 @@ test('an AI edit keeps an existing creator in the core properties', async () => 
     format: request.format,
     output: 'file:///output',
     label,
-    author: { name: 'Cherry Studio', replace: false },
+    author: { name: 'Slate', replace: false },
     sandbox: worker.sandbox,
   });
   const updated = unzipSync(worker.output());
@@ -304,11 +304,11 @@ test.each(['missing', 'relocated'])(
       format: request.format,
       output: 'file:///output',
       label,
-      author: { name: 'Cherry Studio', replace: true },
+      author: { name: 'Slate', replace: true },
       sandbox: worker.sandbox,
     });
     const updated = unzipSync(worker.output());
-    expect(strFromU8(updated[corePath])).toContain('<dc:creator>Cherry Studio</dc:creator>');
+    expect(strFromU8(updated[corePath])).toContain('<dc:creator>Slate</dc:creator>');
     expect(strFromU8(updated['[Content_Types].xml'])).toContain('PartName="/' + corePath + '"');
     expect(strFromU8(updated['_rels/.rels']).split(coreRelationship)).toHaveLength(2);
     if (mode === 'relocated') expect(updated['docProps/core.xml']).toBeUndefined();

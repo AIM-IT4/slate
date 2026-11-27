@@ -88,7 +88,7 @@ export function FileDocumentPreview({
       '--background': background,
       '--foreground': foreground,
       '--primary': primary,
-      // HeroUI reserves `muted`; `secondary` is Cherry's neutral secondary surface.
+      // HeroUI reserves `muted`; `secondary` is Slate's neutral secondary surface.
       '--muted': secondary,
       '--muted-foreground': mutedForeground,
       '--border': border,

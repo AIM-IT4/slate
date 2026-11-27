@@ -44,7 +44,7 @@ const metadata = {
   authorization_response_iss_parameter_supported: true,
 };
 const registrationBody = {
-  client_name: 'Cherry Studio',
+  client_name: 'Slate',
   client_uri: 'https://github.com/CherryHQ/cherry-studio-app',
   redirect_uris: [application.redirectUrl],
   grant_types: ['authorization_code', 'refresh_token'],

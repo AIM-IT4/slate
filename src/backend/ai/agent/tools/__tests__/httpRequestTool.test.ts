@@ -48,7 +48,7 @@ it('defaults to a bounded GET and preserves repeated and encoded query parameter
 it.each(['POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'])(
   'sends an explicit %s body and headers',
   async (method) => {
-    const body = ' { "title": "Cherry" }\n';
+    const body = ' { "title": "Slate" }\n';
     await execute({
       url: 'http://192.168.1.2:8080/items',
       method,

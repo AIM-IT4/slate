@@ -245,7 +245,7 @@ export class DurableAgentHost implements AgentProtocol {
     return this.ports.durableStorage?.size() ?? 0;
   }
   /**
-   * Pi keeps retired and superseded copies until its file is removed. Cherry transcripts and
+   * Pi keeps retired and superseded copies until its file is removed. Slate transcripts and
    * checkpoints stay authoritative, so each Session rebuilds a copy when it next continues.
    */
   async clearWorkingStorage() {
@@ -335,7 +335,7 @@ export class DurableAgentHost implements AgentProtocol {
           fail('SESSION_NOT_FOUND', 'This session is being deleted.');
         const session = await this.store.getSession(identity.sessionId);
         if (!session || !(await this.isCurrentConversation(identity)))
-          fail('SESSION_NOT_FOUND', 'The execution no longer has a current Cherry owner.');
+          fail('SESSION_NOT_FOUND', 'The execution no longer has a current Slate owner.');
         if (identity.requestId) await this.waitForOwner(identity, identity.requestId, signal);
         const prepared = identity.requestId
           ? this.prepared.get(executionKey(identity, identity.requestId))
@@ -806,7 +806,7 @@ export class DurableAgentHost implements AgentProtocol {
     return this.submitTargets(parsed, parent, targets, signal);
   }
 
-  /** Rebuilt copies read their history from Cherry; native and forked ones keep the engine's. */
+  /** Rebuilt copies read their history from Slate; native and forked ones keep the engine's. */
   private async planAnswer(
     choice: LaneChoice,
     input: AgentSubmitMessageInput,
@@ -963,7 +963,7 @@ export class DurableAgentHost implements AgentProtocol {
 
   /**
    * Prepares each answer's working copy, reserves the question and every answer
-   * in one Cherry transaction, then admits each answer to its own lane.
+   * in one Slate transaction, then admits each answer to its own lane.
    */
   private async submitTargets(
     input: AgentSubmitMessageInput | AgentStartSessionInput,
@@ -1053,7 +1053,7 @@ export class DurableAgentHost implements AgentProtocol {
     // The reservation selected the new answer. Observers learn the branch before its rows arrive.
     const selected = await this.store.getSession(sessionId);
     if (selected) this.publish(sessionId, { type: 'session.updated', session: selected });
-    // Cherry owns the identities before the engine can execute. Recovery reconciles each answer.
+    // Slate owns the identities before the engine can execute. Recovery reconciles each answer.
     try {
       // A new answer temporarily removes its whole turn from settled history. Keep the existing
       // versions and the new placeholder available together, including to an attached observer.
@@ -1134,7 +1134,7 @@ export class DurableAgentHost implements AgentProtocol {
 
   /**
    * Prepares every answer's working copy together. Answers that must rebuild from
-   * Cherry history share one rebuild: the copy of the model that keeps the most of
+   * Slate history share one rebuild: the copy of the model that keeps the most of
    * that history (images, then context size) is rebuilt and the others fork it, as
    * they fork a copy that ran the question's parent. Pi adapts the forked history
    * to each model.
@@ -1409,7 +1409,7 @@ export class DurableAgentHost implements AgentProtocol {
         inferenceSnapshot: plan.inferenceSnapshot,
       });
       try {
-        // The same Cherry transaction invalidated every lane of this Session.
+        // The same Slate transaction invalidated every lane of this Session.
         await this.detachConversation(source.id);
         await this.submitTargets(
           retry,
@@ -1529,7 +1529,7 @@ export class DurableAgentHost implements AgentProtocol {
         this.ports.durableStorage?.notifyTranscript(session.id);
         return result.message;
       } catch (error) {
-        // A native edit preceding a failed Cherry commit has the wrong revision and cannot resume.
+        // A native edit preceding a failed Slate commit has the wrong revision and cannot resume.
         for (const lane of current)
           if (!(await this.isCurrentConversation(lane)))
             await this.detachLane(lane).catch((cleanup: unknown) =>
@@ -1568,7 +1568,7 @@ export class DurableAgentHost implements AgentProtocol {
       if (result.status === 'turn-unsettled') fail('SESSION_BUSY', 'The turn has not settled.');
       for (const parentId of affectedParents)
         await this.refreshBranchSiblings(parsed.sessionId, parentId);
-      // The same Cherry transaction invalidated the old revision. A crash before retirement is safe.
+      // The same Slate transaction invalidated the old revision. A crash before retirement is safe.
       await this.detachConversation(parsed.sessionId).catch((error: unknown) =>
         logger.warn('Deferred obsolete working-copy cleanup', error as Error),
       );
@@ -1625,7 +1625,7 @@ export class DurableAgentHost implements AgentProtocol {
         fail('SESSION_NOT_FOUND', 'The session no longer exists.');
       this.recoveryFailures.delete(sessionId);
       this.forksToName.delete(sessionId);
-      // Missing Cherry ownership is a durable invalidation: no startup path recreates this session.
+      // Missing Slate ownership is a durable invalidation: no startup path recreates this session.
       await this.detachConversation(sessionId).catch((error: unknown) =>
         logger.warn('Deferred deleted working-copy cleanup', error as Error),
       );
@@ -1638,7 +1638,7 @@ export class DurableAgentHost implements AgentProtocol {
     }
   }
 
-  /** Retires every working copy of a Session; Cherry history stays the source of truth. */
+  /** Retires every working copy of a Session; Slate history stays the source of truth. */
   private async detachConversation(sessionId: string) {
     this.storedContextUsages.delete(sessionId);
     this.publishContextUsages(sessionId);
@@ -2165,7 +2165,7 @@ export class DurableAgentHost implements AgentProtocol {
     }
   }
 
-  /** A copy is current while its revision matches its Cherry Session's history revision. */
+  /** A copy is current while its revision matches its Slate Session's history revision. */
   private async isCurrentConversation(lane: RuntimeLane) {
     const revision = await this.store.getRuntimeRevision(lane.sessionId);
     return revision !== null && revision === (await this.conversations.revision(lane));
@@ -2189,7 +2189,7 @@ export class DurableAgentHost implements AgentProtocol {
     return current;
   }
 
-  /** Each unsettled Cherry row is a durable receipt awaiting its full Pi result, with no cursor gaps. */
+  /** Each unsettled Slate row is a durable receipt awaiting its full Pi result, with no cursor gaps. */
   private async reconcileUnsettled(
     onlySessionId?: string,
     signal?: AbortSignal,
@@ -2413,7 +2413,7 @@ export class DurableAgentHost implements AgentProtocol {
   }
 
   private settle(turn: RuntimeDurableTurn) {
-    // Settlement is serialized per Cherry Session across all of its copies.
+    // Settlement is serialized per Slate Session across all of its copies.
     const { sessionId } = turn.identity;
     const operation = (this.settlements.get(sessionId) ?? Promise.resolve())
       .then(async () => {
@@ -2424,7 +2424,7 @@ export class DurableAgentHost implements AgentProtocol {
       })
       .catch((error: unknown) => {
         logger.warn(
-          'Agent result remains in Pi until Cherry settlement can be retried',
+          'Agent result remains in Pi until Slate settlement can be retried',
           error as Error,
           {
             ...turn.identity,
@@ -2635,7 +2635,7 @@ export class DurableAgentHost implements AgentProtocol {
       ? this.liveStates(sessionId).find((candidate) => candidate !== state && candidate.active)
       : undefined;
     if (sibling) this.publishCurrentStatus(sessionId, sibling);
-    // Cherry settlement can finish after Pi has already started the next queued input.
+    // Slate settlement can finish after Pi has already started the next queued input.
     else if (
       !terminal ||
       !state?.active ||

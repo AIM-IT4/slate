@@ -27,7 +27,7 @@ describe('MarkdownText adapter', () => {
 
   it('passes the stored preference and external-link action to CherryUI', () => {
     act(() => {
-      create(<MarkdownText markdown="[Cherry](https://cherry-ai.com)" />);
+      create(<MarkdownText markdown="[Slate](https://cherry-ai.com)" />);
     });
 
     expect(mockCherryMarkdownText).toHaveBeenCalledWith(
@@ -35,7 +35,7 @@ describe('MarkdownText adapter', () => {
         citationLinkPrefix: 'cite:',
         fontSizeStep: 1,
         isStreaming: false,
-        markdown: '[Cherry](https://cherry-ai.com)',
+        markdown: '[Slate](https://cherry-ai.com)',
       }),
     );
     const onLinkPress = mockCherryMarkdownText.mock.calls[0]?.[0].onLinkPress as

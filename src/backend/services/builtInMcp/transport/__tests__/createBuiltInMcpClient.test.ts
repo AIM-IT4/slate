@@ -722,7 +722,7 @@ it.each(['complete', 'cancel'] as const)(
       await settle();
       expect(toolRequests()).toHaveLength(1);
       for (const [, init] of mockFetch.mock.calls as [string, RequestInit][]) {
-        expect(new Headers(init.headers).has('X-Cherry-Plugin-Request')).toBe(false);
+        expect(new Headers(init.headers).has('X-Slate-Plugin-Request')).toBe(false);
       }
     } finally {
       await client.close();

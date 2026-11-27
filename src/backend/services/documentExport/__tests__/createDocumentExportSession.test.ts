@@ -150,7 +150,7 @@ test('Markdown materialization preserves the signature and reuses only matching 
   const watermark: ExportWatermark = {
     kind: 'cherry',
     signature: {
-      brandName: 'Cherry Studio',
+      brandName: 'Slate',
       brandColor: '#ff5757',
       downloadLabel: 'Scan to download the mobile app',
       downloadLinkLabel: 'Download the mobile app',
@@ -164,7 +164,7 @@ test('Markdown materialization preserves the signature and reuses only matching 
   const first = await session.render({ format: 'markdown', watermark });
   if (first.format !== 'markdown') throw new Error('Expected Markdown');
   expect(first.text).toBe(
-    'Content\n\n---\n\n**Cherry Studio** · [Download the mobile app](<https://example.com/mobile>)\n',
+    'Content\n\n---\n\n**Slate** · [Download the mobile app](<https://example.com/mobile>)\n',
   );
   expect(mockFiles.get(first.file.uri)).toBe(first.text);
   expect(session.markdown).toBe('Content\n');
@@ -266,7 +266,7 @@ test('switching Markdown to none replaces the branded output with a plain file',
   const watermark: ExportWatermark = {
     kind: 'cherry',
     signature: {
-      brandName: 'Cherry Studio',
+      brandName: 'Slate',
       brandColor: '#ff5757',
       downloadLabel: 'Scan to download the mobile app',
       downloadLinkLabel: 'Download the mobile app',
@@ -279,7 +279,7 @@ test('switching Markdown to none replaces the branded output with a plain file',
   };
   const branded = await session.render({ format: 'markdown', watermark });
   if (branded.format !== 'markdown') throw new Error('Expected Markdown');
-  expect(mockFiles.get(branded.file.uri)).toContain('Cherry Studio');
+  expect(mockFiles.get(branded.file.uri)).toContain('Slate');
   const plain = await session.render({ format: 'markdown', watermark: { kind: 'none' } });
   if (plain.format !== 'markdown') throw new Error('Expected Markdown');
   expect(plain.id).not.toBe(branded.id);

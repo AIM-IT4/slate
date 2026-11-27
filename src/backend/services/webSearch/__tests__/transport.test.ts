@@ -8,7 +8,7 @@ jest.mock('@/backend/services/http', () => ({
   createHttpClient: jest.fn(() => ({ request: mockRequest })),
 }));
 jest.mock('@/backend/utils/defaultAppHeaders', () => ({
-  defaultAppHeaders: () => ({ 'X-App-Name': 'CherryStudioMobile' }),
+  defaultAppHeaders: () => ({ 'X-App-Name': 'Slate' }),
 }));
 
 beforeEach(() => {
@@ -30,7 +30,7 @@ test('preserves serialized bodies, encoded queries, credentials, deadlines and c
 
   expect(createHttpClient).toHaveBeenCalledWith({
     baseUrl: 'https://search.example',
-    headers: { 'X-App-Name': 'CherryStudioMobile' },
+    headers: { 'X-App-Name': 'Slate' },
     statusPolicy: 'all',
   });
   expect(mockRequest).toHaveBeenCalledWith({

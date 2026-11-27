@@ -73,9 +73,7 @@ describe('Office generation contracts', () => {
       1,
     );
     expect(strFromU8(files['word/_rels/document.xml.rels'])).toContain('/image');
-    expect(strFromU8(files['docProps/core.xml'])).toContain(
-      '<dc:creator>Cherry Studio</dc:creator>',
-    );
+    expect(strFromU8(files['docProps/core.xml'])).toContain('<dc:creator>Slate</dc:creator>');
   });
 
   test('keeps spreadsheet formula-like strings literal and preserves scalar types', async () => {
@@ -101,9 +99,7 @@ describe('Office generation contracts', () => {
     expect(sheet).toMatch(/r="C1"[^>]*t="b"/);
     expect(sheet).toContain('<cols>');
     expect(strFromU8(files['xl/workbook.xml'])).toContain('数据');
-    expect(strFromU8(files['docProps/core.xml'])).toContain(
-      '<dc:creator>Cherry Studio</dc:creator>',
-    );
+    expect(strFromU8(files['docProps/core.xml'])).toContain('<dc:creator>Slate</dc:creator>');
   });
 
   test('embeds editable workbook images at the requested cell with package relationships', async () => {
@@ -177,9 +173,7 @@ describe('Office generation contracts', () => {
     expect(strFromU8(files['ppt/slides/slide3.xml'])).toContain('<a:tbl>');
     expect(strFromU8(files['ppt/slides/slide4.xml'])).toContain('<p:pic>');
     expect(files['ppt/media/image-4-1.png']).toEqual(IMAGE);
-    expect(strFromU8(files['docProps/core.xml'])).toContain(
-      '<dc:creator>Cherry Studio</dc:creator>',
-    );
+    expect(strFromU8(files['docProps/core.xml'])).toContain('<dc:creator>Slate</dc:creator>');
   });
 
   test('embeds a repeated document image once without hashing its bytes', async () => {

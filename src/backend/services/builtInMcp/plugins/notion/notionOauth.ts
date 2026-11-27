@@ -117,7 +117,7 @@ function redirectUrl() {
     nativeCallbackUrl('plugins/notion/callback'),
   );
   if (!result.success)
-    throw new PluginError('unavailable', 'Notion requires a Cherry native application.');
+    throw new PluginError('unavailable', 'Notion requires a Slate native application.');
   return result.data;
 }
 
@@ -149,8 +149,8 @@ async function getApplication(store: PluginAuthorizationStore, signal: AbortSign
         metadata: discovered,
         fetchFn,
         clientMetadata: {
-          client_name: 'Cherry Studio',
-          client_uri: 'https://github.com/CherryHQ/cherry-studio-app',
+          client_name: 'Slate',
+          client_uri: 'https://github.com/AIM-IT4/slate',
           redirect_uris: [redirect],
           grant_types: ['authorization_code', 'refresh_token'],
           response_types: ['code'],

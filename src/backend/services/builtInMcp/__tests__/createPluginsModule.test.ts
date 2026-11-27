@@ -85,7 +85,7 @@ it('commits an observed ready attempt only after read-only validation of its sel
     .mockResolvedValue({ status: 'ready', attemptId: '00000000-0000-4000-8000-000000000001' });
   jest
     .spyOn(auth, 'prepare')
-    .mockResolvedValue({ credential, accountLabel: 'Cherry (ou_cherry)', signal });
+    .mockResolvedValue({ credential, accountLabel: 'Slate (ou_cherry)', signal });
   const commit = jest.spyOn(auth, 'commit').mockResolvedValue(connection);
   const invalidateServer = jest.fn();
   const cachePluginToolCatalog = jest.fn(async () => undefined);
@@ -99,7 +99,7 @@ it('commits an observed ready attempt only after read-only validation of its sel
   expect(mockValidateConnection).toHaveBeenCalledWith('feishu', 'feishu_user', credential, signal);
   expect(commit).toHaveBeenCalledWith(
     '00000000-0000-4000-8000-000000000001',
-    'Cherry (ou_cherry)',
+    'Slate (ou_cherry)',
     signal,
   );
   expect(invalidateServer).toHaveBeenCalledWith(connection.serverId);

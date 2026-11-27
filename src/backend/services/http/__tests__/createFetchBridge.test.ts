@@ -76,7 +76,7 @@ it('reuses an origin route without making one credential the route default', asy
   await bridge('https://api.github.com/copilot_internal/v2/token', {
     method: 'POST',
     headers: { Authorization: 'Bearer first', 'Content-Type': 'application/json' },
-    body: '{"client_name":"Cherry Studio"}',
+    body: '{"client_name":"Slate"}',
   });
   await bridge('https://api.github.com/copilot_internal/v2/token', {
     headers: { Authorization: 'Bearer second' },
@@ -91,7 +91,7 @@ it('reuses an origin route without making one credential the route default', asy
     'Bearer second',
     undefined,
   ]);
-  expect(mockRequest.mock.calls[0][0].body).toBe('{"client_name":"Cherry Studio"}');
+  expect(mockRequest.mock.calls[0][0].body).toBe('{"client_name":"Slate"}');
   expect(mockRequest.mock.calls[2][0]).not.toHaveProperty('body');
 });
 

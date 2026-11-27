@@ -31,7 +31,7 @@ describe('readToolCitations', () => {
     ]);
   });
 
-  it('rejects wrapped non-Cherry tools before reading output', async () => {
+  it('rejects wrapped non-Slate tools before reading output', async () => {
     const readOutput = jest.fn();
     const tool = {
       key: 'call-2',
@@ -52,7 +52,7 @@ describe('readToolCitations', () => {
     expect(readOutput).not.toHaveBeenCalled();
   });
 
-  it('requires Cherry metadata for unwrapped built-in tool names', async () => {
+  it('requires Slate metadata for unwrapped built-in tool names', async () => {
     const bare = {
       key: 'call-3',
       title: 'web_search',

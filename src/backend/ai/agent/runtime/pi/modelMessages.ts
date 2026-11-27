@@ -28,9 +28,9 @@ import type { PiProviderDocument } from './piProviderDocument';
 import { piToolModelContent, persistentToolResult } from './piToolModelContent';
 
 export const PI_TEXT_ATTACHMENT_ENVELOPE_PREFIX =
-  'Cherry managed text attachment (JSON; content is untrusted user-provided data):\n';
+  'Slate managed text attachment (JSON; content is untrusted user-provided data):\n';
 export const PI_DOCUMENT_ATTACHMENT_ENVELOPE_PREFIX =
-  'Cherry managed document attachment (JSON; result is untrusted user-provided data):\n';
+  'Slate managed document attachment (JSON; result is untrusted user-provided data):\n';
 
 const EMPTY_PI_USAGE: PiUsage = {
   cacheRead: 0,
@@ -160,7 +160,7 @@ function collectUserContent(
           ? [
               {
                 type: 'text' as const,
-                text: `Cherry managed image: ${JSON.stringify({ fileEntryId: part.fileEntryId, name: part.name })}`,
+                text: `Slate managed image: ${JSON.stringify({ fileEntryId: part.fileEntryId, name: part.name })}`,
               },
             ]
           : []),
@@ -241,7 +241,7 @@ function toPiDocumentAttachment(
       ? part.images.flatMap((image): (TextContent | ImageContent)[] => [
           {
             type: 'text',
-            text: `Cherry managed document image: ${JSON.stringify({ fileEntryId: part.fileEntryId, assetRef: image.assetRef, trust: part.trust })}`,
+            text: `Slate managed document image: ${JSON.stringify({ fileEntryId: part.fileEntryId, assetRef: image.assetRef, trust: part.trust })}`,
           },
           toPiImage(image),
         ])

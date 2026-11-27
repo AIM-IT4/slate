@@ -35,7 +35,7 @@ export const githubPlugin: PluginDefinition = {
     links: {
       // Pre-fills the fine-grained token form: name, expiry and the permissions the tools use.
       credentials:
-        'https://github.com/settings/personal-access-tokens/new?name=Cherry%20Studio&description=Cherry%20Studio%20plugin&expires_in=366&contents=write&issues=write&pull_requests=write&actions=read',
+        'https://github.com/settings/personal-access-tokens/new?name=Slate%20Studio&description=Slate%20Studio%20plugin&expires_in=366&contents=write&issues=write&pull_requests=write&actions=read',
       website: 'https://github.com',
       authorizationManagement: 'https://github.com/settings/applications',
       privacy:

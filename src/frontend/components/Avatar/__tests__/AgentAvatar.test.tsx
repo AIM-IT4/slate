@@ -37,7 +37,7 @@ test.each([
     expect(tree.root.findByType('avatar-fallback' as never).props.children).toBe(expected);
   },
 );
-test('resolved image takes precedence over emoji while local Cherry emoji still renders', () => {
+test('resolved image takes precedence over emoji while local Slate emoji still renders', () => {
   act(() => {
     tree = create(<AgentAvatar name="Developer" avatar="🍒" />);
   });

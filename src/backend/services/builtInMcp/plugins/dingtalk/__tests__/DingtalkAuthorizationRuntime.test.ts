@@ -26,7 +26,7 @@ jest.mock('../dingtalkOauth', () => ({
 const credential: DingtalkUserCredential = {
   version: 1,
   clientId: 'managed-client',
-  account: { corpId: 'org-1', userId: 'user-1', userName: 'Cherry' },
+  account: { corpId: 'org-1', userId: 'user-1', userName: 'Slate' },
   tokens: {
     accessToken: 'private-access',
     refreshToken: 'private-refresh',
@@ -90,7 +90,7 @@ it('keeps device credentials private and commits only after account confirmation
   jest.mocked(Date.now).mockReturnValue(6000);
   expect(await runtime.poll(state.attemptId)).toMatchObject({
     status: 'review',
-    accountLabel: 'Cherry · org-1',
+    accountLabel: 'Slate · org-1',
     requiresDisconnect: false,
   });
   expect(fixture.store.commit).not.toHaveBeenCalled();
@@ -99,7 +99,7 @@ it('keeps device credentials private and commits only after account confirmation
   await runtime.commit(state.attemptId, prepared.accountLabel, prepared.signal);
   expect(fixture.store.commit).toHaveBeenCalledWith(
     secret(credential),
-    'Cherry · org-1',
+    'Slate · org-1',
     prepared.signal,
     { authorizationId: undefined },
   );

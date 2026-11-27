@@ -78,7 +78,7 @@ test('replaces merged text fragments without changing signed reasoning, usage or
   expect(message.content[1]).toEqual({ type: 'text', text: 'First', textSignature: 'original' });
 });
 
-test('falls back to Cherry history when the target was compacted or carries native web replay', () => {
+test('falls back to Slate history when the target was compacted or carries native web replay', () => {
   expect(
     createPiReplyEdits(
       { ...view, entries: [], contributions: [] },

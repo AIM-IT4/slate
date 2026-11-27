@@ -107,7 +107,7 @@ test('carries the published notes without the title or download section', async 
   mockRequest.mockResolvedValue({
     data: {
       ...release,
-      body: '# Cherry Studio 1.10.0 更新日志\n\n- 新功能\n\n## 下载安装\n\n- APK',
+      body: '# Slate 1.10.0 更新日志\n\n- 新功能\n\n## 下载安装\n\n- APK',
     },
   });
   await expect(checkApkRelease('1.9.0', 'gitcode')).resolves.toMatchObject({ notes: '- 新功能' });

@@ -77,7 +77,7 @@ export async function createFeishuClient(context: PluginClientContext): Promise<
 
   return {
     get serverInfo() {
-      return remote?.serverInfo ?? { name: 'Cherry Studio Feishu', version: '1' };
+      return remote?.serverInfo ?? { name: 'Slate Feishu', version: '1' };
     },
     get discoveryWarnings() {
       return discoveryWarnings;

@@ -286,7 +286,7 @@ export function createReadFileTool(
     providerName: READ_FILE_TOOL_NAME,
     displayName: 'Read file',
     deferred: true,
-    description: `Read a Cherry-managed file referenced in this conversation. Use file_entry_id from an attachment or an earlier file tool result. ${buildFileReadInstructions(readContent.documentParserMode, acceptsImages, readContent.ocrEngine)}`,
+    description: `Read a Slate-managed file referenced in this conversation. Use file_entry_id from an attachment or an earlier file tool result. ${buildFileReadInstructions(readContent.documentParserMode, acceptsImages, readContent.ocrEngine)}`,
     inputSchema: toRuntimeInputSchema(readFileInputSchema),
     executionSettingsKey: readContent.executionSettingsKey,
     approval: 'auto',

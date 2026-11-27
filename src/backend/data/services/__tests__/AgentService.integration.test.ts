@@ -79,7 +79,7 @@ describe('AgentService persistence', () => {
     preferenceGet.mockResolvedValue('organization::default-model');
     providerRegistryService.clearRemoteSnapshot();
 
-    const initial = await agentService.createInitialAgent({ name: 'Cherry Agent' });
+    const initial = await agentService.createInitialAgent({ name: 'Slate Agent' });
     expect(initial).toMatchObject({
       model: 'organization::default-model',
       modelName: 'default-model',
@@ -370,7 +370,7 @@ describe('AgentService persistence', () => {
     }));
     const unsubscribe = subscribeDataApiChanges(changed);
     try {
-      const initial = await agentService.createInitialAgent({ name: 'Cherry Agent' });
+      const initial = await agentService.createInitialAgent({ name: 'Slate Agent' });
       const id = initial!.id;
       expect(changed).toHaveBeenLastCalledWith(['/agents', `/agents/${id}`]);
       await agentService.createInitialAgent({ name: 'Already seeded' });
@@ -454,14 +454,14 @@ describe('AgentService persistence', () => {
   });
 
   it('creates one localized initial Agent only for a never-used Agent store', async () => {
-    const initial = await agentService.createInitialAgent({ name: 'Cherry Agent' });
+    const initial = await agentService.createInitialAgent({ name: 'Slate Agent' });
 
     expect(initial).toMatchObject({
       avatar: '🍒',
-      name: 'Cherry Agent',
+      name: 'Slate Agent',
       toolApprovalMode: 'auto',
     });
-    await expect(agentService.createInitialAgent({ name: 'Cherry 小助手' })).resolves.toBeNull();
+    await expect(agentService.createInitialAgent({ name: 'Slate 小助手' })).resolves.toBeNull();
     expect((await agentService.list()).items).toHaveLength(1);
 
     await agentService.update(initial!.id, { name: 'My Assistant' });
@@ -471,8 +471,8 @@ describe('AgentService persistence', () => {
     });
   });
 
-  it('persists the Cherry avatar when onboarding creates a replacement Agent', async () => {
-    const agent = await agentService.create({ avatar: '🍒', name: 'Cherry 小助手' });
+  it('persists the Slate avatar when onboarding creates a replacement Agent', async () => {
+    const agent = await agentService.create({ avatar: '🍒', name: 'Slate 小助手' });
 
     expect(await agentService.getById(agent.id)).toMatchObject({
       avatar: '🍒',
@@ -484,7 +484,7 @@ describe('AgentService persistence', () => {
   it('keeps an existing user-created Agent instead of adding the initial Agent', async () => {
     const existing = await agentService.create({ name: 'Researcher' });
 
-    await expect(agentService.createInitialAgent({ name: 'Cherry Agent' })).resolves.toBeNull();
+    await expect(agentService.createInitialAgent({ name: 'Slate Agent' })).resolves.toBeNull();
     expect((await agentService.list()).items).toEqual([existing]);
   });
 
@@ -492,9 +492,9 @@ describe('AgentService persistence', () => {
     const managed = await agentService.create({ name: 'Organization Agent' });
     sqlite.prepare('UPDATE agent SET managed_remote_id = ? WHERE id = ?').run('7', managed.id);
 
-    const initial = await agentService.createInitialAgent({ name: 'Cherry Agent' });
+    const initial = await agentService.createInitialAgent({ name: 'Slate Agent' });
 
-    expect(initial).toMatchObject({ avatar: '🍒', name: 'Cherry Agent' });
+    expect(initial).toMatchObject({ avatar: '🍒', name: 'Slate Agent' });
     expect((await agentService.list()).items.map((agent) => agent.id)).toEqual([
       managed.id,
       initial!.id,
@@ -502,10 +502,10 @@ describe('AgentService persistence', () => {
   });
 
   it('does not recreate the initial Agent after the user deletes it', async () => {
-    const initial = await agentService.createInitialAgent({ name: 'Cherry Agent' });
+    const initial = await agentService.createInitialAgent({ name: 'Slate Agent' });
     await agentService.delete(initial!.id);
 
-    await expect(agentService.createInitialAgent({ name: 'Cherry Agent' })).resolves.toBeNull();
+    await expect(agentService.createInitialAgent({ name: 'Slate Agent' })).resolves.toBeNull();
     expect((await agentService.list()).items).toEqual([]);
   });
 

@@ -17,7 +17,7 @@ const logger = jest.mocked(loggerService.withContext('PluginAuthorization'));
 const connection = {
   pluginId: 'feishu',
   serverId: 'server-1',
-  accountLabel: 'Cherry',
+  accountLabel: 'Slate',
   connectedAt: '2026-09-10T00:00:00.000Z',
 };
 const waiting = (nextPollAt: number): PluginAuthorizationState => ({
@@ -206,7 +206,7 @@ it('waits for callback expiry without polling and never commits the review state
   state = {
     status: 'review',
     attemptId: 'callback-1',
-    accountLabel: 'Cherry',
+    accountLabel: 'Slate',
     requiresDisconnect: false,
   };
   observer.check();

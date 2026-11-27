@@ -1058,7 +1058,7 @@ describe('durable tool diagnostics', () => {
     }
   });
 
-  test('a failed Cherry edit cannot leave a revised native copy eligible for execution', async () => {
+  test('a failed Slate edit cannot leave a revised native copy eligible for execution', async () => {
     const f = fixture();
     const turn = await f.reserve();
     await f.host.initialize();
@@ -1320,7 +1320,7 @@ describe('durable tool diagnostics', () => {
     }
   });
 
-  test('accepted steering survives a Cherry write failure and later repair preserves selection', async () => {
+  test('accepted steering survives a Slate write failure and later repair preserves selection', async () => {
     const f = fixture();
     const running = await f.reserve('running');
     const follow = async (text: string): Promise<RuntimeDurableTurn> => {
@@ -1643,7 +1643,7 @@ describe('durable tool diagnostics', () => {
       parentMessageId: running.assistantMessageId,
     };
     waiting.metadata = { ...waiting.metadata, parentMessageId: guided.assistantMessageId };
-    // Native promotion committed, but the process died before Cherry persisted its parent changes.
+    // Native promotion committed, but the process died before Slate persisted its parent changes.
     f.copies.get(f.sessionId)!.turns = [running, guided, waiting];
     await f.host.initialize();
     try {
@@ -2120,7 +2120,7 @@ describe('durable tool diagnostics', () => {
   );
 });
 
-describe('Cherry-owned transcript and disposable execution recovery', () => {
+describe('Slate-owned transcript and disposable execution recovery', () => {
   test('isolates configuration restore failures reported before startup observation', async () => {
     const state = fixture();
     const unreadable = await state.reserve('running');
@@ -4237,7 +4237,7 @@ describe('Cherry-owned transcript and disposable execution recovery', () => {
     }
   });
 
-  test('rebuilds the selected branch from Cherry history once the engine copies are gone', async () => {
+  test('rebuilds the selected branch from Slate history once the engine copies are gone', async () => {
     const state = fixture();
     const original = await state.reserve('completed');
     await state.host.initialize();
@@ -4255,7 +4255,7 @@ describe('Cherry-owned transcript and disposable execution recovery', () => {
         parts: [{ id: 'sibling', type: 'text', text: 'Sibling', state: 'done' }],
       });
       await state.host.quiesce();
-      // The engine database is disposable: Cherry history is the only source left.
+      // The engine database is disposable: Slate history is the only source left.
       state.copies.clear();
       const ensure = jest.spyOn(state.conversations, 'ensureConversation');
       await state.host.submitMessage({
@@ -5182,7 +5182,7 @@ describe('Cherry-owned transcript and disposable execution recovery', () => {
     await state.reserve('completed');
     await state.host.initialize();
     try {
-      // The runtime cache was cleared: Cherry history is the only source left.
+      // The runtime cache was cleared: Slate history is the only source left.
       state.copies.clear();
       const ensure = jest.spyOn(state.conversations, 'ensureConversation');
       const fork = jest.spyOn(state.conversations, 'forkConversation');
@@ -5425,7 +5425,7 @@ describe('Cherry-owned transcript and disposable execution recovery', () => {
     expect(state.conversations.abort).not.toHaveBeenCalled();
   });
 
-  test('an unadmitted reservation becomes interrupted and a missing Cherry owner never reappears', async () => {
+  test('an unadmitted reservation becomes interrupted and a missing Slate owner never reappears', async () => {
     const state = fixture();
     const { assistantMessageId } = await state.reserve();
     const reservedAt = Date.parse(

@@ -68,10 +68,10 @@ export const duration = {
 
 /** Shared tactile press-in and spring recovery tokens for interactive controls. */
 export const pressMotion = {
-  scale: 0.97,
+  scale: 0.955,
   subtleScale: 0.985,
   pressIn: { duration: 110, easing: easing.settle },
-  pressOut: spring.tactile,
+  pressOut: { damping: 22, mass: 0.65, stiffness: 440 },
 } as const;
 
 /** Calm, breathing timing tokens for active AI waiting and progress states. */

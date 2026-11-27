@@ -16,7 +16,7 @@ export type PhaseAdjustment = {
 /**
  * Resolves service initialization order.
  *
- * Ported from Cherry Desktop `src/main/core/lifecycle/DependencyResolver.ts`.
+ * Ported from Slate Desktop `src/main/core/lifecycle/DependencyResolver.ts`.
  * The layering algorithm (Kahn's, with priority ordering inside a layer) is
  * unchanged; the phase validation is rewritten because mobile has two phases
  * instead of Desktop's three and the correct repair runs the other way — see

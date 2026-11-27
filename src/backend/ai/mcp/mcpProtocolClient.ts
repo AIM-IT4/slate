@@ -236,7 +236,7 @@ async function connectRemoteMcpClient(
   const connectionAbort = new AbortController();
   const tools = new Map<string, Tool>();
   const client = new Client(
-    { name: 'Cherry Studio', version: Constants.expoConfig?.version ?? 'unknown' },
+    { name: 'Slate', version: Constants.expoConfig?.version ?? 'unknown' },
     {
       versionNegotiation:
         mode === 'auto'
@@ -247,7 +247,7 @@ async function connectRemoteMcpClient(
         ...(input.elicit ? { elicitation: { form: {}, url: {} } } : {}),
       },
       inputRequired: { autoFulfill: Boolean(input.elicit), maxRounds: 8 },
-      // Cherry owns refresh, persistence, and the immutable catalog used by each turn.
+      // Slate owns refresh, persistence, and the immutable catalog used by each turn.
       listChanged: {
         tools: { autoRefresh: false, onChanged: catalogChanged },
         prompts: { autoRefresh: false, onChanged: catalogChanged },

@@ -93,7 +93,7 @@ export class McpAppRuntime {
     const signal = AbortSignal.any([abort.signal, ownerSignal]);
     const bridge = new AppBridge(
       null,
-      { name: 'Cherry Studio', version: Constants.expoConfig?.version ?? 'unknown' },
+      { name: 'Slate', version: Constants.expoConfig?.version ?? 'unknown' },
       {
         openLinks: {},
         serverTools: {},

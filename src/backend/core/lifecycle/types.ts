@@ -1,7 +1,7 @@
 /**
  * Lifecycle framework types.
  *
- * Ported from Cherry Desktop `src/main/core/lifecycle/types.ts`. Two deliberate
+ * Ported from Slate Desktop `src/main/core/lifecycle/types.ts`. Two deliberate
  * differences, both documented in docs/references/lifecycle/README.md:
  *
  * - Phases are `Gate`/`PostReady` rather than Desktop's three Electron-relative

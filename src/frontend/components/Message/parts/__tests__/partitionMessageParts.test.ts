@@ -175,7 +175,7 @@ describe('partitionMessageParts', () => {
     expect(files).toEqual([]);
   });
 
-  test('splits on part type alone, so a peer transcript with no Cherry metadata splits the same', () => {
+  test('splits on part type alone, so a peer transcript with no Slate metadata splits the same', () => {
     const bare: CherryMessagePart = {
       filename: 'a.md',
       mediaType: 'text/markdown',

@@ -90,7 +90,7 @@ describe('createSkillScopeSource', () => {
     expect(await scope.readFile('plain', 'unlisted.md')).toBeNull();
   });
 
-  it('loads the Cherry environment and declared tools with the instruction body', async () => {
+  it('loads the Slate environment and declared tools with the instruction body', async () => {
     const source = createSkillScopeSource({
       skills: { listUsableForAgent: async () => [projection(skill('cherry-agenda'))] },
       storage: {
@@ -101,7 +101,7 @@ describe('createSkillScopeSource', () => {
               '---',
               'name: cherry-agenda',
               'description: Prepare an agenda',
-              'compatibility: Designed for Cherry Studio App. Requires calendar access.',
+              'compatibility: Designed for Slate. Requires calendar access.',
               'allowed-tools: calendar_list_events write_file',
               '---',
               'Read the requested date range with calendar_list_events, then save the summary with write_file.',
@@ -111,7 +111,7 @@ describe('createSkillScopeSource', () => {
     });
     const scope = await source.resolve({ agentId: 'agent', signal: new AbortController().signal });
     const instructions = await scope.readInstructions('cherry-agenda');
-    expect(instructions).toContain('Designed for Cherry Studio App. Requires calendar access.');
+    expect(instructions).toContain('Designed for Slate. Requires calendar access.');
     expect(instructions).toContain(
       'Tools declared by this Skill: calendar_list_events, write_file.',
     );

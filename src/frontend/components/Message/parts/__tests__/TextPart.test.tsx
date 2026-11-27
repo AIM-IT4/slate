@@ -86,7 +86,7 @@ describe('TextPart', () => {
             type: 'text',
             text: `Why? ${quote.reference.label}`,
             providerMetadata: {
-              cherry: { quotes: [quote], quoteAuthor: { role: 'assistant', name: 'Cherry' } },
+              cherry: { quotes: [quote], quoteAuthor: { role: 'assistant', name: 'Slate' } },
             },
           }}
         />,
@@ -104,7 +104,7 @@ describe('TextPart', () => {
     expect(popover().props).toMatchObject({
       anchor: { pageX: 217, pageY: 408, width: 0, height: 0 },
       text: quote.text,
-      caption: 'Cherry',
+      caption: 'Slate',
     });
     act(() => popover().props.onClose());
     expect(popover().props.anchor).toBeUndefined();

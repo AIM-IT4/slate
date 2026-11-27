@@ -689,7 +689,7 @@ describe('Agent tool and managed-file contracts', () => {
       toolName: 'mcp_server_1_search_a1b2',
       title: 'Search',
       state: 'output-available',
-      input: { query: 'Cherry Studio' },
+      input: { query: 'Slate' },
       output: {
         value: { matches: 2 },
         artifacts: [
@@ -763,7 +763,7 @@ describe('Agent tool and managed-file contracts', () => {
         toolCallId: 'call-1',
         toolRef: MCP_TOOL_REF,
         displayName: 'Search',
-        input: { query: 'Cherry Studio' },
+        input: { query: 'Slate' },
         status,
       } as const;
 

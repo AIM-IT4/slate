@@ -62,7 +62,7 @@ describe('useReorder', () => {
 
   it('optimistically updates flat, counted, and infinite caches and dispatches single vs batch PATCH', async () => {
     const initial: Row[] = [
-      { id: 'cherry', name: 'Cherry' },
+      { id: 'cherry', name: 'Slate' },
       { id: 'a', name: 'Alpha' },
       { id: 'b', name: 'Beta' },
       { id: 'c', name: 'Gamma' },

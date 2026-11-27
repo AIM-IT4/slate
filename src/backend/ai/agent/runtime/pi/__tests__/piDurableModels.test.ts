@@ -514,7 +514,7 @@ describe('Pi durable model bridge', () => {
     });
     expect(JSON.stringify(records)).not.toContain('private');
   });
-  test('keeps image scheduling separate from language requests for the same Cherry model', async () => {
+  test('keeps image scheduling separate from language requests for the same Slate model', async () => {
     const bridge = setup();
     await bridge.registerModel(reference);
     await bridge.registerModel(reference, 'image');

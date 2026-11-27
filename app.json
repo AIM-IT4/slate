@@ -2,7 +2,7 @@
   "expo": {
     "name": "Slate",
     "slug": "slate-ai",
-    "version": "1.3.2",
+    "version": "1.4.0",
     "locales": {
       "de": "./assets/permissions/locales/de.json",
       "el": "./assets/permissions/locales/el.json",
@@ -101,10 +101,10 @@
           "UIInterfaceOrientationLandscapeLeft",
           "UIInterfaceOrientationLandscapeRight"
         ],
-        "NSCalendarsWriteOnlyAccessUsageDescription": "Cherry Studio adds calendar events you request in chat, such as a meeting tomorrow at 10 AM, using details from your selected AI service.",
-        "NSHealthShareUsageDescription": "Cherry Studio reads the Apple Health data you select when you ask in chat, such as summarizing your sleep and steps over the past week, and with your approval sends it to your selected AI service for analysis.",
-        "NSHealthUpdateUsageDescription": "Cherry Studio reads selected Apple Health data to answer your health and fitness questions. It does not save or modify data in Apple Health.",
-        "NSLocalNetworkUsageDescription": "Allow Cherry Studio to connect to the Cherry Studio desktop app, AI providers, MCP servers, and SSH devices such as routers and NAS on your local network.",
+        "NSCalendarsWriteOnlyAccessUsageDescription": "Slate adds calendar events you request in chat, such as a meeting tomorrow at 10 AM, using details from your selected AI service.",
+        "NSHealthShareUsageDescription": "Slate reads the Apple Health data you select when you ask in chat, such as summarizing your sleep and steps over the past week, and with your approval sends it to your selected AI service for analysis.",
+        "NSHealthUpdateUsageDescription": "Slate reads selected Apple Health data to answer your health and fitness questions. It does not save or modify data in Apple Health.",
+        "NSLocalNetworkUsageDescription": "Allow Slate to connect to the Slate desktop app, AI providers, MCP servers, and SSH devices such as routers and NAS on your local network.",
         "NSBonjourServices": ["_cherry-remote._tcp"],
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": false
@@ -137,7 +137,7 @@
         "android.permission.POST_NOTIFICATIONS"
       ],
       "allowBackup": false,
-      "versionCode": 9
+      "versionCode": 10
     },
     "web": {
       "output": "static",
@@ -195,8 +195,8 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow Cherry Studio to scan desktop pairing QR codes and take photos for chat messages and drawings.",
-          "microphonePermission": "Allow Cherry Studio to use the microphone for voice input.",
+          "cameraPermission": "Allow Slate to scan desktop pairing QR codes and take photos for chat messages and drawings.",
+          "microphonePermission": "Allow Slate to use the microphone for voice input.",
           "recordAudioAndroid": false,
           "barcodeScannerEnabled": true
         }
@@ -205,8 +205,8 @@
       [
         "expo-calendar",
         {
-          "calendarPermission": "Cherry Studio reads and manages calendar events you request in chat, such as reviewing today's schedule or rescheduling a meeting, and sends relevant event details to your selected AI service.",
-          "remindersPermission": "Cherry Studio reads and manages reminders you request in chat, such as listing today's tasks or adding a grocery reminder, and sends relevant reminder details to your selected AI service."
+          "calendarPermission": "Slate reads and manages calendar events you request in chat, such as reviewing today's schedule or rescheduling a meeting, and sends relevant event details to your selected AI service.",
+          "remindersPermission": "Slate reads and manages reminders you request in chat, such as listing today's tasks or adding a grocery reminder, and sends relevant reminder details to your selected AI service."
         }
       ],
       [
@@ -217,8 +217,8 @@
           "isIosBackgroundLocationEnabled": false,
           "locationAlwaysAndWhenInUsePermission": false,
           "locationAlwaysPermission": false,
-          "motionUsagePermission": "Cherry Studio does not read or track your motion and fitness activity. This permission description is required by the location service included in the app.",
-          "locationWhenInUsePermission": "Cherry Studio sends your current location and address, when requested, to your selected AI service to answer questions such as finding nearby restaurants, only while you use the app."
+          "motionUsagePermission": "Slate does not read or track your motion and fitness activity. This permission description is required by the location service included in the app.",
+          "locationWhenInUsePermission": "Slate sends your current location and address, when requested, to your selected AI service to answer questions such as finding nearby restaurants, only while you use the app."
         }
       ],
       "expo-document-picker",
@@ -235,15 +235,15 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow Cherry Studio to preview and select photos for drawings and chat messages.",
-          "cameraPermission": "Allow Cherry Studio to scan desktop pairing QR codes and take photos for chat messages and drawings.",
-          "microphonePermission": "Allow Cherry Studio to use the microphone for voice input."
+          "photosPermission": "Allow Slate to preview and select photos for drawings and chat messages.",
+          "cameraPermission": "Allow Slate to scan desktop pairing QR codes and take photos for chat messages and drawings.",
+          "microphonePermission": "Allow Slate to use the microphone for voice input."
         }
       ],
       [
         "expo-audio",
         {
-          "microphonePermission": "Allow Cherry Studio to use the microphone for voice input.",
+          "microphonePermission": "Allow Slate to use the microphone for voice input.",
           "recordAudioAndroid": true,
           "enableBackgroundRecording": false,
           "enableBackgroundPlayback": false
@@ -252,8 +252,8 @@
       [
         "expo-speech-recognition",
         {
-          "microphonePermission": "Allow Cherry Studio to use the microphone for voice input.",
-          "speechRecognitionPermission": "Allow Cherry Studio to turn your speech into text for voice input.",
+          "microphonePermission": "Allow Slate to use the microphone for voice input.",
+          "speechRecognitionPermission": "Allow Slate to turn your speech into text for voice input.",
           "androidSpeechServicePackages": [
             "com.google.android.googlequicksearchbox",
             "com.google.android.as",
@@ -264,8 +264,8 @@
       [
         "expo-media-library",
         {
-          "photosPermission": "Allow Cherry Studio to preview photos for drawings and chat messages.",
-          "savePhotosPermission": "Cherry Studio saves images to your photo library when you choose Save, such as a generated drawing or an image from chat.",
+          "photosPermission": "Allow Slate to preview photos for drawings and chat messages.",
+          "savePhotosPermission": "Slate saves images to your photo library when you choose Save, such as a generated drawing or an image from chat.",
           "preventAutomaticLimitedAccessAlert": true,
           "granularPermissions": []
         }

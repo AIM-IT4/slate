@@ -15,7 +15,7 @@ import type { PluginClient, PluginClientContext } from '../pluginDefinition';
 
 const CONNECTION_TIMEOUT_MS = 15_000;
 // Local correlation only; removed before authorization or network transmission.
-const REQUEST_ID_HEADER = 'X-Cherry-Plugin-Request';
+const REQUEST_ID_HEADER = 'X-Slate-Plugin-Request';
 
 type OfficialMcpConnection = {
   readonly url: string;
@@ -142,7 +142,7 @@ export async function createOfficialMcpClient(
     }
   };
   const client = new Client({
-    name: 'Cherry Studio',
+    name: 'Slate',
     version: Constants.expoConfig?.version ?? 'unknown',
   });
   const transport = new StreamableHTTPClientTransport(endpoint, {

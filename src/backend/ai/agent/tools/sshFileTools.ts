@@ -63,7 +63,7 @@ export function createSshFileTools(
     {
       name: 'ssh_download_file',
       operation: 'download',
-      description: `Download a remote file (maximum 20 MiB) into Cherry's selected local workspace, or the library root when unbound. Returns a managed file artifact that other tools can read. ${context}`,
+      description: `Download a remote file (maximum 20 MiB) into Slate's selected local workspace, or the library root when unbound. Returns a managed file artifact that other tools can read. ${context}`,
       schema: z.strictObject(scope),
     },
     {

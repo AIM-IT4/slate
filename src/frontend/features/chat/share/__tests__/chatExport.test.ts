@@ -150,7 +150,7 @@ test('disabling process includes the final answer and files but excludes earlier
   });
 });
 
-test('answers carry the Cherry avatar and their own model; questions stay plain bubbles', () => {
+test('answers carry the Slate avatar and their own model; questions stay plain bubbles', () => {
   const document = toChatExportDocument(
     [question, { ...answer, modelName: 'GPT-5' }, { ...answer, id: 'c' }],
     options,

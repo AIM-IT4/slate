@@ -19,10 +19,10 @@ const SOURCE_ID = '00000000-0000-7000-8000-000000000001' as FileEntryId;
 const EDITED_ID = '00000000-0000-7000-8000-000000000002' as FileEntryId;
 const APPLICATION_LABEL = AiContentLabelSchema.parse({
   Label: '1',
-  ContentProducer: 'CherryStudio',
+  ContentProducer: 'Slate',
   ProduceID: 'application-content-1',
   ReservedCode1: '',
-  ContentPropagator: 'CherryStudio',
+  ContentPropagator: 'Slate',
   PropagateID: 'application-content-1',
   ReservedCode2: '',
 });
@@ -47,12 +47,12 @@ describe('editFileTool', () => {
     const output = await execute(createEditFileTool(files), {
       file_entry_id: SOURCE_ID,
       old_string: 'world',
-      new_string: 'Cherry',
+      new_string: 'Slate',
     });
 
     expect(files.createTextEntry).toHaveBeenCalledWith(
       {
-        data: 'Hello Cherry\n',
+        data: 'Hello Slate\n',
         mediaType: 'text/markdown',
         name: 'notes.md',
         baseFileEntryId: SOURCE_ID,
@@ -72,7 +72,7 @@ describe('editFileTool', () => {
         filename: 'notes.md',
         size: 13,
         replacements: 1,
-        snippet: 'Hello Cherry\n',
+        snippet: 'Hello Slate\n',
         snippetStartLine: 1,
       },
       artifacts: [
@@ -91,11 +91,11 @@ describe('editFileTool', () => {
     const output = await execute(createEditFileTool(files, SOURCE_IS_DRAFT), {
       file_entry_id: SOURCE_ID,
       old_string: 'world',
-      new_string: 'Cherry',
+      new_string: 'Slate',
     });
 
     expect(files.rewriteTextEntry).toHaveBeenCalledWith(
-      { data: 'Hello Cherry\n', id: SOURCE_ID, aiOperation: 'edit' },
+      { data: 'Hello Slate\n', id: SOURCE_ID, aiOperation: 'edit' },
       expect.any(AbortSignal),
     );
     expect(files.createTextEntry).not.toHaveBeenCalled();
@@ -108,7 +108,7 @@ describe('editFileTool', () => {
         filename: 'notes.md',
         size: 13,
         replacements: 1,
-        snippet: 'Hello Cherry\n',
+        snippet: 'Hello Slate\n',
         snippetStartLine: 1,
       },
       artifacts: [],
@@ -424,7 +424,7 @@ describe('editFileTool', () => {
     await execute(createEditFileTool(files, scope), {
       file_entry_id: SOURCE_ID,
       old_string: 'world',
-      new_string: 'Cherry',
+      new_string: 'Slate',
     });
 
     expect(files.createTextEntry).toHaveBeenCalledWith(
@@ -489,7 +489,7 @@ describe('editFileTool', () => {
   });
 
   test('matches case-sensitively', async () => {
-    const files = createFiles('Cherry');
+    const files = createFiles('Slate');
     const output = await execute(createEditFileTool(files), {
       file_entry_id: SOURCE_ID,
       old_string: 'cherry',

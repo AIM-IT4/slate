@@ -37,12 +37,12 @@ test.each([false, true])(
     mockGetRegion.mockResolvedValue(mainland ? 'CN' : 'GLOBAL');
     const provider = createProvider(['key']);
     request.mockResolvedValueOnce({ bodyText: '{"data":[]}', headers: {}, status: 200 });
-    await provider.searchKeywords('Cherry Studio', config);
+    await provider.searchKeywords('Slate', config);
     await provider.fetchUrls('https://example.com/a?b=1', config);
     expect(request.mock.calls.map(([call]) => call.url)).toEqual(
       mainland
-        ? ['https://s.jinaai.cn/Cherry%20Studio', 'https://r.jinaai.cn/https://example.com/a?b=1']
-        : ['https://s.jina.ai/Cherry%20Studio', 'https://r.jina.ai/https://example.com/a?b=1'],
+        ? ['https://s.jinaai.cn/Slate%20Studio', 'https://r.jinaai.cn/https://example.com/a?b=1']
+        : ['https://s.jina.ai/Slate%20Studio', 'https://r.jina.ai/https://example.com/a?b=1'],
     );
   },
 );
@@ -100,7 +100,7 @@ test.each(['searchKeywords', 'fetchUrls'] as const)(
   'custom %s hosts do not depend on country detection',
   async (capability) => {
     const search = capability === 'searchKeywords';
-    const input = search ? 'Cherry Studio' : 'https://example.com';
+    const input = search ? 'Slate' : 'https://example.com';
     request.mockResolvedValueOnce({
       bodyText: JSON.stringify(search ? { data: [] } : { data: { content: 'Page' } }),
       headers: {},
@@ -115,7 +115,7 @@ test.each(['searchKeywords', 'fetchUrls'] as const)(
     expect(mockGetRegion).not.toHaveBeenCalled();
     expect(request.mock.calls.map(([call]) => call.url)).toEqual([
       search
-        ? 'https://search.internal/Cherry%20Studio'
+        ? 'https://search.internal/Slate%20Studio'
         : 'https://reader.internal/https://example.com',
     ]);
   },

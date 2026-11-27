@@ -5,7 +5,7 @@ import { LANES_PER_SESSION, laneKey, runtimeLane, type RuntimeLane } from '../ru
 /**
  * How one answer reaches a working copy: continue a lane whose newest answer is
  * the question's parent, natively fork the lane that executed that parent, or
- * rebuild a new lane from the Cherry history.
+ * rebuild a new lane from the Slate history.
  */
 export type LaneChoice =
   | { lane: RuntimeLane; mode: 'native' | 'rebuild' }
@@ -33,7 +33,7 @@ export type LanePlanningReaders = {
 /**
  * Picks a working copy for each of `count` answers below `parent`. The first
  * answer continues the copy whose newest answer is `parent`; the others
- * natively fork the copy that executed `parent`, or rebuild from Cherry
+ * natively fork the copy that executed `parent`, or rebuild from Slate
  * history when no current copy holds it. New copies take a free slot, else
  * replace the least recently used idle copy: every copy is rebuildable.
  * Engine tails are read only as far as the choice needs them.

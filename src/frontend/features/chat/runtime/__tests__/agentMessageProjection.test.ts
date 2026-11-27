@@ -818,13 +818,13 @@ describe('agentMessageProjection', () => {
           {
             title: 'Web search',
             id: 'tool-1',
-            input: { query: 'Cherry Studio' },
+            input: { query: 'Slate' },
             output: {
               value: [
                 {
-                  content: 'Cherry Studio docs',
+                  content: 'Slate docs',
                   id: 'aaaa1111-1',
-                  title: 'Cherry Studio',
+                  title: 'Slate',
                   url: 'https://cherry-ai.com',
                 },
               ],
@@ -847,7 +847,7 @@ describe('agentMessageProjection', () => {
       { state: 'done', text: 'Answer [cite:aaaa1111-1].', type: 'text' },
       {
         sourceId: 'aaaa1111-1',
-        title: 'Cherry Studio',
+        title: 'Slate',
         type: 'source-url',
         url: 'https://cherry-ai.com',
       },

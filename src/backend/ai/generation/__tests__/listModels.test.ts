@@ -38,8 +38,8 @@ describe('listModels adapter', () => {
 
     const [input, init] = fetchMock.mock.calls[0];
     const headers = input instanceof Request ? input.headers : new Headers(init?.headers);
-    expect(headers.get('User-Agent')).toMatch(/^CherryStudioMobile\/1\.0(?: |$)/);
-    expect(headers.get('X-App-Name')).toBe('CherryStudioMobile');
+    expect(headers.get('User-Agent')).toMatch(/^Slate\/1\.0(?: |$)/);
+    expect(headers.get('X-App-Name')).toBe('Slate');
   });
 });
 

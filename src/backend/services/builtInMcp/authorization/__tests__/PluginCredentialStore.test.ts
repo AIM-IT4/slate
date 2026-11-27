@@ -26,7 +26,7 @@ const input = {
   pluginId: 'feishu',
   authMethod: 'feishu_user',
   serverName: 'Feishu',
-  accountLabel: 'Cherry',
+  accountLabel: 'Slate',
   credential: {
     version: 1,
     application,
@@ -185,7 +185,7 @@ it('rejects a replaced expected grant before writing another native credential',
   await storage.connect(input);
   const writes = native.setItemAsync.mock.calls.length;
   await expect(
-    method().commit(input.credential, 'Cherry', new AbortController().signal, {
+    method().commit(input.credential, 'Slate', new AbortController().signal, {
       authorizationId: originalId,
     }),
   ).rejects.toMatchObject({ reason: 'requires-disconnect' });

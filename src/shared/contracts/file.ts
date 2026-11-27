@@ -83,7 +83,7 @@ export interface FileModule {
   generatePreviewUri(entry: FileEntry): Promise<string | undefined>;
   /** Thumbnail-only access to the same recoverable deletion shown in the trash. */
   getTrashThumbnailUri(id: FileEntryId, deletedAt: number): Promise<string | undefined>;
-  /** Mobile URI equivalent of Cherry Desktop's getUrl. */
+  /** Mobile URI equivalent of Slate Desktop's getUrl. */
   getUri(id: FileEntryId): Promise<string | undefined>;
   /** Resolves a database page without re-reading entries one by one. */
   resolveUris(entries: readonly FileEntry[]): Promise<ResolvedFileUris[]>;

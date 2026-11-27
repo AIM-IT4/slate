@@ -10,7 +10,7 @@ import type { ModelWebToolsPreference } from '@/shared/data/preference';
  * `docs/references/agent/agent-runtime.md`. The contract is deliberately
  * independent of the Agent Protocol, persistence, React, and Expo: a Runtime
  * knows prepared prompts, models, history, tools, input, and normalized
- * execution events, and nothing about Cherry Agent or Session entities, SQLite,
+ * execution events, and nothing about Slate Agent or Session entities, SQLite,
  * the Data API, navigation, or UI state.
  *
  * Tool callbacks and `AbortSignal` are permitted here precisely because this

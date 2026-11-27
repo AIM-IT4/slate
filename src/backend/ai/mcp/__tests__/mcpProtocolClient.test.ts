@@ -253,7 +253,7 @@ describe('native MCP protocol boundary', () => {
 
   it('reads bounded JSON with the React Native Response implementation', async () => {
     const client = await open();
-    const encoded = new TextEncoder().encode(JSON.stringify({ name: 'Cherry 验收' }));
+    const encoded = new TextEncoder().encode(JSON.stringify({ name: 'Slate 验收' }));
     mockExpoFetch.mockResolvedValue(
       streamingResponse(
         new ReadableStream({
@@ -270,7 +270,7 @@ describe('native MCP protocol boundary', () => {
     globalThis.Response = jest.requireActual('whatwg-fetch').Response;
     try {
       const response = await mockTransport.fetch(endpointUrl, { method: 'POST', body: '{}' });
-      await expect(response.json()).resolves.toEqual({ name: 'Cherry 验收' });
+      await expect(response.json()).resolves.toEqual({ name: 'Slate 验收' });
     } finally {
       globalThis.Response = originalResponse;
       await client.close();
@@ -444,7 +444,7 @@ describe('native MCP protocol boundary', () => {
   it('only opens elicitation while an initiating operation is active', async () => {
     const elicit = jest.fn(async () => ({
       action: 'accept' as const,
-      content: { name: 'Cherry' },
+      content: { name: 'Slate' },
     }));
     const client = await open(elicit);
     const request = { params: { mode: 'form' } };

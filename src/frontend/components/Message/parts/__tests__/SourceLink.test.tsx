@@ -22,7 +22,7 @@ describe('SourceLink', () => {
   it('opens its source URL through the application link handler', () => {
     let renderer: ReactTestRenderer | undefined;
     act(() => {
-      renderer = create(<SourceLink label="Cherry Studio" url="https://cherry-ai.com" />);
+      renderer = create(<SourceLink label="Slate" url="https://cherry-ai.com" />);
     });
 
     act(() => {

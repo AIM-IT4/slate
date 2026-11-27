@@ -7,7 +7,7 @@ import { createWebTools } from '../webTools';
 
 const RESPONSE = {
   query: 'cherry studio',
-  results: [{ content: 'Body', title: 'Cherry Studio', url: 'https://example.com/a' }],
+  results: [{ content: 'Body', title: 'Slate', url: 'https://example.com/a' }],
 };
 
 describe('createWebTools', () => {
@@ -23,7 +23,7 @@ describe('createWebTools', () => {
     expect(result.value).toEqual([
       {
         id: expect.any(String),
-        title: 'Cherry Studio',
+        title: 'Slate',
         url: 'https://example.com/a',
         content: 'Body',
       },
@@ -493,7 +493,7 @@ describe('createWebTools', () => {
     expect(result.value).toEqual([
       {
         id: expect.any(String),
-        title: 'Cherry Studio',
+        title: 'Slate',
         url: 'https://example.com/a',
         content: 'Article prefix',
         truncated: true,

@@ -54,7 +54,7 @@ const entry = FileEntrySchema.parse({
 const signature: ExportSignature = {
   background: '#ffffff',
   foreground: '#000000',
-  brandName: 'Cherry Studio',
+  brandName: 'Slate',
   brandColor: '#ff5757',
   downloadLabel: 'Scan to download the mobile app',
   downloadLinkLabel: 'Download the mobile app',

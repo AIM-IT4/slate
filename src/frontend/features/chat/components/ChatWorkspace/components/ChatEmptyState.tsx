@@ -1,5 +1,9 @@
+import { duration } from '@cherrystudio/ui/motion';
 import { useTranslation } from 'react-i18next';
-import { Text, View } from 'react-native';
+import { Text } from 'react-native';
+import Animated, { FadeInDown, ReduceMotion } from 'react-native-reanimated';
+
+const entrance = FadeInDown.duration(duration.slow).reduceMotion(ReduceMotion.System);
 
 import { ChatComposerClearance } from './ChatComposerClearance';
 
@@ -16,14 +20,14 @@ export function ChatEmptyState({ contentBottomInset }: ChatEmptyStateProps) {
       className="flex-1 items-center justify-center px-8"
       contentBottomInset={contentBottomInset}
     >
-      <View className="items-center gap-4">
+      <Animated.View entering={entrance} className="items-center gap-4">
         <Text className="text-center font-semibold text-foreground text-3xl">
           {t('chat.newSession.title')}
         </Text>
         <Text className="text-center text-muted-foreground text-base" numberOfLines={3}>
           {t('chat.newSession.description')}
         </Text>
-      </View>
+      </Animated.View>
     </ChatComposerClearance>
   );
 }

@@ -16,8 +16,8 @@ describe('resolveProviderConnection', () => {
       endpointType: ENDPOINT_TYPE.GOOGLE_GENERATE_CONTENT,
       headers: {
         Authorization: 'Bearer header-secret',
-        'User-Agent': 'CherryStudioMobile/1.0',
-        'X-App-Name': 'CherryStudioMobile',
+        'User-Agent': 'Slate/1.0',
+        'X-App-Name': 'Slate',
         'X-Custom': 'custom',
       },
       wireModelId: 'gemini-2.5-flash',

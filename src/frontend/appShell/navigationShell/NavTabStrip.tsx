@@ -1,5 +1,5 @@
 import { Surface } from '@cherrystudio/ui/components';
-import { duration, easing } from '@cherrystudio/ui/motion';
+import { duration, easing, spring } from '@cherrystudio/ui/motion';
 import { type RefObject, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -17,6 +17,9 @@ import Animated, {
   LinearTransition,
   ReduceMotion,
   ZoomIn,
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
 } from 'react-native-reanimated';
 
 import type { NavigationPinTabId } from '@/shared/data/preference/preferenceSchema';
@@ -180,22 +183,36 @@ function NavTabCapsule({
   orientation,
 }: NavTabCapsuleProps) {
   const { t } = useTranslation();
+  const active = useSharedValue(isActive ? 1 : 0);
+  useEffect(() => {
+    active.set(
+      withSpring(isActive ? 1 : 0, { ...spring.morph, reduceMotion: ReduceMotion.System }),
+    );
+  }, [active, isActive]);
+  const iconMotion = useAnimatedStyle(() => ({
+    transform: [{ translateY: -2 * active.get() }, { scale: 1 + 0.13 * active.get() }],
+  }));
   const isHorizontal = orientation === 'horizontal';
   const capsuleClassName = isHorizontal
     ? 'h-14 w-full max-w-24 items-center justify-center gap-1 rounded-xl'
     : 'h-11 w-11 items-center justify-center rounded-full';
   const stateClassName = isDragPreview
     ? 'bg-secondary-active border-border-selected border border-dashed'
-    : '';
+    : isActive
+      ? 'bg-primary/10'
+      : '';
 
   return (
     <View
       className={stateClassName ? `${capsuleClassName} ${stateClassName}` : capsuleClassName}
       collapsable={false}
     >
-      <View className={isHorizontal && !isActive && !isDragPreview ? 'opacity-75' : undefined}>
+      <Animated.View
+        style={iconMotion}
+        className={isHorizontal && !isActive && !isDragPreview ? 'opacity-75' : undefined}
+      >
         <NavIcon color={color} filled={filled} id={id} size={isHorizontal ? 20 : 22} />
-      </View>
+      </Animated.View>
       {isHorizontal ? (
         <Text
           className={

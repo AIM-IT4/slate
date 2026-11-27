@@ -63,7 +63,7 @@ jest.mock('@/frontend/appShell/navigation/chat', () => ({
 jest.mock('@/frontend/appShell/conversation', () => ({
   ConversationSourceBoundary: ({ children }: { children: React.ReactNode }) => children,
   useConversationAgents: () => ({
-    items: mockAgent ? [mockAgent, { id: 'agent-2', name: 'Cherry' }] : [],
+    items: mockAgent ? [mockAgent, { id: 'agent-2', name: 'Slate' }] : [],
     isLoading: false,
   }),
 }));
@@ -193,7 +193,7 @@ describe('MainHeaderAgentLabel', () => {
 
   it.each([
     ['agent-1', 'Peanut'],
-    ['agent-2', 'Cherry'],
+    ['agent-2', 'Slate'],
   ])('selects %s through the separate switch button in wide-rail mode', async (agentId, name) => {
     await act(async () => {
       renderer = create(

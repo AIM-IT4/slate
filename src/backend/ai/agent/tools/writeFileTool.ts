@@ -3,7 +3,7 @@
  *
  * Bounded on purpose (docs/references/agent/agent-tools-and-resources.md): UTF-8
  * text only, workspace-relative paths, and checked version replacement. The model names
- * the file; where the bytes live is Cherry's business, so the result carries an
+ * the file; where the bytes live is Slate's business, so the result carries an
  * entry id rather than a URI.
  */
 

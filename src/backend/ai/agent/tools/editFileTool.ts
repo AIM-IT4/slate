@@ -339,7 +339,7 @@ export function createEditFileTool(
     displayName: 'Edit file',
     deferred: true,
     description:
-      'Replace exact text in a Cherry-managed UTF-8 file. Use file_entry_id from an attachment or an earlier file tool result. A file created earlier in this same turn is updated in place and keeps its id; any other file is preserved as an immutable historical version. Editing a workspace file advances its stable path; editing an approved outside source saves a new workspace copy. A path edit requires base_file_entry_id and base_revision from the last read. Several edits of one file may be sent together with the same base; they apply in order. A conflict requires re-reading. Use replace_all only when every exact occurrence should change. The result includes a snippet of the edited region and the one-based line it starts at, usable as read_file start_line.',
+      'Replace exact text in a Slate-managed UTF-8 file. Use file_entry_id from an attachment or an earlier file tool result. A file created earlier in this same turn is updated in place and keeps its id; any other file is preserved as an immutable historical version. Editing a workspace file advances its stable path; editing an approved outside source saves a new workspace copy. A path edit requires base_file_entry_id and base_revision from the last read. Several edits of one file may be sent together with the same base; they apply in order. A conflict requires re-reading. Use replace_all only when every exact occurrence should change. The result includes a snippet of the edited region and the one-based line it starts at, usable as read_file start_line.',
     inputSchema: toRuntimeInputSchema(editFileInputSchema),
     inputPreview: { textField: 'new_string' },
     approval: 'auto',

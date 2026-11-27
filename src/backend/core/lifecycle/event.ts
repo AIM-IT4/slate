@@ -1,7 +1,7 @@
 /**
  * Typed events for inter-service communication.
  *
- * Ported verbatim from Cherry Desktop `src/main/core/lifecycle/event.ts`.
+ * Ported verbatim from Slate Desktop `src/main/core/lifecycle/event.ts`.
  * Producers own an `Emitter<T>` and expose its `Event<T>`; consumers subscribe
  * and receive a `Disposable`.
  *

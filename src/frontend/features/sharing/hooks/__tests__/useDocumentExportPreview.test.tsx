@@ -170,7 +170,7 @@ test.each(['image', 'html', 'markdown'] as const)(
         foreground: '#000000',
         brandColor: '#ff0000',
         logoDataUrl: 'data:image/png;base64,AA==',
-        brandName: 'Cherry Studio',
+        brandName: 'Slate',
         downloadLabel: 'Scan',
         downloadLinkLabel: 'Download',
         downloadUrl: 'https://example.com',

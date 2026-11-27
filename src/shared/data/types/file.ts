@@ -3,9 +3,9 @@ import * as z from 'zod';
 /**
  * Mobile-native file model.
  *
- * Intentionally diverges from Cherry Desktop's file types: mobile has no
+ * Intentionally diverges from Slate Desktop's file types: mobile has no
  * external-path entries, no content hashing, and no per-file cleanup policies.
- * The file trash retains deleted entries for 30 days. Every entry is a Cherry-owned blob that
+ * The file trash retains deleted entries for 30 days. Every entry is a Slate-owned blob that
  * is immutable once the Agent turn producing it ends; that turn may rewrite its
  * own draft, and any other "edit" creates a new version entry.
  */
@@ -37,7 +37,7 @@ export type MediaType = z.infer<typeof MediaTypeSchema>;
 export const FALLBACK_MEDIA_TYPE = 'application/octet-stream';
 
 /** File-property author for application-produced documents, separate from AI service identity. */
-export const GENERATED_FILE_AUTHOR = 'Cherry Studio';
+export const GENERATED_FILE_AUTHOR = 'Slate';
 
 /**
  * Stable provenance retained after a file leaves its originating message or
@@ -90,7 +90,7 @@ export function filenameExtension(filename: string): string | null {
 }
 
 // ============================================================================
-// Readable names for files Cherry produces
+// Readable names for files Slate produces
 //
 // A produced file is named for what it is, never for its id: an imported file
 // keeps the name it arrived with, versions share a logical name, and a generated

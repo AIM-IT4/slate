@@ -1,10 +1,14 @@
 import ChevronRightIcon from '@cherrystudio/app-icons/icons/chevron-right';
 import PlusIcon from '@cherrystudio/app-icons/icons/plus';
 import { BackgroundPressExclusion, Button } from '@cherrystudio/ui/components';
+import { duration } from '@cherrystudio/ui/motion';
 import { useRouter } from 'expo-router';
 import type { PropsWithChildren } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
+import Animated, { FadeInDown, ReduceMotion } from 'react-native-reanimated';
+
+const greetingEntrance = FadeInDown.duration(duration.slow).reduceMotion(ReduceMotion.System);
 
 import {
   ConversationSourceBoundary,
@@ -81,7 +85,7 @@ function DraftGreeting({
   const { t } = useTranslation();
 
   return (
-    <View className="w-full max-w-xs items-center gap-6">
+    <Animated.View entering={greetingEntrance} className="w-full max-w-xs items-center gap-6">
       {assistantName ? (
         <AgentAvatar
           avatar={assistantAvatar}
@@ -94,7 +98,7 @@ function DraftGreeting({
       <Text className="text-center font-medium text-foreground text-xl" numberOfLines={2}>
         {t('chat.draft.greeting')}
       </Text>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -153,7 +157,7 @@ const editorialTitle = {
 function EditorialGreeting({ children }: PropsWithChildren) {
   const { t } = useTranslation();
   return (
-    <View className="w-full max-w-lg self-center gap-5">
+    <Animated.View entering={greetingEntrance} className="w-full max-w-lg self-center gap-5">
       <Text
         accessibilityRole="header"
         className="max-w-[320px] text-foreground"
@@ -166,7 +170,7 @@ function EditorialGreeting({ children }: PropsWithChildren) {
       <ConversationSourceBoundary source={{ kind: 'local' }} fallback={() => null}>
         <EditorialRecents />
       </ConversationSourceBoundary>
-    </View>
+    </Animated.View>
   );
 }
 

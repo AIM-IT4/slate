@@ -70,7 +70,7 @@ test('normalizes the generated Markdown author without changing body or unrelate
   const source = '\uFEFF---\r\nauthor: Model\r\ntitle: Report\r\n---\r\n# 原文 😀\r\nBody\r\n';
   const stored = writeAiContentText(source, 'text/markdown', label, generatedAuthor);
   expect(stored.endsWith('# 原文 😀\r\nBody\r\n')).toBe(true);
-  expect(stored).toContain('author: Cherry Studio\n');
+  expect(stored).toContain('author: Slate\n');
   expect(stored).toContain('title: Report\n');
   expect(aiContentMarkdownBody(stored)).toBe(
     '\uFEFF---\ntitle: Report\n---\n# 原文 😀\r\nBody\r\n',
@@ -98,12 +98,12 @@ test('replaces real HTML author tags while preserving examples and other head/bo
     '<META NAME="Author" content="Other">' +
     content;
   const stored = writeAiContentText(source, 'text/html', label, generatedAuthor);
-  expect(stored.match(/<meta name="author" content="Cherry Studio">/g)).toHaveLength(1);
+  expect(stored.match(/<meta name="author" content="Slate">/g)).toHaveLength(1);
   expect(stored).not.toContain('content="Model"');
   expect(stored).not.toContain('content="Other"');
   expect(stored.endsWith(content)).toBe(true);
   const rewritten = writeAiContentText(stored, 'text/html', edited, generatedAuthor);
-  expect(rewritten.match(/<meta name="author" content="Cherry Studio">/g)).toHaveLength(1);
+  expect(rewritten.match(/<meta name="author" content="Slate">/g)).toHaveLength(1);
   expect(readAiContentText(rewritten, 'text/html')).toEqual(edited);
 });
 
@@ -183,7 +183,7 @@ test('an AI edit keeps an existing author and adds the application author only w
   expect(storedMarkdown).toContain('author: 张三\n');
   expect(storedMarkdown).not.toContain(GENERATED_FILE_AUTHOR);
   expect(writeAiContentText('Body\n', 'text/markdown', label, editAuthor)).toContain(
-    'author: Cherry Studio\n',
+    'author: Slate\n',
   );
   const html = '<html><head><meta name="author" content="张三"></head><body>Body</body></html>';
   const storedHtml = writeAiContentText(html, 'text/html', label, editAuthor);
@@ -197,7 +197,7 @@ test('an AI edit keeps an existing author and adds the application author only w
       label,
       editAuthor,
     ),
-  ).toContain('<meta name="author" content="Cherry Studio">');
+  ).toContain('<meta name="author" content="Slate">');
 });
 
 test('treats the iOS Markdown type and parameterized types as Markdown carriers', () => {
@@ -217,7 +217,7 @@ test('labels HTML whose head closes implicitly at the next body element', () => 
     expect(readAiContentText(stored, 'text/html')).toEqual(label);
     expect(readAiContentHtml([stored])).toEqual(label);
     expect(writeAiContentText(stored, 'text/html', null)).toBe(
-      source.replace('<title>', '<meta name="author" content="Cherry Studio"><title>'),
+      source.replace('<title>', '<meta name="author" content="Slate"><title>'),
     );
   }
   expect(

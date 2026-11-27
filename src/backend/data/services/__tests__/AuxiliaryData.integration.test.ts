@@ -183,7 +183,7 @@ describe('auxiliary Data API integration', () => {
     ['计划', '今天的计划'],
     ['支持多模态', '支持**多模态**输入'],
     ['支持多模态', '支持[多模态](https://example.com)输入'],
-    ['CherryStudio', 'Cherry`Studio`'],
+    ['Slate', 'Slate`Studio`'],
     ['支持多模态', '支持<span>多模态</span>输入'],
   ])('finds literal visible content for %s', async (q, text) => {
     insertSearchMessages(sqlite, [

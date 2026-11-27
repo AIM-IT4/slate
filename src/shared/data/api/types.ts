@@ -28,7 +28,7 @@ export interface OffsetPaginationResponse<T> {
 /**
  * Cursor-based pagination response.
  *
- * Matches Cherry desktop's shared Data API pagination shape.
+ * Matches Slate desktop's shared Data API pagination shape.
  */
 export interface CursorPaginationResponse<T> {
   /** Items for current page */

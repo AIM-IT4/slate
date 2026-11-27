@@ -166,7 +166,7 @@ type EmptyIllustrationProps = {
   size?: keyof typeof ILLUSTRATION_WIDTHS;
 };
 
-/** Decorative Cherry artwork. */
+/** Decorative Slate artwork. */
 export function EmptyIllustration({ scene, size = 'page' }: EmptyIllustrationProps) {
   const [brand, outline, surface, white] = useThemeColor([
     'brand',

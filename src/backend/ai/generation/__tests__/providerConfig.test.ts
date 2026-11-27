@@ -174,7 +174,7 @@ describe('providerToAiSdkConfig', () => {
         }
         if (presetId === 'opencode') {
           expect(config.providerSettings.headers).toMatchObject({
-            'User-Agent': 'CherryStudioMobile/1.0',
+            'User-Agent': 'Slate/1.0',
             'x-opencode-session': 'probe-session',
           });
         }

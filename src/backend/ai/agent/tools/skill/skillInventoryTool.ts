@@ -31,7 +31,7 @@ export function createSkillInventoryTool(
     deferred: true,
     approval: 'auto',
     description:
-      'Inspect all Skills installed in this Cherry app, including globally disabled and unbound Skills. Use mode=count for a total without listing entries; search matches name or description in both modes. Lists default to 20 compact entries; include_descriptions adds complete descriptions. Each list reply is capped at 12,000 serialized characters and may return fewer than limit. Follow nextCursor with the same search and options until null for a complete list. Enablement, Agent binding and invocation flags are configuration facts, not execution support. Listing never binds, enables or loads instructions; load_skill still requires access in this Agent.',
+      'Inspect all Skills installed in this Slate app, including globally disabled and unbound Skills. Use mode=count for a total without listing entries; search matches name or description in both modes. Lists default to 20 compact entries; include_descriptions adds complete descriptions. Each list reply is capped at 12,000 serialized characters and may return fewer than limit. Follow nextCursor with the same search and options until null for a complete list. Enablement, Agent binding and invocation flags are configuration facts, not execution support. Listing never binds, enables or loads instructions; load_skill still requires access in this Agent.',
     inputSchema: toRuntimeInputSchema(inputSchema),
     async execute({ input, signal }): Promise<RuntimeToolResult> {
       const { mode, search, cursor, limit, include_descriptions } = inputSchema.parse(input);

@@ -33,11 +33,11 @@ beforeEach(() => jest.clearAllMocks());
 
 test.each([
   [
-    '# Cherry Studio 1.10.0 更新日志\n\n简介\n\n## 新增功能\n\n- 一项\n\n## 下载安装\n\n- 附件\n\n[完整变更记录](https://example.com)\n',
+    '# Slate 1.10.0 更新日志\n\n简介\n\n## 新增功能\n\n- 一项\n\n## 下载安装\n\n- 附件\n\n[完整变更记录](https://example.com)\n',
     '简介\n\n## 新增功能\n\n- 一项',
   ],
   [
-    '# Cherry Studio 1.10.0 Release Notes\n\n## Fixes\n\n- One\n\n## Download and Installation\n\n- APK\n',
+    '# Slate 1.10.0 Release Notes\n\n## Fixes\n\n- One\n\n## Download and Installation\n\n- APK\n',
     '## Fixes\n\n- One',
   ],
   ['Plain notes without headings', 'Plain notes without headings'],

@@ -295,7 +295,7 @@ test('image and HTML exports include one brand and download footer after the con
   const signature = {
     background: '#ffffff',
     foreground: '#000000',
-    brandName: 'Cherry Studio <brand>',
+    brandName: 'Slate <brand>',
     brandColor: '#ff5757',
     downloadLabel: 'Scan to download the mobile app',
     downloadLinkLabel: 'Download the mobile app',
@@ -318,7 +318,7 @@ test('image and HTML exports include one brand and download footer after the con
     );
     expect(html.match(/<footer\b/g)).toHaveLength(1);
     const footer = html.slice(html.indexOf('<footer'));
-    expect(footer).toContain('Cherry Studio &lt;brand&gt;');
+    expect(footer).toContain('Slate &lt;brand&gt;');
     expect(footer).toContain(
       `<a class="print-download print-secondary" href="https://example.com/mobile?platform=mobile&amp;channel=share">${signature.downloadLabel}</a>`,
     );
@@ -340,7 +340,7 @@ test('rejects invalid signature colors, copy, download links and QR images', asy
   const signature = {
     background: '#ffffff',
     foreground: '#000000',
-    brandName: 'Cherry Studio',
+    brandName: 'Slate',
     brandColor: '#ff5757',
     downloadLabel: 'Scan to download the mobile app',
     downloadLinkLabel: 'Download the mobile app',

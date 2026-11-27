@@ -39,7 +39,7 @@ describe('dev-mock provider', () => {
         body: JSON.stringify({
           model: 'dev-mock-chat',
           stream: true,
-          messages: [{ role: 'user', content: 'Hello Cherry' }],
+          messages: [{ role: 'user', content: 'Hello Slate' }],
         }),
       });
 
@@ -56,7 +56,7 @@ describe('dev-mock provider', () => {
         )
         .map((chunk) => chunk.choices?.[0]?.delta?.content ?? '')
         .join('');
-      expect(content).toBe('[dev-mock] Echo: Hello Cherry');
+      expect(content).toBe('[dev-mock] Echo: Hello Slate');
     } finally {
       globalThis.Response = originalResponse;
     }

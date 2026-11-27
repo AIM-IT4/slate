@@ -23,7 +23,7 @@ jest.mock('@/frontend/appShell/pane/state', () => ({
 
 jest.mock('@/frontend/appShell/fileExport', () => ({
   prepareSharedFile: (...args: unknown[]) => mockPrepareSharedFile(...args),
-  useExportWatermark: () => () => ({ kind: 'cherry', signature: { brandName: 'Cherry Studio' } }),
+  useExportWatermark: () => () => ({ kind: 'cherry', signature: { brandName: 'Slate' } }),
 }));
 
 jest.mock('expo-router', () => ({
@@ -206,7 +206,7 @@ it('opens the branded image copy externally while retaining the original for in-
   });
   await act(async () => actions.openFileEntryWithSystem(imageFile));
   expect(mockPrepareSharedFile).toHaveBeenCalledWith(imageFile, {
-    watermark: { kind: 'cherry', signature: { brandName: 'Cherry Studio' } },
+    watermark: { kind: 'cherry', signature: { brandName: 'Slate' } },
   });
   expect(mockOpen).toHaveBeenCalledWith(
     expect.objectContaining({
@@ -245,7 +245,7 @@ it('opens a temporary image through the cache without resolving its display id a
   expect(mockPrepareSharedFile).toHaveBeenCalledWith(
     { entry: temporaryEntry, uri: temporaryUri },
     {
-      watermark: { kind: 'cherry', signature: { brandName: 'Cherry Studio' } },
+      watermark: { kind: 'cherry', signature: { brandName: 'Slate' } },
     },
   );
   expect(mockOpen).toHaveBeenCalledWith(

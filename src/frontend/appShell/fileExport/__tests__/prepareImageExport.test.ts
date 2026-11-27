@@ -95,7 +95,7 @@ beforeEach(() => {
 const signature: ExportSignature = {
   background: '#ffffff',
   foreground: '#000000',
-  brandName: 'Cherry Studio',
+  brandName: 'Slate',
   brandColor: '#ff5757',
   downloadLabel: 'Scan to download the mobile app',
   downloadLinkLabel: 'Download the mobile app',
@@ -261,7 +261,7 @@ test.each([
 });
 
 test.each(['image/svg+xml', 'IMAGE/SVG+XML', 'image/svg+xml;charset=utf-8'])(
-  'SVG delivery preserves the original file with a Cherry watermark requested (%s)',
+  'SVG delivery preserves the original file with a Slate watermark requested (%s)',
   async (mediaType) => {
     const uri = 'file:///managed/drawing.svg';
     const original = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"/>');

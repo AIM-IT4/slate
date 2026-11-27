@@ -15,7 +15,7 @@ import type { MessageRuntimeSpan, MessageRuntimeTiming } from '@/shared/data/typ
 import type { RuntimeDurableTurn } from '../runtime';
 import { toAgentErrorView, toAgentMessagePart } from './runtimeProjection';
 
-/** Display identities accompany execution; terminal content and replay settle into Cherry. */
+/** Display identities accompany execution; terminal content and replay settle into Slate. */
 export const DurableTurnMetadataSchema = z.object({
   userParts: AgentUserPartsSchema,
   retainedParts: z.array(AgentMessagePartSchema).optional(),

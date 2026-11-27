@@ -688,7 +688,7 @@ it('numbers rows in sending order and joins attachments and the quote in one qui
           text: 'Store **records** in the browser',
         },
       ],
-      quoteAuthor: { role: 'assistant', name: 'Cherry' },
+      quoteAuthor: { role: 'assistant', name: 'Slate' },
     },
     ...quoted.userMessage.parts.filter((part) => part.type === 'file'),
   ];
@@ -700,7 +700,7 @@ it('numbers rows in sending order and joins attachments and the quote in one qui
   ];
   expect(strings(row.findAll((node) => typeof node.props.children === 'string'))).toEqual([
     'Make it work offline',
-    'photo.png · Cherry: Store records in the browser',
+    'photo.png · Slate: Store records in the browser',
   ]);
   expect(
     strings(tree.root.findAll((node) => node.props.className?.includes?.('tabular-nums'))),
@@ -721,19 +721,19 @@ it('taking back a queued message puts its quote back in the composer, or clears 
       text: 'Offline please',
       state: 'done',
       quotes: [quote],
-      quoteAuthor: { role: 'assistant', name: 'Cherry' },
+      quoteAuthor: { role: 'assistant', name: 'Slate' },
     },
   ];
   mockInputs = [quoted, input('turn-2')];
   render();
   open();
-  expect(text()).toContain('Cherry: Passage');
+  expect(text()).toContain('Slate: Passage');
   await press('queue-take-back');
   expect(composer.draft).toBe('[“Passage”](quote://q)\nOffline please');
   expect(mockRestoreQuote).toHaveBeenCalledWith(
     expect.objectContaining({
       quotes: [quote],
-      quoteAuthor: { role: 'assistant', name: 'Cherry' },
+      quoteAuthor: { role: 'assistant', name: 'Slate' },
     }),
   );
   act(() => actions.setDraft(''));

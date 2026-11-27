@@ -1,5 +1,5 @@
 /**
- * Cherry Agent Protocol: the application contract between the Agent Client and
+ * Slate Agent Protocol: the application contract between the Agent Client and
  * the Mobile Agent Host, per `docs/references/agent/agent-protocol.md`.
  *
  * Operation inputs, results, snapshots, and events are JSON-safe values

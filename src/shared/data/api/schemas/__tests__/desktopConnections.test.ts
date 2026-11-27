@@ -28,7 +28,7 @@ describe('desktop connection api schemas', () => {
       invitationId: 'invitation',
       invitationSecret: 'secret',
       ips: ['192.168.1.10'],
-      name: 'Cherry Studio PC',
+      name: 'Slate PC',
       port: 23333,
       protocolVersions: [1],
       t: 'cherry-studio-pair',

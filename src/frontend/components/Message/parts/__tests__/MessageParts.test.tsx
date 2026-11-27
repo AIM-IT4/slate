@@ -604,7 +604,7 @@ function makeFilePart(fileEntryId: string, filename: string, mediaType = 'text/m
 function makeSourcePart() {
   return {
     sourceId: 'source-1',
-    title: 'Cherry Studio',
+    title: 'Slate',
     type: 'source-url' as const,
     url: 'https://cherry-ai.com',
   };

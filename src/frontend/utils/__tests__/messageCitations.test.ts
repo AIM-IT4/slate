@@ -26,7 +26,7 @@ describe('resolveMessageCitations', () => {
     const parts = [
       {
         sourceId: 'aaaa1111-1',
-        title: 'Cherry Studio',
+        title: 'Slate',
         type: 'source-url',
         url: 'https://cherry-ai.com',
       },
@@ -66,7 +66,7 @@ describe('resolveMessageCitations', () => {
   test('resolves message-local tool result IDs by first marker appearance', () => {
     const parts = [
       {
-        input: { query: 'Cherry Studio' },
+        input: { query: 'Slate' },
         output: [
           { content: 'A', id: 'aaaa1111-1', title: 'A', url: 'https://a.example' },
           { content: 'B', id: 'aaaa1111-2', title: 'B', url: 'https://b.example' },

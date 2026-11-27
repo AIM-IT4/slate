@@ -1,4 +1,4 @@
-/** The Cherry surface to return to; never includes UU credentials or a caller-supplied URL. */
+/** The Slate surface to return to; never includes UU credentials or a caller-supplied URL. */
 export type UuRemoteTarget =
   | {
       page: 'chat';

@@ -11,10 +11,10 @@ import { libraryFileTable } from './fileLibrary';
  */
 
 /**
- * File entry table — Cherry-owned sandbox files (mobile-native model; see
+ * File entry table — Slate-owned sandbox files (mobile-native model; see
  * docs/references/data/file-model.md).
  *
- * Intentionally diverges from Cherry Desktop's file schema: mobile has no
+ * Intentionally diverges from Slate Desktop's file schema: mobile has no
  * external-path entries, no content hashing, and no cleanup-policy state.
  * Every row is a blob stored at `Data/Files/{id}.{ext}` (path derived at
  * runtime, never persisted). Content is immutable once the Agent turn that

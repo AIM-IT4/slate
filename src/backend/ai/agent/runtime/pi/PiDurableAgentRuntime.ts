@@ -128,7 +128,7 @@ export class PiDurableAgentRuntime implements DurableAgentRuntime {
   private readonly configurations = new Map<string, PiStoredConfiguration>();
   private readonly providerOwners = new Map<string, RuntimeLane>();
   /**
-   * Bound slots by Cherry Session. Pi reads every unbound slot from storage, so they are
+   * Bound slots by Slate Session. Pi reads every unbound slot from storage, so they are
    * probed once; this facade is the only writer of slot bindings, and each write drops the entry.
    */
   private readonly slots = new Map<
@@ -633,7 +633,7 @@ export class PiDurableAgentRuntime implements DurableAgentRuntime {
       turn.status !== 'running'
     )
       return undefined;
-    // Forking would drop that edit; Cherry rebuilds the edited history instead.
+    // Forking would drop that edit; Slate rebuilds the edited history instead.
     if (
       turn.answerBoundary &&
       (await runtime.editedAfter(laneKey(lane), parseBoundary(turn.answerBoundary)))

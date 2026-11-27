@@ -35,5 +35,5 @@ export function unsupportedMediaNote(
   const modality = gatedModality(mediaType);
   if (!modality || caps[modality] !== false) return undefined;
   const note = `[${modality} attachment omitted: this model does not accept ${modality} input]`;
-  return file ? `${note} Cherry managed file: ${JSON.stringify(file)}` : note;
+  return file ? `${note} Slate managed file: ${JSON.stringify(file)}` : note;
 }

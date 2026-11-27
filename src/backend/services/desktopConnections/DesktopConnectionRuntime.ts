@@ -439,7 +439,7 @@ export class DesktopConnectionRuntime extends BaseService implements DesktopConn
 
 function deviceName(): string {
   const reported = (Device.deviceName ?? Device.modelName ?? '').trim();
-  return (reported || 'Cherry Studio Mobile').slice(0, 64);
+  return (reported || 'Slate').slice(0, 64);
 }
 
 /** Protocol failures become the reason codes the settings screens already translate. */

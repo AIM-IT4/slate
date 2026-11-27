@@ -110,7 +110,7 @@ test('estimates merged replay by content without changing execution input measur
 test('an attached image names its managed file, in the prompt and in rebuilt history', () => {
   const label = {
     type: 'text',
-    text: 'Cherry managed image: {"fileEntryId":"00000000-0000-7000-8000-000000000001","name":"chart.png"}',
+    text: 'Slate managed image: {"fileEntryId":"00000000-0000-7000-8000-000000000001","name":"chart.png"}',
   };
   const pixels = { type: 'image', data: 'cGl4ZWxz', mimeType: 'image/png' };
   const conversation = toPiConversation(
@@ -135,7 +135,7 @@ test('an image omitted for a text-only model still names its managed file', () =
   } as unknown as Model<Api>);
   // generate_image reads the original by id even when the chat model cannot see the pixels.
   expect(conversation.prompt.content).toBe(
-    '[image attachment omitted: this model does not accept image input] Cherry managed file: {"fileEntryId":"00000000-0000-7000-8000-000000000001","name":"chart.png"}',
+    '[image attachment omitted: this model does not accept image input] Slate managed file: {"fileEntryId":"00000000-0000-7000-8000-000000000001","name":"chart.png"}',
   );
 });
 

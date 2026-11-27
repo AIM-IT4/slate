@@ -22,8 +22,8 @@ describe('MCP elicitation ownership', () => {
     const id = broker.getSnapshot()[0]!.id;
     expect(() => broker.respond(id, { action: 'accept', content: { name: '' } })).toThrow();
     expect(broker.getSnapshot()).toHaveLength(1);
-    broker.respond(id, { action: 'accept', content: { name: 'Cherry' } });
-    await expect(result).resolves.toEqual({ action: 'accept', content: { name: 'Cherry' } });
+    broker.respond(id, { action: 'accept', content: { name: 'Slate' } });
+    await expect(result).resolves.toEqual({ action: 'accept', content: { name: 'Slate' } });
     expect(broker.getSnapshot()).toEqual([]);
   });
 

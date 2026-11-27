@@ -510,10 +510,10 @@ describe('Pi durable execution integration', () => {
       expect(requests[0]?.messages.filter((message) => message.role === 'user')).toEqual([
         expect.objectContaining({ role: 'user', content: 'Hello' }),
       ]);
-      // Provider checks are attributed to Cherry, not Pi's default identity.
+      // Provider checks are attributed to Slate, not Pi's default identity.
       expect(identities).toEqual([
         expect.objectContaining({
-          attribution: expect.objectContaining({ name: 'CherryStudioMobile' }),
+          attribution: expect.objectContaining({ name: 'Slate' }),
         }),
       ]);
     } finally {

@@ -29,7 +29,7 @@ export type AiContentWrite = {
 
 const IMAGES = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif']);
 /** Application generation-service name; not a model vendor or registration code. */
-const CONTENT_PRODUCER = 'CherryStudio';
+const CONTENT_PRODUCER = 'Slate';
 const OFFICE: Record<string, 'docx' | 'xlsx' | 'pptx'> = {
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',

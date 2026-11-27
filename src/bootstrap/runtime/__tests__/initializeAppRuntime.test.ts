@@ -25,7 +25,7 @@ jest.mock('heroui-native/utils', () => ({
 
 jest.mock('@/frontend/i18n', () => ({
   __esModule: true,
-  default: { t: (key: string) => (key === 'agent.default.name' ? 'Cherry Agent' : key) },
+  default: { t: (key: string) => (key === 'agent.default.name' ? 'Slate Agent' : key) },
   initI18n: (...args: unknown[]) => mockInitI18n(...args),
 }));
 
@@ -67,7 +67,7 @@ describe('initializeAppRuntime', () => {
     expect(mockUpdateCSSVariables).toHaveBeenNthCalledWith(1, 'dark', variables);
     expect(mockUpdateCSSVariables).toHaveBeenNthCalledWith(2, 'light', variables);
     expect(mockInitI18n).toHaveBeenCalledWith('en-US');
-    expect(mockCreateInitialAgent).toHaveBeenCalledWith({ name: 'Cherry Agent' });
+    expect(mockCreateInitialAgent).toHaveBeenCalledWith({ name: 'Slate Agent' });
     expect(mockInitI18n.mock.invocationCallOrder[0]).toBeLessThan(
       mockCreateInitialAgent.mock.invocationCallOrder[0],
     );

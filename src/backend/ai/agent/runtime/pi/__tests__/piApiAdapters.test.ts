@@ -373,7 +373,7 @@ describe('Pi API adapters', () => {
     const streamFn = await bindPiStream(adapter, {
       apiKey: 'secret-key',
       fetch: mockFetch,
-      headers: { 'X-App': 'Cherry' },
+      headers: { 'X-App': 'Slate' },
       maxRetries: 0,
       maxTokens: 2048,
       temperature: 0.2,
@@ -398,7 +398,7 @@ describe('Pi API adapters', () => {
       context,
       expect.objectContaining({
         apiKey: 'secret-key',
-        headers: { 'X-App': 'Cherry', 'X-Request': 'request' },
+        headers: { 'X-App': 'Slate', 'X-Request': 'request' },
         maxRetries: 0,
         maxTokens: 32,
         reasoning: 'high',
@@ -458,7 +458,7 @@ describe('Pi API adapters', () => {
         expect(headers.get('authorization')).toBeNull();
         expect(headers.get('x-api-key')).toBeNull();
         expect(headers.get('x-goog-api-key') || null).toBeNull();
-        expect(headers.get('x-app')).toBe('Cherry');
+        expect(headers.get('x-app')).toBe('Slate');
         return new Response(JSON.stringify({ error: { message: 'Gateway received request' } }), {
           status: 400,
           headers: { 'Content-Type': 'application/json' },
@@ -470,7 +470,7 @@ describe('Pi API adapters', () => {
       const streamFn = await bindPiStream(adapter, {
         apiKey: '',
         fetch,
-        headers: { 'X-App': 'Cherry' },
+        headers: { 'X-App': 'Slate' },
         maxRetries: 0,
         maxTokens: 256,
       });

@@ -58,7 +58,8 @@ export function aiContentMarkdownBody(text: string): string {
   const node = header.document.get('AIGC', true);
   if (!isNode(node) || !AiContentLabelSchema.safeParse(node.toJSON()).success) return text;
   header.document.delete('AIGC');
-  if (header.document.get('author') === GENERATED_FILE_AUTHOR) header.document.delete('author');
+  if ([GENERATED_FILE_AUTHOR, 'Cherry Studio'].includes(header.document.get('author') as string))
+    header.document.delete('author');
   if (!isMap(header.document.contents) || !header.document.contents.items.length)
     return header.bom + header.body;
   return header.bom + '---\n' + header.document.toString() + '---\n' + header.body;

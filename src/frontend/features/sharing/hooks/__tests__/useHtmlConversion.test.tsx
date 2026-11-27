@@ -68,7 +68,7 @@ const watermark: ExportWatermark = {
     foreground: 'black',
     brandColor: 'red',
     logoDataUrl: 'data:image/png;base64,AA==',
-    brandName: 'Cherry Studio',
+    brandName: 'Slate',
     downloadLabel: 'Scan',
     downloadLinkLabel: 'Download',
     downloadUrl: 'https://example.com',

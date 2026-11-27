@@ -41,15 +41,15 @@ type PiRequestConfiguration = (
   signal: AbortSignal | undefined,
 ) => Promise<RuntimeOptions>;
 
-/** Every Harness, including provider checks, identifies its model requests as Cherry. */
+/** Every Harness, including provider checks, identifies its model requests as Slate. */
 export function cherryClientIdentity(): ClientIdentity {
   return {
     userAgent: { custom: defaultAppHeaders()['User-Agent']! },
-    attribution: { name: 'CherryStudioMobile', url: 'https://cherry-ai.com' },
+    attribution: { name: 'Slate', url: 'https://github.com/AIM-IT4/slate' },
   };
 }
 
-/** Keep Cherry identities in stored model references; materialize credentials only when sending. */
+/** Keep Slate identities in stored model references; materialize credentials only when sending. */
 export function createPiDurableModels(
   dependencies: PiRuntimeDependencies,
   configuration: PiRequestConfiguration,
@@ -283,10 +283,10 @@ export function createPiDurableModels(
       createProvider({
         id: reference.providerId,
         models: [...registered.values()],
-        // Actual auth is resolved by the existing Cherry account/key adapter in the stream.
+        // Actual auth is resolved by the existing Slate account/key adapter in the stream.
         auth: {
           apiKey: {
-            name: 'Cherry-managed credentials',
+            name: 'Slate-managed credentials',
             resolve: async () => ({ auth: {}, source: 'ambient' }),
           },
         },

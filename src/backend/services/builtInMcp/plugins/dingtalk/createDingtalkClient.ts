@@ -184,7 +184,7 @@ export async function createDingtalkClient(context: PluginClientContext): Promis
     return { tools };
   }
   return {
-    serverInfo: { name: 'Cherry Studio Dingtalk', version: '1' },
+    serverInfo: { name: 'Slate Dingtalk', version: '1' },
     get discoveryWarnings() {
       return warnings;
     },

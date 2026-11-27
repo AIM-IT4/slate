@@ -9,7 +9,7 @@ import {
 /**
  * Service metadata decorators.
  *
- * Ported from Cherry Desktop `src/main/core/lifecycle/decorators.ts`. Every
+ * Ported from Slate Desktop `src/main/core/lifecycle/decorators.ts`. Every
  * decorator takes its arguments explicitly, so `emitDecoratorMetadata` and
  * constructor type reflection are not required — only `experimentalDecorators`
  * plus `@babel/plugin-proposal-decorators` in legacy mode.

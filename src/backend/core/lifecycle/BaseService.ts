@@ -10,7 +10,7 @@ const logger = loggerService.withContext('Lifecycle');
 /**
  * Base class for every lifecycle-managed service.
  *
- * Ported from Cherry Desktop `src/main/core/lifecycle/BaseService.ts` with three
+ * Ported from Slate Desktop `src/main/core/lifecycle/BaseService.ts` with three
  * changes, each forced by the runtime rather than chosen:
  *
  * - `ipcHandle`/`ipcOn` are gone. There is no `ipcMain` here.

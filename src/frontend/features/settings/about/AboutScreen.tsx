@@ -4,14 +4,13 @@ import HistoryIcon from '@cherrystudio/app-icons/icons/history';
 import MailIcon from '@cherrystudio/app-icons/icons/mail';
 import MessageSquareTextIcon from '@cherrystudio/app-icons/icons/message-square-text';
 import RefreshCwIcon from '@cherrystudio/app-icons/icons/refresh-cw';
-import { Chip, Image, Section, useToast } from '@cherrystudio/ui/components';
+import { Chip, Image, Section } from '@cherrystudio/ui/components';
 import * as Application from 'expo-application';
 import Constants from 'expo-constants';
-import * as Device from 'expo-device';
 import { useRouter } from 'expo-router';
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Linking, Platform, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { useAppUpdateEntry } from '@/frontend/appShell/appUpdate';
 import { getAppLogo } from '@/frontend/appShell/branding';
@@ -22,16 +21,14 @@ import { SettingsScrollPage } from '../components/SettingsScrollPage';
 const APP_VERSION = Application.nativeApplicationVersion?.trim();
 const APP_BUILD = Application.nativeBuildVersion;
 const APP_PROFILE = Constants.expoConfig?.extra?.sentryEnvironment;
-const SUPPORT_EMAIL = 'support@cherry-ai.com';
 const ABOUT_LINKS = {
-  repository: 'https://github.com/CherryHQ/cherry-studio-app',
-  website: 'https://www.cherry-ai.com/',
+  repository: 'https://github.com/AIM-IT4/slate',
+  website: 'https://github.com/AIM-IT4/slate',
 } as const;
 
 export default function AboutSettingsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { toast } = useToast();
   const { checkForUpdates, hasAvailableUpdate, isEnabled, isFetching } = useAppUpdateEntry();
   const versionLabel = APP_VERSION ? `v${APP_VERSION}` : t('settings.about.version.unknown');
   const buildLabel = APP_BUILD ? t('settings.about.version.build', { build: APP_BUILD }) : null;
@@ -42,24 +39,12 @@ export default function AboutSettingsScreen() {
         ? t('settings.about.version.preview')
         : null;
   const versionDetails = [versionLabel, environmentLabel, buildLabel].filter(Boolean).join(' · ');
-  const systemDetails = [Device.osName ?? Platform.OS, Device.osVersion].filter(Boolean).join(' ');
 
   const openLink = useCallback((url: string) => {
     void openExternalUrl(url);
   }, []);
 
-  const openEmail = () => {
-    const subject = encodeURIComponent(t('settings.about.contact.subject'));
-    const body = encodeURIComponent(
-      t('settings.about.contact.body', { system: systemDetails, version: versionDetails }),
-    );
-    void Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`).catch(() => {
-      toast.show({
-        label: t('settings.about.contact.failed', { email: SUPPORT_EMAIL }),
-        variant: 'danger',
-      });
-    });
-  };
+  const openSupport = () => openLink('https://github.com/AIM-IT4/slate/issues');
 
   return (
     <>
@@ -87,7 +72,7 @@ export default function AboutSettingsScreen() {
           <View className="items-center gap-1">
             <Text className="text-xl font-semibold text-foreground">
               {t('common.cherryStudio')}
-              {'\nCherry Studio · AGPL-3.0'}
+              {'\nAGPL-3.0'}
             </Text>
             <Text className="text-center text-sm text-muted-foreground">{versionDetails}</Text>
           </View>
@@ -128,7 +113,7 @@ export default function AboutSettingsScreen() {
           <Section.Item
             label={t('settings.about.contact.title')}
             leading={<MailIcon className="size-4 text-foreground" />}
-            onPress={openEmail}
+            onPress={openSupport}
           />
           <Section.Item
             accessibilityRole="link"

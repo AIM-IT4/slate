@@ -486,7 +486,7 @@ describe('turn attachments', () => {
 
     const omitted = {
       type: 'text',
-      text: `[image attachment omitted: this model does not accept image input] Cherry managed file: ${JSON.stringify({ fileEntryId: FIRST_ID, name: 'historical.png' })}`,
+      text: `[image attachment omitted: this model does not accept image input] Slate managed file: ${JSON.stringify({ fileEntryId: FIRST_ID, name: 'historical.png' })}`,
     };
     expect(attachments).toEqual(new Map([[FIRST_ID, omitted]]));
     expect(files.readAsDataUrl).not.toHaveBeenCalled();

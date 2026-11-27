@@ -53,7 +53,7 @@ describe('Agent Runtime settled contracts', () => {
     };
 
     const result = await tool.execute({
-      input: { query: 'Cherry Studio' },
+      input: { query: 'Slate' },
       signal: new AbortController().signal,
       toolCallId: 'call-1',
       turnId: 'turn-1',

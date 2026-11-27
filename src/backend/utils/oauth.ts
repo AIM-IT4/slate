@@ -34,7 +34,7 @@ export async function createPkceChallenge(): Promise<{ verifier: string; challen
   return { verifier, challenge };
 }
 
-/** `<scheme>://<path>` on this build's Cherry scheme; undefined outside native Cherry builds. */
+/** `<scheme>://<path>` on this build's Slate scheme; undefined outside native Slate builds. */
 export function nativeCallbackUrl(path: string): string | undefined {
   const configured = Constants.expoConfig?.scheme;
   const scheme = Array.isArray(configured) ? configured[0] : configured;

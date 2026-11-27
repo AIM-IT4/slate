@@ -50,8 +50,8 @@ function request(): RuntimeExecutionRequest {
   };
 }
 
-describe('Cherry history working-copy import', () => {
-  test('round-trips signed active context and imports only the following Cherry tail', () => {
+describe('Slate history working-copy import', () => {
+  test('round-trips signed active context and imports only the following Slate tail', () => {
     const signed: AssistantMessage = {
       ...emptyAssistantMessage(model),
       content: [{ type: 'thinking', thinking: 'Retained thought', thinkingSignature: 'signature' }],

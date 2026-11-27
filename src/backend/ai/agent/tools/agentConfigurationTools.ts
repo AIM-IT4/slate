@@ -106,7 +106,7 @@ export function createAgentConfigurationTools(
     tool(
       'agent_set_avatar',
       'ask',
-      'Set a saved Cherry Agent’s avatar from a managed image explicitly attached to this conversation, generated in it, in its workspace, or read with library_read_file this turn. Never pass a device path or remote URL. Read agent_get with view: summary first and copy updatedAt. The app normalizes and stores the avatar, updates the Agent, and removes the previous avatar only after saving. This does not edit or remove the source image. After an uncertain result inspect the Agent before another write.',
+      'Set a saved Slate Agent’s avatar from a managed image explicitly attached to this conversation, generated in it, in its workspace, or read with library_read_file this turn. Never pass a device path or remote URL. Read agent_get with view: summary first and copy updatedAt. The app normalizes and stores the avatar, updates the Agent, and removes the previous avatar only after saving. This does not edit or remove the source image. After an uncertain result inspect the Agent before another write.',
       avatarSchema,
       async ({ agent_id, expected_updated_at, file_entry_id }, signal) => {
         const agentId = target(agent_id);
@@ -182,7 +182,7 @@ export function createAgentConfigurationTools(
     tool(
       'agent_set_mcp_binding',
       'ask',
-      'Bind, enable, disable or remove ONE saved remote MCP server for a Cherry Agent after agent_list_mcp_servers. Copy binding.updatedAt, or null if absent, to expected_binding_updated_at. Uses server-wide binding only; all other server bindings and per-tool overrides are preserved. New bindings start at ask, and existing deny rules are not promoted. Does not enable a disabled server, change credentials, authorize a plugin, or alter this turn’s frozen tool catalog. Bundled plugins are globally available and need no Agent binding.',
+      'Bind, enable, disable or remove ONE saved remote MCP server for a Slate Agent after agent_list_mcp_servers. Copy binding.updatedAt, or null if absent, to expected_binding_updated_at. Uses server-wide binding only; all other server bindings and per-tool overrides are preserved. New bindings start at ask, and existing deny rules are not promoted. Does not enable a disabled server, change credentials, authorize a plugin, or alter this turn’s frozen tool catalog. Bundled plugins are globally available and need no Agent binding.',
       bindingSchema,
       async ({ agent_id, server_id, state, expected_binding_updated_at }, signal) => {
         const agentId = target(agent_id);

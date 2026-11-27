@@ -239,8 +239,8 @@ export class McpOAuthRuntime {
           scope,
           fetchFn,
           clientMetadata: {
-            client_name: 'Cherry Studio',
-            client_uri: 'https://github.com/CherryHQ/cherry-studio-app',
+            client_name: 'Slate',
+            client_uri: 'https://github.com/AIM-IT4/slate',
             redirect_uris: [redirectUrl],
             response_types: ['code'],
             grant_types: ['authorization_code', 'refresh_token'],

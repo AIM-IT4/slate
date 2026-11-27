@@ -14,8 +14,8 @@ import { type PiConversationInput, toPiConversation } from './modelMessages';
 import { parseCheckpointPayload } from './piLegacyCheckpoint';
 
 /**
- * Rebuild a disposable working copy from Cherry. Importing entries never calls a model or runs a
- * historical tool. A checkpoint contains the bounded active context at a Cherry turn boundary.
+ * Rebuild a disposable working copy from Slate. Importing entries never calls a model or runs a
+ * historical tool. A checkpoint contains the bounded active context at a Slate turn boundary.
  */
 export function createWorkingPiEntries(
   request: PiConversationInput & { contextCheckpoint: RuntimeContextCheckpoint | null },
@@ -89,7 +89,7 @@ const CHECKPOINT_KIND = 'pi-durable-context-v1';
 const MAX_CHECKPOINT_BYTES = 256 * 1024;
 
 /**
- * Use the public, already edited ContextView instead of translating Pi entry IDs into Cherry IDs.
+ * Use the public, already edited ContextView instead of translating Pi entry IDs into Slate IDs.
  * The whole retained context is anchored after this turn, so partial-turn compaction and reset
  * survive rebuilding without reintroducing an omitted prefix. Fresh configuration owns system text.
  */
@@ -101,7 +101,7 @@ export function createPiContextCheckpoint(
     kind: CHECKPOINT_KIND,
     messages: messages.filter((message) => message.role !== 'system'),
   });
-  // Oversized contexts fall back to the complete Cherry transcript; never truncate a signed block.
+  // Oversized contexts fall back to the complete Slate transcript; never truncate a signed block.
   if (new TextEncoder().encode(serialized).byteLength > MAX_CHECKPOINT_BYTES) return null;
   return { version: 1, anchorTurnId, payload: JSON.parse(serialized) as RuntimeJsonValue };
 }

@@ -48,12 +48,12 @@ describe('webSource', () => {
   test('fills final citation cards with metadata from the matching web-search result', () => {
     const parts = [
       {
-        input: { query: 'Cherry Studio' },
+        input: { query: 'Slate' },
         output: [
           {
-            content: 'Cherry Studio is an AI client.',
+            content: 'Slate is an AI client.',
             id: 'result-1',
-            title: 'Cherry Studio',
+            title: 'Slate',
             url: 'https://cherry-ai.com',
           },
         ],
@@ -63,7 +63,7 @@ describe('webSource', () => {
       },
       {
         sourceId: 'result-1',
-        title: 'Cherry Studio',
+        title: 'Slate',
         type: 'source-url',
         url: 'https://cherry-ai.com',
       },
@@ -71,10 +71,10 @@ describe('webSource', () => {
 
     expect(resolveCitationWebSources(parts)).toEqual([
       expect.objectContaining({
-        content: 'Cherry Studio is an AI client.',
+        content: 'Slate is an AI client.',
         id: 'result-1',
-        siteName: 'Cherry Ai',
-        title: 'Cherry Studio',
+        siteName: 'Slate Ai',
+        title: 'Slate',
         url: 'https://cherry-ai.com',
       }),
     ]);
@@ -202,8 +202,8 @@ describe('webSource', () => {
     expect(
       getFaviconUrls({
         id: 1,
-        siteName: 'Cherry Studio',
-        title: 'Cherry Studio',
+        siteName: 'Slate',
+        title: 'Slate',
         url: 'https://cherry-ai.com/docs',
       }),
     ).toEqual([
