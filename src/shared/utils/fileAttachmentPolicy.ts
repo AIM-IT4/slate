@@ -8,6 +8,7 @@ import { isAudioMediaType, MAX_AUDIO_FILE_BYTES } from './audioFileTypes';
 import { documentFileTypeFromMediaType } from './documentFileTypes';
 import { isAiSupportedImageMediaType } from './imageFileTypes';
 import { isSupportedTextAttachment } from './textFileTypes';
+import { isVideoMediaType, MAX_VIDEO_ATTACHMENT_BYTES } from './videoFileTypes';
 
 export const MAX_TEXT_ATTACHMENT_BYTES = 5 * 1024 * 1024;
 export const MAX_TEXT_ATTACHMENT_CHARACTERS = 200_000;
@@ -27,6 +28,7 @@ export function fileAttachmentMode(file: Pick<FileAttachmentFact, 'mediaType' | 
   if (isAiSupportedImageMediaType(file.mediaType)) return 'image';
   if (documentFileTypeFromMediaType(file.mediaType)) return 'document';
   if (isAudioMediaType(file.mediaType)) return 'audio';
+  if (isVideoMediaType(file.mediaType)) return 'video';
   if (isSupportedTextAttachment(file)) return 'text';
   return undefined;
 }
@@ -53,6 +55,9 @@ export function validateFileAttachments(
     if (!mode || (target.purpose === 'painting' && mode !== 'image')) {
       throw new FileAttachmentError({ ...issue, code: 'unsupported-type' });
     }
+    if (mode === 'video' && !target.acceptsImages) {
+      throw new FileAttachmentError({ ...issue, code: 'model-unsupported' });
+    }
     if (mode === 'image') {
       if (!target.acceptsImages && target.purpose === 'painting') {
         throw new FileAttachmentError({ ...issue, code: 'model-unsupported' });
@@ -62,11 +67,13 @@ export function validateFileAttachments(
     const limit =
       mode === 'image'
         ? MAX_IMAGE_ATTACHMENT_BYTES
-        : mode === 'audio'
-          ? MAX_AUDIO_FILE_BYTES
-          : mode === 'document'
-            ? documentAttachmentByteLimit(file.mediaType)
-            : MAX_TEXT_ATTACHMENT_BYTES;
+        : mode === 'video'
+          ? MAX_VIDEO_ATTACHMENT_BYTES
+          : mode === 'audio'
+            ? MAX_AUDIO_FILE_BYTES
+            : mode === 'document'
+              ? documentAttachmentByteLimit(file.mediaType)
+              : MAX_TEXT_ATTACHMENT_BYTES;
     if (file.size > limit) throw new FileAttachmentError({ ...issue, code: 'file-bytes', limit });
   }
   // Painting models declare how many references they accept; chat images are unbounded.

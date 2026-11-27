@@ -6,6 +6,8 @@ import os
 from pathlib import Path
 import tempfile
 import threading
+import subprocess
+import shutil
 import unittest
 import urllib.request
 import urllib.error
@@ -39,6 +41,27 @@ class ExecutionTests(unittest.TestCase):
 
     def tool(self, name, args):
         return self.rpc('tools/call', {'name':name,'arguments':args})
+
+    def test_video_upload_extracts_timestamped_frames_and_retains_original(self):
+        sample = Path(TEMP.name) / 'sample.mp4'
+        subprocess.run(['ffmpeg', '-nostdin', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc2=size=160x90:rate=10', '-t', '2', '-c:v', 'libx264', '-threads', '1', '-pix_fmt', 'yuv420p', '-y', str(sample)], check=True)
+        body = sample.read_bytes()
+        headers = {'Authorization': 'Bearer test-key', 'Content-Type': 'application/octet-stream'}
+        req = urllib.request.Request(self.base+'/video/prepare?frames=3', data=body, headers=headers)
+        with urllib.request.urlopen(req) as response:
+            result = json.load(response)
+        self.assertAlmostEqual(result['durationSeconds'], 2, places=1)
+        self.assertEqual(len(result['frames']), 3)
+        self.assertEqual(app.path(result['workspacePath']).read_bytes(), body)
+        self.assertEqual(result['frames'][0]['timestampSeconds'], 0)
+        self.assertTrue(all(base64.b64decode(frame['data']).startswith(b'\xff\xd8') for frame in result['frames']))
+        self.assertGreater(result['frames'][-1]['timestampSeconds'], 1)
+        with self.assertRaises(urllib.error.HTTPError) as error:
+            urllib.request.urlopen(urllib.request.Request(self.base+'/video/prepare', data=body))
+        self.assertEqual(error.exception.code, 401)
+        with self.assertRaises(urllib.error.HTTPError) as error:
+            urllib.request.urlopen(urllib.request.Request(self.base+'/video/prepare', data=b'not a video', headers=headers))
+        self.assertEqual(error.exception.code, 422)
 
     def test_auth_and_discovery(self):
         with self.assertRaises(urllib.error.HTTPError) as error:

@@ -148,7 +148,8 @@ function validateRequest(
         (part) =>
           part.type === 'file' ||
           part.type === 'text-attachment' ||
-          part.type === 'document-attachment',
+          part.type === 'document-attachment' ||
+          part.type === 'video-attachment',
       ) ||
       request.history.some((turn) =>
         turn.messages.some((message) =>
@@ -156,7 +157,8 @@ function validateRequest(
             (part) =>
               part.type === 'file' ||
               part.type === 'text-attachment' ||
-              part.type === 'document-attachment',
+              part.type === 'document-attachment' ||
+              part.type === 'video-attachment',
           ),
         ),
       )

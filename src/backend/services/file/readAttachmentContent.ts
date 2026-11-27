@@ -23,6 +23,13 @@ import type { ExtractedDocumentText } from './officeText';
 import { decodeManagedUtf8, ManagedTextError } from './utf8Text';
 
 export type AttachmentContentReader = DocumentContentReader & {
+  readVideo?(
+    file: FileAttachmentFact,
+    signal: AbortSignal,
+    maxFrames: number,
+  ): Promise<
+    Extract<import('@/shared/contracts/fileAttachment').FileAttachmentContent, { kind: 'video' }>
+  >;
   readImageText(
     file: FileAttachmentFact,
     signal: AbortSignal,

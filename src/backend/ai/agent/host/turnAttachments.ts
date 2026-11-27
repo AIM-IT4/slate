@@ -262,6 +262,12 @@ export async function resolveRuntimeContentAttachments(
       readBytes: (file, readSignal) => files.readAsBytes(file, readSignal),
       readDocumentText: (file, readSignal, mode) => files.readDocumentText(file, readSignal, mode),
       readImageText: (file, readSignal) => files.readImageText(file, readSignal),
+      ...(files.readVideo
+        ? {
+            readVideo: (file: ManagedFileFact, readSignal: AbortSignal, maxFrames: number) =>
+              files.readVideo!(file, readSignal, maxFrames),
+          }
+        : {}),
       signal,
       documentParserMode,
       ...(providerDocuments

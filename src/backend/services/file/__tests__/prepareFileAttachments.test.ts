@@ -348,3 +348,64 @@ describe('AnyDoc attachment preparation', () => {
     });
   });
 });
+
+describe('video attachments', () => {
+  const video = { ...text, name: 'clip.mp4', mediaType: 'video/mp4', size: 1024 };
+  const content = {
+    kind: 'video' as const,
+    durationSeconds: 70,
+    workspacePath: 'uploads/clip/source.video',
+    frames: [{ timestampSeconds: 0, uri: 'data:image/jpeg;base64,/9j/' }],
+  };
+  test('admits MP4 and delivers sampled frames without decoding its binary as text', async () => {
+    const request = input([video]);
+    const readVideo = jest.fn(
+      async (_file: FileAttachmentFact, _signal: AbortSignal, _maxFrames: number) => content,
+    );
+    const result = await prepareFileAttachments({ ...request, readVideo });
+    expect(result.get(FILE_ID)).toMatchObject({
+      content,
+      report: { mode: 'video', images: { sent: 1 } },
+    });
+    expect(request.readBytes).not.toHaveBeenCalled();
+    expect(readVideo).toHaveBeenCalledWith(video, request.signal, 12);
+  });
+  test('gives actionable setup feedback when execution is unavailable', async () => {
+    await expect(prepareFileAttachments(input([video]))).rejects.toMatchObject({
+      issue: { code: 'video-service-unavailable' },
+    });
+  });
+  test('rejects text-only models and oversized videos before uploading', async () => {
+    const readVideo = jest.fn(
+      async (_file: FileAttachmentFact, _signal: AbortSignal, _maxFrames: number) => content,
+    );
+    await expect(
+      prepareFileAttachments({
+        ...input([video]),
+        readVideo,
+        target: { purpose: 'chat', acceptsImages: false },
+      }),
+    ).rejects.toMatchObject({ issue: { code: 'model-unsupported' } });
+    await expect(
+      prepareFileAttachments({ ...input([{ ...video, size: 512 * 1024 * 1024 + 1 }]), readVideo }),
+    ).rejects.toMatchObject({ issue: { code: 'file-bytes' } });
+    expect(readVideo).not.toHaveBeenCalled();
+  });
+  test('bounds frame extraction by model context and preserves cancellation', async () => {
+    const readVideo = jest.fn(
+      async (_file: FileAttachmentFact, _signal: AbortSignal, _maxFrames: number) => content,
+    );
+    await prepareFileAttachments({
+      ...input([video]),
+      readVideo,
+      target: { purpose: 'chat', acceptsImages: true, maxInputTokens: 10_000 },
+    });
+    expect(readVideo.mock.calls[0][2]).toBe(2);
+    const controller = new AbortController();
+    controller.abort();
+    await expect(
+      prepareFileAttachments({ ...input([video]), readVideo, signal: controller.signal }),
+    ).rejects.toBeDefined();
+    expect(readVideo).toHaveBeenCalledTimes(1);
+  });
+});

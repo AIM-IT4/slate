@@ -22,6 +22,7 @@ import { resolveAudioImportMediaType } from '@/shared/utils/audioFileTypes';
 import { resolveDocumentImportMediaType } from '@/shared/utils/documentFileTypes';
 import { generatedImageExtension } from '@/shared/utils/imageFileTypes';
 import { resolveTextImportMediaType } from '@/shared/utils/textFileTypes';
+import { resolveVideoImportMediaType } from '@/shared/utils/videoFileTypes';
 
 import {
   completeFileAiContent,
@@ -140,7 +141,10 @@ async function writeInternalFile(
       filename,
       resolveDocumentImportMediaType(filename, resolveMediaType(input.mediaType, source.type)),
     );
-    mediaType = resolveAudioImportMediaType(filename, mediaType);
+    mediaType = resolveVideoImportMediaType(
+      filename,
+      resolveAudioImportMediaType(filename, mediaType),
+    );
     write = (destination) => source.copy(destination);
   } else if (input.source === 'base64') {
     mediaType = resolveMediaType(input.mediaType);

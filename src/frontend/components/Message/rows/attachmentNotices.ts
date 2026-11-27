@@ -11,6 +11,14 @@ export function attachmentNotices(
   return attachments.flatMap(({ index, part, report }) => {
     if (!report) return [];
     const notices = [
+      ...(report.mode === 'video'
+        ? [
+            {
+              kind: 'video',
+              text: t('attachments.video.sampled', { count: report.images?.sent ?? 0 }),
+            },
+          ]
+        : []),
       ...(report.mode === 'image-text'
         ? [{ kind: 'imageText', text: t('attachments.notice.imageText') }]
         : []),
@@ -24,7 +32,7 @@ export function attachmentNotices(
             },
           ]
         : []),
-      ...(report.sourceTruncated
+      ...(report.sourceTruncated && report.mode !== 'video'
         ? [{ kind: 'sourceTruncated', text: t('attachments.notice.sourceTruncated') }]
         : []),
       ...(report.requestTruncated

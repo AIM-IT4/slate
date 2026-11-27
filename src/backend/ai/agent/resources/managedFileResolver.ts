@@ -14,6 +14,8 @@ import {
   IMPORTED_IMAGE_MAX_BYTES,
   normalizeImportedImage,
 } from '@/backend/services/file/importedImageNormalization';
+import { readVideoUriContent } from '@/backend/services/file/videoContent';
+import type { FileAttachmentContent } from '@/shared/contracts/fileAttachment';
 import type {
   DocumentParserMode,
   FileAttachmentFact,
@@ -60,6 +62,11 @@ export type TurnToolResources = Pick<
 
 /** Host-only managed-file boundary. It never exposes a device path to Pi. */
 export interface ManagedFileResolver {
+  readVideo?(
+    file: ManagedFileFact,
+    signal: AbortSignal,
+    maxFrames: number,
+  ): Promise<Extract<FileAttachmentContent, { kind: 'video' }>>;
   /** Bounded pixels for explicit read_file calls; never changes the managed original. */
   readImage?(
     file: ManagedFileFact,
@@ -96,6 +103,11 @@ export function createManagedFileResolver(
   readImageText: typeof readImageUriText = readImageUriText,
 ): ManagedFileResolver {
   return {
+    async readVideo(file, signal, maxFrames) {
+      const uri = getUri({ filename: file.name, id: file.fileEntryId });
+      if (!uri) throw new Error('Managed video is unavailable.');
+      return readVideoUriContent(uri, file, signal, maxFrames);
+    },
     async readImageText(file, signal, ocrEngine) {
       throwIfAborted(signal);
       const uri = getUri({ filename: file.name, id: file.fileEntryId });

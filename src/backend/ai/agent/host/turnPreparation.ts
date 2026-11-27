@@ -743,7 +743,9 @@ export async function prepareResolvedTurn(
       ...(part.filename !== undefined ? { filename: part.filename } : {}),
       purpose: 'input-attachment',
       attachmentReport:
-        content?.type === 'text-attachment' || content?.type === 'document-attachment'
+        content?.type === 'text-attachment' ||
+        content?.type === 'document-attachment' ||
+        content?.type === 'video-attachment'
           ? content.attachmentReport
           : { mode: 'image', sourceTruncated: false, requestTruncated: false },
     };

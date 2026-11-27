@@ -10,7 +10,7 @@ const roundOneDecimal = (value: number) => Math.round(value * 10) / 10;
  * with one decimal (70 s -> 1.2 min, 1180 s -> 19.7 min, 5400 s -> 1.5 h).
  */
 export function toToolElapsed(elapsedMs: number): ToolElapsed {
-  const seconds = Math.max(0, Math.floor(elapsedMs / 1000));
+  const seconds = Number.isFinite(elapsedMs) ? Math.max(0, Math.floor(elapsedMs / 1000)) : 0;
   if (seconds < 60) return { unit: 'seconds', value: seconds };
   const minutes = roundOneDecimal(seconds / 60);
   if (minutes < 60) return { unit: 'minutes', value: minutes };

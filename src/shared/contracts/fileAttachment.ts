@@ -7,6 +7,8 @@ export const FileAttachmentIssueSchema = z.strictObject({
     'unavailable',
     'metadata-mismatch',
     'unsupported-type',
+    'video-service-unavailable',
+    'video-processing-failed',
     'model-unsupported',
     'runtime-unsupported',
     'count',
@@ -50,6 +52,7 @@ export const FileAttachmentReportSchema = z.strictObject({
     'document-ir',
     'provider-document',
     'audio',
+    'video',
   ]),
   sourceTruncated: z.boolean(),
   /** One-based PDF pages whose visual content did not yield recognized text. */
@@ -104,6 +107,12 @@ export type DocumentAssetDelivery = {
 export type FileAttachmentContent =
   | { kind: 'text'; text: string }
   | {
+      kind: 'video';
+      durationSeconds: number;
+      workspacePath: string;
+      frames: { timestampSeconds: number; uri: string }[];
+    }
+  | {
       kind: 'document';
       parser: 'anydoc';
       parserVersion: string;
@@ -138,6 +147,10 @@ export type FileAttachmentTarget = {
 function fileAttachmentDiagnostic(issue: FileAttachmentIssue): string {
   const name = `Attachment ${JSON.stringify(issue.name ?? '')}`;
   switch (issue.code) {
+    case 'video-service-unavailable':
+      return 'Connect and enable Slate Execution with its access key to process videos.';
+    case 'video-processing-failed':
+      return 'Video processing failed. Retry or check the video codec and execution service.';
     case 'model-unsupported':
       return 'The selected model does not accept these attachments.';
     case 'file-bytes':

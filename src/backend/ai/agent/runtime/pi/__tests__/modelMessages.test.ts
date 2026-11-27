@@ -168,3 +168,33 @@ test('OCR content is visible to non-tool text models with an explicit image-read
   expect(conversation.prompt.content).toContain('has not received image pixels');
   expect(conversation.prompt.content).not.toContain('attachment omitted');
 });
+
+test('projects uploaded video frames into model vision content with timestamps and honest audio limits', () => {
+  const conversation = toPiConversation(
+    request({
+      input: [
+        {
+          type: 'video-attachment',
+          fileEntryId: image.fileEntryId,
+          name: 'clip.mp4',
+          mediaType: 'video/mp4',
+          trust: 'untrusted-user-content',
+          durationSeconds: 70,
+          workspacePath: 'uploads/clip/source.video',
+          frames: [
+            { timestampSeconds: 0, uri: 'data:image/jpeg;base64,/9j/' },
+            { timestampSeconds: 35, uri: 'data:image/jpeg;base64,/9j/' },
+          ],
+        },
+      ],
+    }),
+    model,
+  );
+  expect(conversation.prompt.content).toEqual([
+    { type: 'text', text: expect.stringContaining('Audio was not supplied') },
+    { type: 'text', text: 'Video frame at 0s' },
+    { type: 'image', data: '/9j/', mimeType: 'image/jpeg' },
+    { type: 'text', text: 'Video frame at 35s' },
+    { type: 'image', data: '/9j/', mimeType: 'image/jpeg' },
+  ]);
+});

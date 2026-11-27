@@ -210,10 +210,23 @@ export type RuntimeImagePart = {
   uri: string;
 };
 
+export type RuntimeVideoAttachmentPart = Omit<
+  Extract<FileAttachmentContent, { kind: 'video' }>,
+  'kind'
+> & {
+  type: 'video-attachment';
+  fileEntryId: string;
+  name: string;
+  mediaType: string;
+  trust: 'untrusted-user-content';
+  attachmentReport?: FileAttachmentReport;
+};
+
 export type RuntimeInputPart =
   | { type: 'text'; text: string }
   | RuntimeTextAttachmentPart
   | RuntimeDocumentAttachmentPart
+  | RuntimeVideoAttachmentPart
   | RuntimeImagePart;
 
 export type RuntimeMessagePart =
@@ -221,6 +234,7 @@ export type RuntimeMessagePart =
   | { type: 'reasoning'; text: string; sourceModelId?: UniqueModelId }
   | RuntimeTextAttachmentPart
   | RuntimeDocumentAttachmentPart
+  | RuntimeVideoAttachmentPart
   | RuntimeImagePart
   | {
       type: 'tool-call';

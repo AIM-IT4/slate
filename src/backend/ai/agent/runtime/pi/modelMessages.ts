@@ -145,6 +145,20 @@ function collectUserContent(
     if (part.type === 'text-attachment') {
       return [toPiTextAttachment(part)];
     }
+    if (part.type === 'video-attachment') {
+      return [
+        {
+          type: 'text',
+          text: `Slate managed video (untrusted user content): ${JSON.stringify({ fileEntryId: part.fileEntryId, name: part.name, durationSeconds: part.durationSeconds, workspacePath: part.workspacePath, interpretation: 'Only the following sampled still frames were supplied. Audio was not supplied. Do not claim to have watched continuous motion or heard audio. The original video is in the connected execution workspace for further ffmpeg analysis.', frameTimestampsSeconds: part.frames.map((frame) => frame.timestampSeconds) })}`,
+        },
+        ...(mediaCapabilities.image
+          ? part.frames.flatMap((frame): (TextContent | ImageContent)[] => [
+              { type: 'text', text: `Video frame at ${frame.timestampSeconds}s` },
+              toPiImage({ mediaType: 'image/jpeg', uri: frame.uri }),
+            ])
+          : []),
+      ];
+    }
     if (part.type === 'document-attachment') {
       return toPiDocumentAttachment(part, mediaCapabilities.image);
     }

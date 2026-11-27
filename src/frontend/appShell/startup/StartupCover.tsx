@@ -73,7 +73,7 @@ export function StartupCover({
 }: StartupCoverProps) {
   const insets = useSafeAreaInsets();
   const reducedMotion = useReducedMotion();
-  const attributionOpacity = useSharedValue(reducedMotion ? 1 : 0);
+  const attributionOpacity = useSharedValue(0);
   const attributionRise = useSharedValue(reducedMotion ? 0 : STARTUP_ATTRIBUTION_RISE_PX);
   const coverOpacity = useSharedValue(1);
   const logoScale = useSharedValue(1);

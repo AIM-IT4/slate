@@ -5,15 +5,27 @@ import {
   type PrepareFileAttachmentsInput,
 } from '@/backend/services/file/prepareFileAttachments';
 
-import type { RuntimeDocumentAttachmentPart, RuntimeTextAttachmentPart } from '../runtime';
+import type {
+  RuntimeDocumentAttachmentPart,
+  RuntimeVideoAttachmentPart,
+  RuntimeTextAttachmentPart,
+} from '../runtime';
 
 /** Agent-only projection: generic file preparation never constructs trusted runtime envelopes. */
 export async function resolveManagedContentAttachments(
   input: PrepareFileAttachmentsInput,
-): Promise<ReadonlyMap<string, RuntimeTextAttachmentPart | RuntimeDocumentAttachmentPart>> {
+): Promise<
+  ReadonlyMap<
+    string,
+    RuntimeTextAttachmentPart | RuntimeDocumentAttachmentPart | RuntimeVideoAttachmentPart
+  >
+> {
   // Direct images participate in shared admission/budgets even though the Host materializes them later.
   const prepared = await prepareFileAttachments(input);
-  const result = new Map<string, RuntimeTextAttachmentPart | RuntimeDocumentAttachmentPart>();
+  const result = new Map<
+    string,
+    RuntimeTextAttachmentPart | RuntimeDocumentAttachmentPart | RuntimeVideoAttachmentPart
+  >();
   for (const [id, attachment] of prepared) {
     const { content, file, report } = attachment;
     const metadata = {
@@ -33,6 +45,11 @@ export async function resolveManagedContentAttachments(
       continue;
     }
     if (!content) continue;
+    if (content.kind === 'video') {
+      const { kind: _kind, ...video } = content;
+      result.set(id, { ...metadata, ...video, type: 'video-attachment' });
+      continue;
+    }
     if (content.kind === 'text') {
       result.set(id, {
         ...metadata,

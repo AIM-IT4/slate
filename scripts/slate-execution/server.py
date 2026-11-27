@@ -21,6 +21,8 @@ TOKEN_HASH = os.environ.get('SLATE_TOKEN_SHA256', '')
 JOBS = {}
 LOCK = threading.Lock()
 LIMIT = 65536
+VIDEO_LOCK = threading.BoundedSemaphore(1)
+MAX_VIDEO_BYTES = 512 * 1024 * 1024
 
 
 def path(value='.'):
@@ -211,6 +213,31 @@ def call(name, args, origin):
     return content
 
 
+def prepare_video(source, frame_count):
+    """Sample bounded still frames without decoding a large video into memory."""
+    ffmpeg = shutil.which('ffmpeg')
+    if not ffmpeg:
+        import imageio_ffmpeg
+        ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+    probe = subprocess.run([ffmpeg, '-hide_banner', '-i', str(source)], capture_output=True, timeout=20)
+    details = probe.stderr.decode(errors='replace')
+    match = re.search(r'Duration: (\d+):(\d+):([\d.]+)', details)
+    if not match or not re.search(r'Stream .*Video:', details):
+        raise ValueError('No readable video stream')
+    duration = int(match[1]) * 3600 + int(match[2]) * 60 + float(match[3])
+    if not 0 < duration <= 86400:
+        raise ValueError('Invalid video duration')
+    count = max(1, min(12, frame_count, max(1, int(duration) + 1)))
+    frames = []
+    for index in range(count):
+        timestamp = max(0, min(duration - 0.01, duration * index / count))
+        result = subprocess.run([ffmpeg, '-nostdin', '-v', 'error', '-threads', '1', '-ss', str(timestamp), '-i', str(source), '-an', '-frames:v', '1', '-vf', "scale=720:720:force_original_aspect_ratio=decrease", '-threads', '1', '-q:v', '5', '-f', 'image2pipe', '-vcodec', 'mjpeg', 'pipe:1'], capture_output=True, timeout=15, check=True)
+        if not result.stdout.startswith(b'\xff\xd8') or len(result.stdout) > 768 * 1024:
+            raise ValueError('Video frame could not be decoded')
+        frames.append({'timestampSeconds': round(timestamp, 2), 'data': base64.b64encode(result.stdout).decode()})
+    return {'durationSeconds': duration, 'workspacePath': str(source.relative_to(ROOT)), 'frames': frames}
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, *args):
         pass  # Request paths can contain download signatures.
@@ -236,7 +263,7 @@ class Handler(BaseHTTPRequestHandler):
         from urllib.parse import urlsplit, parse_qs, unquote
         url = urlsplit(self.path)
         if url.path == '/health':
-            return self.send(200, {'status': 'ready', 'version': '1.3.1', 'persistence': 'host-dependent'})
+            return self.send(200, {'status': 'ready', 'version': '1.4.1', 'persistence': 'host-dependent'})
         if url.path.startswith('/files/'):
             try:
                 relative = unquote(url.path[7:])
@@ -291,7 +318,60 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send(404)
         return self.send(405 if self.authenticated() else 401)
 
+    def prepare_video_upload(self):
+        from urllib.parse import urlparse, parse_qs
+        if not self.authenticated():
+            self.close_connection = True
+            return self.send(401, {'error': 'Valid execution access key required'})
+        folder = None
+        acquired = False
+        try:
+            length = int(self.headers.get('Content-Length', '0'))
+            if not 0 < length <= MAX_VIDEO_BYTES or self.headers.get('Transfer-Encoding'):
+                self.close_connection = True
+                return self.send(413, {'error': 'Upload must have a length up to 512 MiB'})
+            frame_count = int(parse_qs(urlparse(self.path).query).get('frames', ['12'])[0])
+            if not 1 <= frame_count <= 12:
+                raise ValueError('Invalid frame count')
+            acquired = VIDEO_LOCK.acquire(blocking=False)
+            if not acquired:
+                self.close_connection = True
+                return self.send(429, {'error': 'Another video is processing; retry shortly'})
+            uploads = path('uploads')
+            uploads.mkdir(exist_ok=True)
+            for old in uploads.iterdir():
+                if old.is_dir() and time.time() - old.stat().st_mtime > 86400:
+                    shutil.rmtree(old, ignore_errors=True)
+            stored_bytes = sum(item.stat().st_size for item in uploads.rglob('*') if item.is_file())
+            if stored_bytes + length > 2 * 1024 * 1024 * 1024:
+                self.close_connection = True
+                return self.send(413, {'error': 'Video upload storage is full; remove older uploads'})
+            folder = path('uploads/' + uuid.uuid4().hex)
+            folder.mkdir(parents=True)
+            source = folder / 'source.video'
+            self.connection.settimeout(120)
+            with source.open('wb') as output:
+                remaining = length
+                while remaining:
+                    chunk = self.rfile.read(min(1024 * 1024, remaining))
+                    if not chunk:
+                        raise ValueError('Incomplete upload')
+                    output.write(chunk)
+                    remaining -= len(chunk)
+            result = prepare_video(source, frame_count)
+            self.send(200, result)
+        except (ValueError, OSError, subprocess.SubprocessError):
+            if folder:
+                shutil.rmtree(folder, ignore_errors=True)
+            self.close_connection = True
+            self.send(422, {'error': 'Video processing failed; check codec or retry'})
+        finally:
+            if acquired:
+                VIDEO_LOCK.release()
+
     def do_POST(self):
+        if self.path.split('?')[0] == '/video/prepare':
+            return self.prepare_video_upload()
         if self.path.rstrip('/') != '/mcp':
             return self.send(404)
         if not self.authenticated():
@@ -310,7 +390,7 @@ class Handler(BaseHTTPRequestHandler):
             if method == 'initialize':
                 result = {'protocolVersion': params.get('protocolVersion', '2025-03-26'),
                           'capabilities': {'tools': {}},
-                          'serverInfo': {'name': 'Slate Cloud Execution', 'version': '1.3.1'},
+                          'serverInfo': {'name': 'Slate Cloud Execution', 'version': '1.4.1'},
                           'instructions': 'Use run_command for real Linux execution and show_workspace_file for inline charts or downloads. Poll jobs until they exit. Files are lost on free-host restarts; export important work.'}
             elif method == 'ping':
                 result = {}

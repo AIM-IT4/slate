@@ -7,13 +7,24 @@ import { Text, View } from 'react-native';
 import { useComposerState } from '@/frontend/components/Composer';
 import { useBackendModule, usePreference } from '@/frontend/data';
 import { isAudioMediaType } from '@/shared/utils/audioFileTypes';
+import { isVideoMediaType } from '@/shared/utils/videoFileTypes';
 
 /** Local chat owns transcription guidance; remote attachments keep their server's capabilities. */
 export function AudioAttachmentNotice() {
   const { attachments } = useComposerState();
-  return attachments.some((attachment) => isAudioMediaType(attachment.mediaType)) ? (
-    <TranscriptionAvailability />
-  ) : null;
+  const { t } = useTranslation();
+  return (
+    <>
+      {attachments.some((attachment) => isVideoMediaType(attachment.mediaType)) ? (
+        <Text className="px-1 pb-2 text-xs text-muted-foreground">
+          {t('attachments.video.notice')}
+        </Text>
+      ) : null}
+      {attachments.some((attachment) => isAudioMediaType(attachment.mediaType)) ? (
+        <TranscriptionAvailability />
+      ) : null}
+    </>
+  );
 }
 
 function useTranscriptionAvailability() {

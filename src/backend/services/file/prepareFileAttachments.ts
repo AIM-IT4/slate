@@ -17,6 +17,7 @@ import {
   validateFileAttachments,
 } from '@/shared/utils/fileAttachmentPolicy';
 import { isAiSupportedImageMediaType } from '@/shared/utils/imageFileTypes';
+import { MAX_VIDEO_FRAMES } from '@/shared/utils/videoFileTypes';
 
 import { type AttachmentContentReader, readAttachmentContent } from './readAttachmentContent';
 import { takeCodePoints } from './utf8Text';
@@ -63,7 +64,7 @@ export async function prepareFileAttachments(
   const historicalIds = (input.historicalFileEntryIds ?? []).filter((id) => {
     const file = input.availableFiles.get(id);
     const mode = file && fileAttachmentMode(file);
-    return mode;
+    return mode && (mode !== 'video' || input.target.acceptsImages);
   });
   // Attached images, current and historical, are charged first; embedded document images get
   // what remains of their budget. Text files have their own budget below.
@@ -91,6 +92,58 @@ export async function prepareFileAttachments(
   for (const [id, count] of counts) {
     const file = input.availableFiles.get(id)!;
     const mode = fileAttachmentMode(file)!;
+    if (mode === 'video') {
+      try {
+        if (!input.readVideo)
+          throw new FileAttachmentError({
+            code: 'video-service-unavailable',
+            fileEntryId: file.fileEntryId,
+            name: file.name,
+          });
+        const maxFrames = Math.min(
+          MAX_VIDEO_FRAMES,
+          Math.floor((documentImageCountLimit(input.target) - imageCount) / count),
+        );
+        if (maxFrames < 1)
+          throw new FileAttachmentError({
+            code: 'context',
+            fileEntryId: file.fileEntryId,
+            name: file.name,
+          });
+        const content = await input.readVideo(file, input.signal, maxFrames);
+        input.signal.throwIfAborted();
+        const bytes = content.frames.reduce(
+          (sum, frame) => sum + Math.ceil((frame.uri.length * 3) / 4),
+          0,
+        );
+        if (
+          !content.frames.length ||
+          content.frames.length > maxFrames ||
+          imageBytes + bytes * count > MAX_DOCUMENT_IMAGE_TOTAL_BYTES
+        )
+          throw new FileAttachmentError({
+            code: 'context',
+            fileEntryId: file.fileEntryId,
+            name: file.name,
+          });
+        imageCount += content.frames.length * count;
+        imageBytes += bytes * count;
+        result.set(id, {
+          file,
+          content,
+          report: {
+            mode: 'video',
+            sourceTruncated: true,
+            requestTruncated: false,
+            images: { sent: content.frames.length, omitted: 0 },
+          },
+        });
+      } catch (error) {
+        input.signal.throwIfAborted();
+        if (currentIds.has(id)) throw error;
+      }
+      continue;
+    }
     if (mode === 'audio' || (mode === 'image' && input.target.acceptsImages)) {
       result.set(id, { file, report: { mode, sourceTruncated: false, requestTruncated: false } });
       continue;
