@@ -1,0 +1,121 @@
+import { DEFAULT_ASSISTANT_MESSAGE_TOOLBAR_CONFIG } from '@/shared/data/types/assistantMessageToolbar';
+
+import {
+  getDefaultValue,
+  getPreferenceKeys,
+  isPreferenceKey,
+  resolveModelWebToolsPreference,
+  ThemeMode,
+} from '..';
+import { INHERITABLE_PREFERENCE_KEYS, DEVICE_LOCAL_PREFERENCE_KEYS } from '../preferenceSchema';
+
+describe('preference schema', () => {
+  // The schema used to be generated from desktop's classification.json, which
+  // guaranteed the key shape. It is hand-maintained now, and no lint rule in
+  // this repository checks it, so the convention is pinned here instead.
+  test('every key is namespace.sub.key_name', () => {
+    for (const key of getPreferenceKeys()) {
+      expect(key).toMatch(/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/);
+    }
+  });
+
+  test('narrows known preference keys and rejects everything else', () => {
+    expect(isPreferenceKey('chat.web_search.max_results')).toBe(true);
+    expect(isPreferenceKey('permissions.location_read')).toBe(false);
+    // A desktop key the mobile schema deliberately does not carry.
+    expect(isPreferenceKey('app.proxy.mode')).toBe(false);
+    expect(isPreferenceKey('BootConfig.example')).toBe(false);
+  });
+
+  test('defaults the web search and theme values the rest of the app reads', () => {
+    expect(getDefaultValue('chat.web_search.default_fetch_urls_provider')).toBe('jina');
+    expect(getDefaultValue('chat.web_search.default_search_keywords_provider')).toBe('exa-mcp');
+    expect(getDefaultValue('chat.web_search.max_results')).toBe(5);
+    expect(getDefaultValue('chat.input.enter_to_send')).toBe(false);
+    expect(getDefaultValue('chat.web_search.compression.method')).toBe('cutoff');
+    expect(getDefaultValue('chat.web_search.compression.cutoff_limit')).toBe(2000);
+    expect(getDefaultValue('feature.paintings.default_model_id')).toBeNull();
+    expect(getDefaultValue('file.document_parser.mode')).toBe('anydoc');
+    expect(getDefaultValue('ui.theme_mode')).toBe(ThemeMode.system);
+    expect(getDefaultValue('ui.font_size_step')).toBe(0);
+    expect(getDefaultValue('ui.sidebar.recent_view_mode')).toBe('sessions');
+    expect(getDefaultValue('ui.sidebar.session_tree_enabled')).toBe(true);
+  });
+});
+
+test('shake feedback requires a device-local opt-in', () => {
+  expect(getDefaultValue('app.feedback.shake_enabled')).toBe(false);
+  expect(getDefaultValue('app.feedback.shake_hint_decision')).toBe('unseen');
+  expect(DEVICE_LOCAL_PREFERENCE_KEYS).toContain('app.feedback.shake_hint_decision');
+  expect(DEVICE_LOCAL_PREFERENCE_KEYS).toContain('app.feedback.shake_enabled');
+});
+
+test('background audio needs a new device-local decision rather than prior guidance or backup consent', () => {
+  expect(getDefaultValue('app.background_audio.consent')).toBeNull();
+  expect(DEVICE_LOCAL_PREFERENCE_KEYS).toContain('app.background_audio.consent');
+});
+
+test('screen awake is a known, device-local opt-in with a valid key shape', () => {
+  const key = 'app.keep_screen_on.enabled';
+  expect(isPreferenceKey(key)).toBe(true);
+  expect(getPreferenceKeys()).toContain(key);
+  expect(getDefaultValue(key)).toBe(false);
+  expect(DEVICE_LOCAL_PREFERENCE_KEYS).toContain(key);
+  expect(key).toMatch(/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/);
+});
+
+test('dictation is opt-in and voice engine choices stay on the device', () => {
+  expect(getDefaultValue('feature.voice.dictation_engine')).toBeNull();
+  expect(getDefaultValue('feature.voice.speech_engine')).toBeNull();
+  expect(getDefaultValue('feature.voice.system_voice')).toBe('');
+  expect(getDefaultValue('feature.voice.transcription_engine')).toBe('sensevoice');
+  expect(getDefaultValue('feature.voice.transcription_language')).toBeNull();
+  // Engine support and system voices are facts of this device, not of a restored backup.
+  expect(DEVICE_LOCAL_PREFERENCE_KEYS).toEqual(
+    expect.arrayContaining([
+      'feature.voice.dictation_engine',
+      'feature.voice.speech_engine',
+      'feature.voice.transcription_engine',
+      'feature.voice.system_voice',
+    ]),
+  );
+});
+
+test('registers the three-state web-tools preference and retires the legacy key', () => {
+  expect(isPreferenceKey('chat.web_search.model_tools')).toBe(true);
+  expect(getDefaultValue('chat.web_search.model_tools')).toBe('preferred');
+  expect(isPreferenceKey('chat.web_search.model_tools_preferred')).toBe(false);
+  expect(getPreferenceKeys()).not.toContain('chat.web_search.model_tools_preferred');
+});
+
+test.each([
+  [undefined, 'preferred'],
+  ['preferred', 'preferred'],
+  ['fallback', 'fallback'],
+  ['disabled', 'disabled'],
+  [null, 'disabled'],
+  ['', 'disabled'],
+  ['preferred ', 'disabled'],
+  [' fallback', 'disabled'],
+  ['other', 'disabled'],
+  [0, 'disabled'],
+  [1, 'disabled'],
+  [true, 'disabled'],
+  [false, 'disabled'],
+  [[], 'disabled'],
+  [['preferred'], 'disabled'],
+  [{}, 'disabled'],
+  [{ value: 'preferred' }, 'disabled'],
+])('resolves invalid model-tools values to disabled without coercion (%p)', (value, expected) => {
+  expect(resolveModelWebToolsPreference(value)).toBe(expected);
+});
+
+test('toolbar ordering is a portable, inheritable preference with the standard defaults', () => {
+  const key = 'ui.chat.assistant_toolbar_actions';
+  expect(isPreferenceKey(key)).toBe(true);
+  expect(getPreferenceKeys()).toContain(key);
+  expect(key).toMatch(/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/);
+  expect(getDefaultValue(key)).toEqual(DEFAULT_ASSISTANT_MESSAGE_TOOLBAR_CONFIG);
+  expect(INHERITABLE_PREFERENCE_KEYS).toContain(key);
+  expect(DEVICE_LOCAL_PREFERENCE_KEYS).not.toContain(key);
+});

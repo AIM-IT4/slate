@@ -1,0 +1,14 @@
+appId: ${APP_ID}
+name: Fresh install skips onboarding
+---
+- clearState
+- openLink:
+    link: ${DEV_CLIENT_URL}
+- runFlow:
+    when:
+      visible: "Open|打开"
+    commands:
+      - tapOn: "Open|打开"
+- runFlow: _skip-onboarding.yaml
+- assertVisible:
+    id: chat-composer-send

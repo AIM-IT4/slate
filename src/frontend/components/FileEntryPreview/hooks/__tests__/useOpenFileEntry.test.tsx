@@ -1,0 +1,257 @@
+import { useEffect } from 'react';
+import { act, create, type ReactTestRenderer } from 'react-test-renderer';
+
+import { parseChatPreviewSource } from '@/frontend/appShell/navigation/chat';
+import { FileEntrySchema } from '@/shared/data/types/file';
+
+import { useOpenFileEntry } from '../useOpenFileEntry';
+
+const mockPush = jest.fn();
+const mockOpen = jest.fn();
+const mockToast = jest.fn();
+const mockPrepareSharedFile = jest.fn();
+let mockPathname = '/files';
+let mockParams: Record<string, string> = {};
+let mockMasterDetail: {
+  isMasterDetail: boolean;
+  selectFile: jest.Mock;
+} | null = null;
+
+jest.mock('@/frontend/appShell/pane/state', () => ({
+  useLibraryMasterDetail: () => mockMasterDetail,
+}));
+
+jest.mock('@/frontend/appShell/fileExport', () => ({
+  prepareSharedFile: (...args: unknown[]) => mockPrepareSharedFile(...args),
+  useExportWatermark: () => () => ({ kind: 'cherry', signature: { brandName: 'Cherry Studio' } }),
+}));
+
+jest.mock('expo-router', () => ({
+  useRouter: () => ({ push: mockPush }),
+  usePathname: () => mockPathname,
+  useLocalSearchParams: () => mockParams,
+}));
+jest.mock('@cherrystudio/ui/components', () => ({
+  openFilePreview: (input: unknown) => mockOpen(input),
+  useToast: () => ({ toast: { show: mockToast } }),
+}));
+jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
+jest.mock('@/shared/core/logger/LoggerService', () => ({
+  loggerService: { withContext: () => ({ warn: jest.fn() }) },
+}));
+
+const entry = FileEntrySchema.parse({
+  createdAt: 1,
+  filename: 'notes.md',
+  id: '00000000-0000-7000-8000-000000000001',
+  mediaType: 'text/markdown',
+  provenance: 'generated',
+  size: 10,
+  updatedAt: 2,
+});
+const file = { entry, uri: 'file:///managed/notes.md' };
+let actions: ReturnType<typeof useOpenFileEntry>;
+let renderer: ReactTestRenderer;
+
+function Probe() {
+  const currentActions = useOpenFileEntry();
+  useEffect(() => {
+    actions = currentActions;
+  }, [currentActions]);
+  return null;
+}
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockPathname = '/files';
+  mockParams = {};
+  mockMasterDetail = null;
+  mockOpen.mockResolvedValue(undefined);
+  mockPrepareSharedFile.mockImplementation(async ({ entry, uri }) => ({
+    uri,
+    filename: entry.filename,
+    mediaType: entry.mediaType,
+    release() {},
+  }));
+  act(() => {
+    renderer = create(<Probe />);
+  });
+});
+afterEach(() => act(() => renderer.unmount()));
+
+it.each([
+  'image/png',
+  'text/markdown',
+  'text/plain',
+  'text/html',
+  'application/yaml',
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+])('opens %s in-app with only the entry identity', (mediaType) => {
+  act(() => actions.openFileEntry({ ...file, entry: { ...entry, mediaType } }));
+  expect(mockPush).toHaveBeenCalledWith({
+    pathname: '/files/[fileEntryId]',
+    params: { fileEntryId: entry.id },
+  });
+  expect(mockOpen).not.toHaveBeenCalled();
+});
+
+it('selects the entry in-place when inside wide Files Master-Detail', () => {
+  mockPathname = '/library';
+  mockMasterDetail = { isMasterDetail: true, selectFile: jest.fn() };
+  act(() => renderer.update(<Probe />));
+  let target: string | undefined;
+  act(() => {
+    target = actions.openFileEntry(file);
+  });
+  expect(target).toBe('pane');
+  expect(mockMasterDetail.selectFile).toHaveBeenCalledWith(entry.id);
+  expect(mockPush).not.toHaveBeenCalled();
+});
+
+it('pushes standalone file viewer when tapping chat attachments even on wide screens', () => {
+  mockPathname = '/';
+  mockMasterDetail = null;
+  act(() => renderer.update(<Probe />));
+  act(() => actions.openFileEntry(file));
+  expect(mockPush).toHaveBeenCalledWith({
+    pathname: '/files/[fileEntryId]',
+    params: { fileEntryId: entry.id },
+  });
+});
+
+it('keeps opening the viewer page when Master-Detail is inactive on compact screens', () => {
+  mockPathname = '/library';
+  mockMasterDetail = { isMasterDetail: false, selectFile: jest.fn() };
+  act(() => renderer.update(<Probe />));
+  act(() => actions.openFileEntry(file));
+  expect(mockMasterDetail.selectFile).not.toHaveBeenCalled();
+  expect(mockPush).toHaveBeenCalledTimes(1);
+});
+
+it('retains the source conversation and message destination when opening a preview', () => {
+  mockPathname = '/';
+  mockParams = { sessionId: 'session-1', messageId: 'message-1', messageRequestId: 'visit-1' };
+  act(() => renderer.update(<Probe />));
+  act(() => actions.openFileEntry(file));
+  expect(parseChatPreviewSource(mockPush.mock.calls[0][0].params.sourceChat)).toEqual({
+    kind: 'session',
+    ...mockParams,
+  });
+});
+
+it('retains an unsent chat with its seeded draft and workspace', () => {
+  mockPathname = '/';
+  mockParams = {
+    agentId: 'agent-1',
+    composerHandoff: 'seed-1',
+    workspaceDraftId: '00000000-0000-7000-8000-000000000002',
+  };
+  act(() => renderer.update(<Probe />));
+  act(() => actions.openFileEntry(file));
+  expect(parseChatPreviewSource(mockPush.mock.calls[0][0].params.sourceChat)).toEqual({
+    kind: 'draft',
+    ...mockParams,
+  });
+});
+
+it('keeps the chat a library page was opened from', () => {
+  mockPathname = '/library';
+  mockParams = { sourceChat: JSON.stringify({ sessionId: 'session-1' }) };
+  act(() => renderer.update(<Probe />));
+  act(() => actions.openFileEntry(file));
+  expect(parseChatPreviewSource(mockPush.mock.calls[0][0].params.sourceChat)).toEqual({
+    kind: 'session',
+    sessionId: 'session-1',
+  });
+});
+
+it('does not treat a file-library route as a conversation', () => {
+  mockParams = { sessionId: 'unrelated-route-param' };
+  act(() => renderer.update(<Probe />));
+  act(() => actions.openFileEntry(file));
+  expect(mockPush.mock.calls[0][0].params).not.toHaveProperty('sourceChat');
+});
+
+it('hands unsupported documents to the platform with the original URI', async () => {
+  await act(async () =>
+    actions.openFileEntry({ ...file, entry: { ...entry, mediaType: 'application/msword' } }),
+  );
+  expect(mockPush).not.toHaveBeenCalled();
+  expect(mockOpen).toHaveBeenCalledWith(
+    expect.objectContaining({
+      file: expect.objectContaining({ uri: file.uri }),
+    }),
+  );
+});
+
+it('allows an explicit system open for an in-app kind and reports failures once', async () => {
+  mockOpen.mockRejectedValueOnce(new Error('No handler'));
+  await act(async () => actions.openFileEntryWithSystem(file));
+  expect(mockPush).not.toHaveBeenCalled();
+  expect(mockToast).toHaveBeenCalledTimes(1);
+  expect(mockToast).toHaveBeenCalledWith({ label: 'filePreview.openFailed', variant: 'danger' });
+});
+
+it('opens the branded image copy externally while retaining the original for in-app viewing', async () => {
+  const imageFile = {
+    entry: FileEntrySchema.parse({ ...entry, filename: 'drawing.jpg', mediaType: 'image/jpeg' }),
+    uri: 'file:///managed/drawing.jpg',
+  };
+  mockPrepareSharedFile.mockResolvedValueOnce({
+    uri: 'file:///cache/drawing.png',
+    filename: 'drawing.png',
+    mediaType: 'image/png',
+    release() {},
+  });
+  await act(async () => actions.openFileEntryWithSystem(imageFile));
+  expect(mockPrepareSharedFile).toHaveBeenCalledWith(imageFile, {
+    watermark: { kind: 'cherry', signature: { brandName: 'Cherry Studio' } },
+  });
+  expect(mockOpen).toHaveBeenCalledWith(
+    expect.objectContaining({
+      file: expect.objectContaining({
+        uri: 'file:///cache/drawing.png',
+        displayName: 'drawing.png',
+        extensionLabel: 'PNG',
+      }),
+    }),
+  );
+  expect(imageFile.uri).toBe('file:///managed/drawing.jpg');
+});
+
+it('opens a temporary image through the cache without resolving its display id as a managed file', async () => {
+  const temporaryFile = {
+    kind: 'temporary' as const,
+    entry: {
+      id: entry.id,
+      filename: 'remote.jpg',
+      mediaType: 'image/jpeg',
+      provenance: 'unknown' as const,
+      size: 10,
+      updatedAt: 2,
+    },
+    uri: 'file:///cache/preview.jpg',
+  };
+  mockPrepareSharedFile.mockResolvedValueOnce({
+    uri: 'file:///cache/FileExports/remote.png',
+    filename: 'remote.png',
+    mediaType: 'image/png',
+  });
+
+  await act(async () => actions.openFileEntryWithSystem(temporaryFile));
+
+  const { entry: temporaryEntry, uri: temporaryUri } = temporaryFile;
+  expect(mockPrepareSharedFile).toHaveBeenCalledWith(
+    { entry: temporaryEntry, uri: temporaryUri },
+    {
+      watermark: { kind: 'cherry', signature: { brandName: 'Cherry Studio' } },
+    },
+  );
+  expect(mockOpen).toHaveBeenCalledWith(
+    expect.objectContaining({
+      file: expect.objectContaining({ uri: 'file:///cache/FileExports/remote.png' }),
+    }),
+  );
+  expect(mockToast).not.toHaveBeenCalled();
+});

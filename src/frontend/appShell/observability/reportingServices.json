@@ -1,0 +1,14 @@
+{
+  "sentry": {
+    "enabled": false,
+    "nativeFlag": "CherryCrashReportingEnabled"
+  },
+  "observe": {
+    "enabled": false,
+    "nativePackage": "expo-observe"
+  },
+  "insights": {
+    "enabled": false,
+    "nativePackage": "expo-insights"
+  }
+}

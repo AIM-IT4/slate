@@ -1,0 +1,129 @@
+import UploadIcon from '@cherrystudio/app-icons/icons/upload';
+import { BottomSheet, Button } from '@cherrystudio/ui/components';
+import { type RefObject, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Pressable, Text, View, type ViewInstance } from 'react-native';
+
+import { useComposerActions, useComposerState } from '@/frontend/components/Composer';
+import {
+  type ComposerAttachmentReady,
+  createReadyAttachmentDraft,
+  isComposerAttachmentReady,
+} from '@/frontend/components/Composer/utils/composerAttachments';
+import { useCreateFileFolder } from '@/frontend/components/FileFolderPicker';
+import type { ResolvedFileEntry } from '@/frontend/hooks/file';
+import type { FileEntryId } from '@/shared/data/types/file';
+
+import { FilePickerList } from './FilePickerList';
+
+type FilePickerBottomSheetProps = {
+  onClose: () => void;
+  onClosed?: () => void;
+  onSelect: () => void;
+  onUpload: () => void;
+  open: boolean;
+  returnFocusRef?: RefObject<ViewInstance | null>;
+};
+
+/** Selection belongs to the sheet, so collapsing or recycling a folder never drops its files. */
+export function FilePickerBottomSheet({
+  onClose,
+  onClosed,
+  onSelect,
+  onUpload,
+  open,
+  returnFocusRef,
+}: FilePickerBottomSheetProps) {
+  const { t } = useTranslation();
+  const { attachments } = useComposerState();
+  const { addAttachments } = useComposerActions();
+  const { requestCreate, isCreating } = useCreateFileFolder(null);
+  const [selection, setSelection] = useState<ReadonlyMap<FileEntryId, ComposerAttachmentReady>>(
+    () => new Map(),
+  );
+  const attachedIds = new Set(
+    attachments.flatMap((attachment) =>
+      isComposerAttachmentReady(attachment) ? [attachment.fileEntryId] : [],
+    ),
+  );
+  const selectedAttachments = [...selection.values()].filter(
+    (attachment) => !attachedIds.has(attachment.fileEntryId),
+  );
+  const selectedIds = new Set(selection.keys());
+
+  function toggleFile({ entry, uri }: ResolvedFileEntry) {
+    if (!uri || attachedIds.has(entry.id)) return;
+    const attachment = createReadyAttachmentDraft({ entry, uri }, `file-entry:${entry.id}`);
+    setSelection((current) => {
+      const next = new Map(current);
+      if (next.has(entry.id)) next.delete(entry.id);
+      else next.set(entry.id, attachment);
+      return next;
+    });
+  }
+
+  function addSelectedFiles() {
+    if (selectedAttachments.length === 0) return;
+    addAttachments(selectedAttachments);
+    onSelect();
+  }
+
+  return (
+    <BottomSheet
+      onClosed={onClosed}
+      footer={
+        <View className="flex-row gap-3">
+          <View className="flex-1">
+            <Button
+              disabled={isCreating}
+              onPress={requestCreate}
+              testID="file-picker-create-folder"
+              variant="secondary"
+            >
+              {t('library.folders.create')}
+            </Button>
+          </View>
+          {selectedAttachments.length > 0 ? (
+            <View className="flex-1">
+              <Button onPress={addSelectedFiles} testID="file-picker-add">
+                {t('chat.filePicker.addSelected', { count: selectedAttachments.length })}
+              </Button>
+            </View>
+          ) : null}
+        </View>
+      }
+      onClose={onClose}
+      open={open}
+      presentation="overlay"
+      returnFocusRef={returnFocusRef}
+      sizes={['large', 'full']}
+      testID="file-picker"
+      title={t('chat.filePicker.title')}
+      titleAlign="center"
+    >
+      <View className="px-5">
+        <Pressable
+          accessibilityRole="button"
+          className="min-h-14 flex-row items-center gap-4 py-2 active:opacity-60"
+          onPress={onUpload}
+          testID="file-picker-upload"
+        >
+          {/* Same width as list previews, so the label shares the filename column. */}
+          <View className="size-10 items-center justify-center">
+            <UploadIcon className="size-6 text-foreground" />
+          </View>
+          <Text className="min-w-0 flex-1 text-base text-foreground">
+            {t('chat.filePicker.upload')}
+          </Text>
+        </Pressable>
+        <Text
+          accessibilityRole="header"
+          className="pt-4 pb-1 text-sm font-medium text-muted-foreground"
+        >
+          {t('chat.filePicker.recent')}
+        </Text>
+      </View>
+      <FilePickerList attachedIds={attachedIds} onToggle={toggleFile} selectedIds={selectedIds} />
+    </BottomSheet>
+  );
+}

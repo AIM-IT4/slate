@@ -1,0 +1,8 @@
+<resources>
+  <string name="app_name">Slate</string>
+  <string name="expo_system_ui_user_interface_style" translatable="false">light</string>
+  <string name="expo_runtime_version">1.0.0</string>
+  <string name="cherry_cloud_client_secret" translatable="false"/>
+  <string name="cherry_ai_client_secret" translatable="false"/>
+  <string name="expo_splash_screen_resize_mode" translatable="false">contain</string>
+</resources>

@@ -1,0 +1,131 @@
+import { Linking, Platform } from 'react-native';
+
+import {
+  AppStatePolicy,
+  BaseService,
+  DependsOn,
+  ErrorHandling,
+  type Event,
+  Injectable,
+  Phase,
+  ServicePhase,
+} from '@/backend/core/lifecycle';
+import type {
+  BackgroundExecutionModule,
+  BackgroundExecutionStatus,
+  BackgroundRunSettings,
+} from '@/shared/contracts/backgroundExecution';
+
+import { getSystemIntegration } from '../../../../modules/system-integration';
+
+/** A foreground user action with measurable work, never a restored or automatic workload. */
+export type KeepAliveTask = {
+  /** Destination shared with the optional app card for this task. */
+  readonly deepLinkUrl?: string;
+  title: string;
+  subtitle: string;
+  completedUnitCount: number;
+  totalUnitCount: number;
+};
+
+export type KeepAliveLease = {
+  /** Idempotent; the last release stops shared execution protection. */
+  release(outcome?: 'completed'): void;
+  /** Actual work milestones; platforms without task progress may omit this capability. */
+  update?(progress: Partial<Omit<KeepAliveTask, 'deepLinkUrl'>>): void;
+};
+
+export type KeepAliveSource = {
+  /** A pending native request reserves presentation until admission is decided. */
+  readonly systemActivities?: {
+    has(deepLinkUrl: string): boolean;
+    hasActive(): boolean;
+    onChange: Event<string | undefined>;
+  };
+  getStatus?(): BackgroundExecutionStatus;
+  subscribe?(listener: () => void): () => void;
+  /**
+   * Holds background execution for the caller. `onInterrupt` fires when the
+   * platform revokes execution before release; sources that cannot be revoked
+   * never call it.
+   */
+  acquire(
+    tag: string,
+    onInterrupt?: (reason: Error) => void | Promise<void>,
+    task?: KeepAliveTask,
+  ): KeepAliveLease;
+};
+
+/**
+ * The one execution-lease facade that business services depend on. Each
+ * platform mechanism is a registered `KeepAliveSource`; the coordinator
+ * selects one when it is constructed and otherwise carries no platform
+ * behaviour, so consumers never learn which mechanism, if any, protects their
+ * work. It carries no preference gate either: each consumer decides for itself
+ * when staying alive is warranted.
+ */
+@Injectable('KeepAliveCoordinator')
+@ServicePhase(Phase.Gate)
+@ErrorHandling('graceful')
+@DependsOn(['IosBackgroundExecutionSource', 'AndroidBackgroundActivityRuntime'])
+@AppStatePolicy('not-applicable')
+export class KeepAliveCoordinator extends BaseService implements BackgroundExecutionModule {
+  private disposed = false;
+  private readonly source: KeepAliveSource;
+
+  constructor(iosBackgroundExecution: KeepAliveSource, androidForegroundService: KeepAliveSource) {
+    super();
+    this.source = selectSource({ android: androidForegroundService, ios: iosBackgroundExecution });
+  }
+
+  acquire(
+    tag: string,
+    onInterrupt?: (reason: Error) => void | Promise<void>,
+    task?: KeepAliveTask,
+  ): KeepAliveLease {
+    if (this.disposed) return noOpLease;
+    return task
+      ? this.source.acquire(tag, onInterrupt, task)
+      : this.source.acquire(tag, onInterrupt);
+  }
+
+  getStatus = (): BackgroundExecutionStatus => this.source.getStatus?.() ?? 'idle';
+
+  get systemActivities() {
+    return this.source.systemActivities;
+  }
+
+  subscribe = (listener: () => void): (() => void) =>
+    this.source.subscribe?.(listener) ?? (() => {});
+
+  getSettings = async (): Promise<BackgroundRunSettings | null> =>
+    (await getSystemIntegration()?.getBackgroundRunSettings?.()) ?? null;
+
+  openSettings = async (): Promise<void> => {
+    const native = getSystemIntegration();
+    if (native?.openBackgroundRunSettings) await native.openBackgroundRunSettings();
+    else await Linking.openSettings();
+  };
+
+  protected override onStop(): void {
+    this.disposed = true;
+  }
+}
+
+/** Platforms without a mechanism degrade to a no-op source, as presenters do. */
+function selectSource(sources: {
+  android: KeepAliveSource;
+  ios: KeepAliveSource;
+}): KeepAliveSource {
+  switch (Platform.OS) {
+    case 'android':
+      return sources.android;
+    case 'ios':
+      return sources.ios;
+    default:
+      return noOpSource;
+  }
+}
+
+const noOpLease: KeepAliveLease = { release: () => {} };
+const noOpSource: KeepAliveSource = { acquire: () => noOpLease };

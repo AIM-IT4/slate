@@ -1,0 +1,361 @@
+/** CRUD for remote MCP connections and shared plugin availability controls.
+ * Plugin authorization owns built-in creation, credential changes, and deletion. */
+
+import { and, asc, eq, ne, type SQL, sql } from 'drizzle-orm';
+
+import { application } from '@/backend/core/application/Application';
+import type { Database } from '@/backend/data/db/DbService';
+import type { InsertMcpServerRow, McpServerRow } from '@/backend/data/db/schemas';
+import {
+  agentToolBindingTable,
+  mcpServerTable,
+  monotonicUpdateTimestamp,
+} from '@/backend/data/db/schemas';
+import { DataApiErrorFactory, ErrorCode } from '@/shared/data/api/errors';
+import {
+  type CreateMcpServerDto,
+  CreateMcpServerSchema,
+  type UpdateMcpServerDto,
+  UpdateMcpServerSchema,
+} from '@/shared/data/api/schemas/mcpServers';
+import type { OffsetPaginationResponse } from '@/shared/data/api/types';
+import { managedResourcePolicy } from '@/shared/data/managedPolicy';
+import {
+  McpOAuthReferenceSchema,
+  McpServerSchema,
+  type McpServer,
+  type RemoteMcpServer,
+} from '@/shared/data/types/mcpServer';
+
+import { denyUnless, guardMethods, managedRowPolicy } from './managedResources';
+import { timestampToISO } from './utils/rowMappers';
+
+export type ListMcpServersQuery = {
+  id?: string;
+  isEnabled?: boolean;
+};
+
+function rowToMcpServer(row: McpServerRow): McpServer {
+  return McpServerSchema.parse({
+    origin: row.origin,
+    ...(row.origin === 'builtin' && {
+      builtinId: row.builtinId,
+      authorizationId: row.authorizationId,
+    }),
+    createdAt: timestampToISO(row.createdAt),
+    disabledTools: row.disabledTools,
+    endpointUrl: row.endpointUrl,
+    headers: row.headers ?? undefined,
+    ...(row.origin === 'remote' && row.oauth && { oauth: row.oauth }),
+    ...(row.managedRemoteId !== null && { isManaged: true }),
+    id: row.id,
+    isEnabled: row.isEnabled,
+    name: row.name,
+    updatedAt: timestampToISO(row.updatedAt),
+  });
+}
+
+export class McpServerService {
+  /**
+   * Resolved per call rather than injected once, so the instance holds no
+   * reference to a particular host generation and a replaced host cannot leave
+   * this singleton writing to a closed connection.
+   */
+  private get dbService() {
+    return application.get('DbService');
+  }
+
+  private get db() {
+    return this.dbService.getDb();
+  }
+
+  async getById(id: string): Promise<McpServer> {
+    const [row] = await this.db
+      .select()
+      .from(mcpServerTable)
+      .where(eq(mcpServerTable.id, id))
+      .limit(1);
+
+    if (!row) {
+      throw DataApiErrorFactory.notFound('McpServer', id);
+    }
+
+    return rowToMcpServer(row);
+  }
+
+  async list(query: ListMcpServersQuery = {}): Promise<OffsetPaginationResponse<McpServer>> {
+    const conditions: SQL[] = [];
+    if (query.id !== undefined) {
+      conditions.push(eq(mcpServerTable.id, query.id));
+    }
+    if (query.isEnabled !== undefined) {
+      conditions.push(eq(mcpServerTable.isEnabled, query.isEnabled));
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    const [rows, countRows] = await Promise.all([
+      this.db
+        .select()
+        .from(mcpServerTable)
+        .where(whereClause)
+        .orderBy(asc(mcpServerTable.createdAt)),
+      this.db
+        .select({ count: sql<number>`count(*)` })
+        .from(mcpServerTable)
+        .where(whereClause),
+    ]);
+
+    return {
+      items: rows.map(rowToMcpServer),
+      page: 1,
+      total: countRows[0]?.count ?? 0,
+    };
+  }
+
+  async create(dto: CreateMcpServerDto): Promise<McpServer> {
+    const parsed = CreateMcpServerSchema.parse(dto);
+    const name = parsed.name.trim();
+    this.validateName(name);
+
+    const [row] = await this.dbService.withWriteTx(async (tx) => {
+      await this.assertNameAvailable(tx, name);
+      return tx
+        .insert(mcpServerTable)
+        .values({
+          disabledTools: parsed.disabledTools ?? [],
+          endpointUrl: parsed.endpointUrl,
+          headers: parsed.headers,
+          isEnabled: parsed.isEnabled ?? false,
+          name,
+        })
+        .returning();
+    });
+
+    return rowToMcpServer(row);
+  }
+
+  async update(
+    id: string,
+    dto: UpdateMcpServerDto,
+    options: { expectedUpdatedAt?: string } = {},
+  ): Promise<McpServer> {
+    const existing = await this.getById(id);
+    const expectedTimestamp =
+      options.expectedUpdatedAt === undefined ? undefined : Date.parse(options.expectedUpdatedAt);
+    if (
+      expectedTimestamp !== undefined &&
+      (!Number.isFinite(expectedTimestamp) || Date.parse(existing.updatedAt) !== expectedTimestamp)
+    )
+      throw DataApiErrorFactory.conflict(
+        'The MCP connection changed. Read it again before editing.',
+      );
+    const parsed = UpdateMcpServerSchema.parse(dto);
+    if (
+      existing.origin === 'builtin' &&
+      (parsed.endpointUrl !== undefined ||
+        parsed.headers !== undefined ||
+        parsed.name !== undefined)
+    ) {
+      throw DataApiErrorFactory.validation({ origin: ['Manage this connection from Plugins'] });
+    }
+    const name = parsed.name?.trim();
+    if (name !== undefined) {
+      this.validateName(name);
+    }
+
+    const updates: Partial<InsertMcpServerRow> = {
+      ...(parsed.endpointUrl !== undefined &&
+        parsed.endpointUrl !== existing.endpointUrl && { oauth: null }),
+      ...(parsed.disabledTools !== undefined && {
+        disabledTools: [...new Set(parsed.disabledTools)],
+      }),
+      ...(parsed.endpointUrl !== undefined && { endpointUrl: parsed.endpointUrl }),
+      ...(parsed.headers !== undefined && { headers: parsed.headers }),
+      ...(parsed.isEnabled !== undefined && { isEnabled: parsed.isEnabled }),
+      ...(name !== undefined && { name }),
+    };
+    if (Object.keys(updates).length === 0) {
+      return existing;
+    }
+
+    const [row] = await this.dbService.withWriteTx(async (tx) => {
+      if (parsed.headers !== undefined && updates.oauth !== null) {
+        // Read inside the write transaction so a newly attached grant cannot be bypassed.
+        const [current] = await tx
+          .select({ oauth: mcpServerTable.oauth })
+          .from(mcpServerTable)
+          .where(eq(mcpServerTable.id, id));
+        if (current?.oauth) this.validateOAuthHeaders(parsed.headers);
+      }
+      if (name !== undefined) {
+        await this.assertNameAvailable(tx, name, id);
+      }
+      return tx
+        .update(mcpServerTable)
+        .set({ ...updates, updatedAt: monotonicUpdateTimestamp(mcpServerTable.updatedAt) })
+        .where(
+          and(
+            eq(mcpServerTable.id, id),
+            expectedTimestamp === undefined
+              ? undefined
+              : eq(mcpServerTable.updatedAt, expectedTimestamp),
+          ),
+        )
+        .returning();
+    });
+
+    if (!row) {
+      if (expectedTimestamp !== undefined)
+        throw DataApiErrorFactory.conflict(
+          'The MCP connection changed while saving. Read it again.',
+        );
+      throw DataApiErrorFactory.notFound('McpServer', id);
+    }
+
+    return rowToMcpServer(row);
+  }
+
+  /** Only the OAuth workflow can attach a native grant; ordinary DTOs cannot mint one. */
+  async saveOAuthConnection(
+    input: CreateMcpServerDto,
+    oauth: NonNullable<RemoteMcpServer['oauth']>,
+    previous?: McpServer,
+    signal?: AbortSignal,
+  ): Promise<McpServer> {
+    const parsed = CreateMcpServerSchema.parse(input);
+    const reference = McpOAuthReferenceSchema.parse(oauth);
+    const name = parsed.name.trim();
+    this.validateName(name);
+    this.validateOAuthHeaders(parsed.headers);
+    const [row] = await this.dbService.withWriteTx(async (tx) => {
+      signal?.throwIfAborted();
+      if (previous) {
+        const [current] = await tx
+          .select()
+          .from(mcpServerTable)
+          .where(eq(mcpServerTable.id, previous.id));
+        denyUnless(managedRowPolicy(current).canEdit('oauth'), 'mcp.saveOAuthConnection');
+        if (
+          !current ||
+          current.origin !== 'remote' ||
+          timestampToISO(current.updatedAt) !== previous.updatedAt
+        ) {
+          throw DataApiErrorFactory.conflict(
+            'The MCP connection changed during authorization',
+            'McpServer',
+          );
+        }
+      }
+      await this.assertNameAvailable(tx, name, previous?.id);
+      signal?.throwIfAborted();
+      const values = {
+        name,
+        endpointUrl: parsed.endpointUrl,
+        headers: parsed.headers,
+        oauth: reference,
+        isEnabled: true,
+      };
+      const rows = await (previous
+        ? tx
+            .update(mcpServerTable)
+            .set(values)
+            .where(eq(mcpServerTable.id, previous.id))
+            .returning()
+        : tx.insert(mcpServerTable).values(values).returning());
+      signal?.throwIfAborted();
+      return rows;
+    });
+    return rowToMcpServer(row);
+  }
+
+  async disconnectOAuth(id: string): Promise<McpServer> {
+    const [row] = await this.dbService.withWriteTx(async (tx) => {
+      const [current] = await tx
+        .select({ managedRemoteId: mcpServerTable.managedRemoteId })
+        .from(mcpServerTable)
+        .where(eq(mcpServerTable.id, id));
+      denyUnless(managedRowPolicy(current).canEdit('oauth'), 'mcp.disconnectOAuth');
+      return tx
+        .update(mcpServerTable)
+        .set({ oauth: null, isEnabled: false })
+        .where(and(eq(mcpServerTable.id, id), eq(mcpServerTable.origin, 'remote')))
+        .returning();
+    });
+    if (!row) throw DataApiErrorFactory.notFound('McpServer', id);
+    return rowToMcpServer(row);
+  }
+
+  async delete(id: string): Promise<void> {
+    const existing = await this.getById(id);
+    if (existing.origin === 'builtin') {
+      throw DataApiErrorFactory.validation({ origin: ['Disconnect this connection from Plugins'] });
+    }
+    await this.dbService.withWriteTx(async (tx) => {
+      await tx
+        .update(agentToolBindingTable)
+        .set({
+          enabled: false,
+          updatedAt: monotonicUpdateTimestamp(agentToolBindingTable.updatedAt),
+        })
+        .where(eq(agentToolBindingTable.mcpServerId, id));
+
+      const [deleted] = await tx
+        .delete(mcpServerTable)
+        .where(eq(mcpServerTable.id, id))
+        .returning({ id: mcpServerTable.id });
+      if (!deleted) {
+        throw DataApiErrorFactory.notFound('McpServer', id);
+      }
+    });
+  }
+
+  /**
+   * Names are minted into `mcp__{server}__{tool}` tool ids, so two servers
+   * sharing a name would collide in the model-facing toolset.
+   */
+  private async assertNameAvailable(tx: Database, name: string, excludeId?: string): Promise<void> {
+    const conditions = excludeId
+      ? and(eq(mcpServerTable.name, name), ne(mcpServerTable.id, excludeId))
+      : eq(mcpServerTable.name, name);
+    const [existing] = await tx
+      .select({ id: mcpServerTable.id })
+      .from(mcpServerTable)
+      .where(conditions)
+      .limit(1);
+
+    if (existing) {
+      const message = 'MCP server name already exists';
+      throw DataApiErrorFactory.create(ErrorCode.CONFLICT, message, {
+        description: message,
+        resource: 'McpServer',
+        field: 'name',
+      });
+    }
+  }
+
+  private validateName(name: string): void {
+    if (!name) {
+      throw DataApiErrorFactory.validation({ name: ['Name is required'] });
+    }
+  }
+
+  private validateOAuthHeaders(headers: Record<string, string> | undefined): void {
+    if (Object.keys(headers ?? {}).some((key) => key.toLowerCase() === 'authorization')) {
+      throw DataApiErrorFactory.validation({
+        headers: ['OAuth cannot be combined with a manual Authorization header'],
+      });
+    }
+  }
+}
+
+// A delivered MCP server is read-only.
+guardMethods(McpServerService, {
+  async update(id) {
+    denyUnless(managedResourcePolicy(await this.getById(id)).canEdit('server'), 'mcp.update');
+  },
+  async delete(id) {
+    denyUnless(managedResourcePolicy(await this.getById(id)).canDelete, 'mcp.delete');
+  },
+});
+
+export const mcpServerService = new McpServerService();

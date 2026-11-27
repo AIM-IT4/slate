@@ -1,0 +1,40 @@
+import type { ReactNode } from 'react';
+import type { StyleProp, ViewStyle } from 'react-native';
+
+export type TabsItemState = {
+  isDisabled: boolean;
+  isSelected: boolean;
+};
+
+export type TabsItem<TValue extends string> = {
+  children?: ReactNode | ((state: TabsItemState) => ReactNode);
+  disabled?: boolean;
+  label: string;
+  testID?: string;
+  value: TValue;
+};
+
+/**
+ * `fill` spans the parent and splits it into equal segments — the default, and
+ * what a control sized by its container wants. `hug` sizes the control to its
+ * labels and aligns it to the start, for a filter row that should not stretch
+ * across the page.
+ */
+export type TabsLayout = 'fill' | 'hug';
+
+export type TabsProps<TValue extends string> = {
+  accessibilityLabel?: string;
+  items: readonly TabsItem<TValue>[];
+  layout?: TabsLayout;
+  /** The choice belongs to someone else: every option stays visible, none can be picked. */
+  locked?: boolean;
+  onValueChange: (value: TValue) => void;
+  style?: StyleProp<ViewStyle>;
+  testID?: string;
+  value: TValue;
+  /**
+   * Omit for the existing platform control; explicit styles share one product rendering. `pill`
+   * is a page-level choice: plain labels, with a soft filled pill behind the selected one.
+   */
+  variant?: 'segmented' | 'underline' | 'chips' | 'floating' | 'pill';
+};

@@ -1,0 +1,189 @@
+diff --git a/lib/module/views/Drawer.native.js b/lib/module/views/Drawer.native.js
+index f463263..cf1225d 100644
+--- a/lib/module/views/Drawer.native.js
++++ b/lib/module/views/Drawer.native.js
+@@ -142,11 +142,11 @@ export function Drawer({
+     touchX.value = 0;
+     translationX.value = withSpring(translateX, {
+       velocity,
+-      stiffness: 1000,
+-      damping: 500,
+-      mass: 3,
++      stiffness: 360,
++      damping: 38,
++      mass: 1,
+       overshootClamping: true,
+-      reduceMotion: ReduceMotion.Never
++      reduceMotion: ReduceMotion.System
+     }, finished => runOnJS(onAnimationEnd)(open, finished));
+     if (open) {
+       runOnJS(onOpenLatest)();
+@@ -171,22 +171,25 @@ export function Drawer({
+   }, [getDrawerTranslationX, hasDrawerWidth, isHidden, open, translationX]);
+   React.useLayoutEffect(() => toggleDrawer(open), [open, toggleDrawer]);
+   const startX = useSharedValue(0);
++  const startOffsetX = useSharedValue(0);
+   const pan = React.useMemo(() => {
+     let panGesture = Gesture?.Pan().onBegin(event => {
+       'worklet';
+ 
+       startX.value = translationX.value;
++      startOffsetX.value = 0;
+       gestureState.value = event.state;
+       touchStartX.value = event.x;
+-    }).onStart(() => {
++    }).onStart(event => {
+       'worklet';
+ 
++      startOffsetX.value = event.translationX;
+       runOnJS(onGestureBegin)();
+     }).onChange(event => {
+       'worklet';
+ 
+       touchX.value = event.x;
+-      translationX.value = startX.value + event.translationX;
++      translationX.value = startX.value + (event.translationX - startOffsetX.value);
+       gestureState.value = event.state;
+     }).onEnd((event, success) => {
+       'worklet';
+@@ -207,7 +210,7 @@ export function Drawer({
+       panGesture = configureGestureHandler(panGesture);
+     }
+     return panGesture;
+-  }, [configureGestureHandler, drawerPosition, drawerType, gestureState, hitSlop, onGestureBegin, onGestureAbort, onGestureFinish, open, startX, swipeEnabled, swipeMinDistance, swipeMinVelocity, toggleDrawer, touchStartX, touchX, translationX]);
++  }, [configureGestureHandler, drawerPosition, drawerType, gestureState, hitSlop, onGestureBegin, onGestureAbort, onGestureFinish, open, startOffsetX, startX, swipeEnabled, swipeMinDistance, swipeMinVelocity, toggleDrawer, touchStartX, touchX, translationX]);
+   const translateX = useDerivedValue(() => {
+     // Comment stolen from react-native-gesture-handler/DrawerLayout
+     //
+@@ -314,6 +317,7 @@ export function Drawer({
+             children: [/*#__PURE__*/_jsxs(Animated.View, {
+               style: [styles.content, contentAnimatedStyle],
+               children: [/*#__PURE__*/_jsx(Animated.View, {
++                collapsable: false,
+                 animatedProps: contentAnimatedProps,
+                 style: styles.content,
+                 children: children
+@@ -326,7 +330,7 @@ export function Drawer({
+               }) : null]
+             }), /*#__PURE__*/_jsx(Animated.View, {
+               animatedProps: drawerContentAnimatedProps,
+-              removeClippedSubviews: Platform.OS !== 'ios',
++              removeClippedSubviews: false,
+               style: [styles.drawer, {
+                 width: drawerWidth,
+                 position: drawerType === 'permanent' ? 'relative' : 'absolute'
+diff --git a/lib/typescript/src/types.d.ts b/lib/typescript/src/types.d.ts
+index 1276b61..b3d89dc 100644
+--- a/lib/typescript/src/types.d.ts
++++ b/lib/typescript/src/types.d.ts
+@@ -1,6 +1,7 @@
+ import * as React from 'react';
+ import type { StyleProp, View, ViewStyle } from 'react-native';
+-import type { PanGesture } from 'react-native-gesture-handler';
++// Gesture Handler 3 renamed the builder-based pan type that this drawer still creates.
++import type { LegacyPanGesture as PanGesture } from 'react-native-gesture-handler';
+ import type { SharedValue } from 'react-native-reanimated';
+ export type Layout = {
+     width: number;
+diff --git a/src/types.tsx b/src/types.tsx
+index 6933eef..de0a0cd 100644
+--- a/src/types.tsx
++++ b/src/types.tsx
+@@ -1,6 +1,7 @@
+ import * as React from 'react';
+ import type { StyleProp, View, ViewStyle } from 'react-native';
+-import type { PanGesture } from 'react-native-gesture-handler';
++// Gesture Handler 3 renamed the builder-based pan type that this drawer still creates.
++import type { LegacyPanGesture as PanGesture } from 'react-native-gesture-handler';
+ import type { SharedValue } from 'react-native-reanimated';
+ 
+ export type Layout = { width: number; height: number };
+diff --git a/src/utils/DrawerGestureContext.tsx b/src/utils/DrawerGestureContext.tsx
+index 3aac957..1e502f3 100644
+--- a/src/utils/DrawerGestureContext.tsx
++++ b/src/utils/DrawerGestureContext.tsx
+@@ -1,5 +1,6 @@
+ import * as React from 'react';
+-import type { PanGesture } from 'react-native-gesture-handler';
++// Gesture Handler 3 renamed the builder-based pan type that this drawer still creates.
++import type { LegacyPanGesture as PanGesture } from 'react-native-gesture-handler';
+ 
+ export const DrawerGestureContext = React.createContext<PanGesture | undefined>(
+   undefined
+diff --git a/src/views/Drawer.native.tsx b/src/views/Drawer.native.tsx
+index 0c3e038..058f558 100644
+--- a/src/views/Drawer.native.tsx
++++ b/src/views/Drawer.native.tsx
+@@ -200,11 +200,11 @@ export function Drawer({
+         translateX,
+         {
+           velocity,
+-          stiffness: 1000,
+-          damping: 500,
+-          mass: 3,
++          stiffness: 360,
++          damping: 38,
++          mass: 1,
+           overshootClamping: true,
+-          reduceMotion: ReduceMotion.Never,
++          reduceMotion: ReduceMotion.System,
+         },
+         (finished) => runOnJS(onAnimationEnd)(open, finished)
+       );
+@@ -252,6 +252,7 @@ export function Drawer({
+   React.useLayoutEffect(() => toggleDrawer(open), [open, toggleDrawer]);
+ 
+   const startX = useSharedValue(0);
++  const startOffsetX = useSharedValue(0);
+ 
+   const pan = React.useMemo(() => {
+     let panGesture = Gesture?.Pan()
+@@ -259,19 +260,21 @@ export function Drawer({
+         'worklet';
+ 
+         startX.value = translationX.value;
++        startOffsetX.value = 0;
+         gestureState.value = event.state;
+         touchStartX.value = event.x;
+       })
+-      .onStart(() => {
++      .onStart((event) => {
+         'worklet';
+ 
++        startOffsetX.value = event.translationX;
+         runOnJS(onGestureBegin)();
+       })
+       .onChange((event) => {
+         'worklet';
+ 
+         touchX.value = event.x;
+-        translationX.value = startX.value + event.translationX;
++        translationX.value = startX.value + (event.translationX - startOffsetX.value);
+         gestureState.value = event.state;
+       })
+       .onEnd((event, success) => {
+@@ -319,6 +322,7 @@ export function Drawer({
+     onGestureAbort,
+     onGestureFinish,
+     open,
++    startOffsetX,
+     startX,
+     swipeEnabled,
+     swipeMinDistance,
+@@ -504,6 +508,7 @@ export function Drawer({
+             >
+               <Animated.View style={[styles.content, contentAnimatedStyle]}>
+                 <Animated.View
++                  collapsable={false}
+                   animatedProps={contentAnimatedProps}
+                   style={styles.content}
+                 >
+@@ -521,7 +526,7 @@ export function Drawer({
+               </Animated.View>
+               <Animated.View
+                 animatedProps={drawerContentAnimatedProps}
+-                removeClippedSubviews={Platform.OS !== 'ios'}
++                removeClippedSubviews={false}
+                 style={[
+                   styles.drawer,
+                   {

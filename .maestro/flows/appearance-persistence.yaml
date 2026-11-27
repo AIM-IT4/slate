@@ -1,0 +1,29 @@
+appId: ${APP_ID}
+name: Appearance selection persists after restart
+---
+- clearState
+- openLink:
+    link: ${DEV_CLIENT_URL}
+- runFlow:
+    when:
+      visible: "Open|打开"
+    commands:
+      - tapOn: "Open|打开"
+- runFlow: _skip-onboarding.yaml
+- runFlow: _open-appearance-settings.yaml
+- extendedWaitUntil:
+    visible:
+      id: theme-preview-dark
+    timeout: 10000
+- tapOn:
+    id: theme-preview-dark
+- runFlow: _assert-dark-theme.yaml
+- stopApp
+- openLink:
+    link: ${DEV_CLIENT_URL}
+- extendedWaitUntil:
+    visible:
+      id: chat-composer
+    timeout: 90000
+- runFlow: _open-appearance-settings.yaml
+- runFlow: _assert-dark-theme.yaml

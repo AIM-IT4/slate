@@ -1,0 +1,752 @@
+import { BACKGROUND_CONTEXT } from '@earendil-works/chord/context';
+import type { Api, AssistantMessage, Model, TranscriptContext } from '@earendil-works/pi-ai';
+import { AssistantMessageEventStream } from '@earendil-works/pi-ai/utils/event-stream';
+import { getCurrentSystemPrompt } from '@earendil-works/pi-ai/utils/transcript';
+import { createRegistry, MemoryStorage } from '@earendil-works/pi-durable';
+
+import {
+  RUNTIME_EXECUTION_LIMIT_CODE,
+  type RuntimeEvent,
+  type RuntimeExecutionRequest,
+  type RuntimeModelPreflight,
+  type RuntimeTool,
+} from '../../types';
+import { createPiDurableModels } from '../piDurableModels';
+import { PiDurableRuntime } from '../PiDurableRuntime';
+import { createPiDurableToolExtension } from '../piDurableTools';
+import { PiModelProbeRuntime } from '../PiModelProbeRuntime';
+import { emptyAssistantMessage } from '../piStreamEvents';
+
+class ReopenableMemoryStorage extends MemoryStorage {
+  override async close(): Promise<void> {}
+}
+
+const reference = { providerId: 'application-provider', modelId: 'configured-model' };
+const wire: Model<Api> = {
+  api: 'openai-responses',
+  provider: reference.providerId,
+  id: 'wire-model',
+  name: 'Model',
+  baseUrl: '',
+  contextWindow: 32768,
+  maxTokens: 4096,
+  input: ['text'],
+  reasoning: false,
+  cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+};
+
+function isolatedDiagnosticRuntime(
+  stream: (context: TranscriptContext) => AssistantMessageEventStream,
+) {
+  return new PiModelProbeRuntime({
+    preflightModel: async () => ({
+      contextWindow: 32768,
+      maxInputTokens: 28672,
+      maxOutputTokens: 4096,
+      inputModalities: ['text'],
+      supportsTools: true,
+    }),
+    resolveModel: async () => ({
+      model: wire,
+      defaultThinkingLevel: 'off',
+      redactionValues: [],
+      supportsTools: true,
+      usageContext: {
+        providerId: reference.providerId,
+        providerName: null,
+        modelId: reference.modelId,
+        modelName: null,
+        pricingSnapshot: null,
+        trustProviderReportedCost: false,
+        reportedCostCurrency: null,
+        credentialReceipt: { attribution: 'unknown' },
+      },
+      streamFn: (_model, context) => stream(context),
+    }),
+  });
+}
+
+async function runLimitedProbe(
+  response: (request: number) => AssistantMessage,
+  limits: NonNullable<RuntimeExecutionRequest['limits']> = { modelCalls: 9, toolCalls: 8 },
+) {
+  let requests = 0;
+  let reads = 0;
+  const runtime = isolatedDiagnosticRuntime(() => {
+    const message = response(++requests);
+    const stream = new AssistantMessageEventStream();
+    stream.push({ type: 'done', reason: message.stopReason as 'stop' | 'toolUse', message });
+    return stream;
+  });
+  const session = await runtime.open();
+  const events: RuntimeEvent[] = [];
+  try {
+    for await (const event of session.execute({
+      sessionId: 'bounded-probe',
+      turnId: 'bounded-turn',
+      model: reference,
+      instructions: 'Read bounded evidence and answer.',
+      input: [{ type: 'text', text: 'Diagnose.' }],
+      history: [],
+      contextCheckpoint: null,
+      options: {},
+      limits,
+      tools: [
+        {
+          ref: { source: 'builtin', capabilityId: 'diagnostic_configuration' },
+          providerName: 'diagnostic_configuration',
+          displayName: 'Configuration',
+          description: 'Read configuration.',
+          inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+          approval: 'auto',
+          effect: 'read',
+          execute: async () => {
+            reads++;
+            return { value: { ready: true }, artifacts: [] };
+          },
+        },
+      ],
+    }))
+      events.push(event);
+  } finally {
+    await session.close();
+  }
+  return { requests, reads, events };
+}
+
+describe('Pi durable execution integration', () => {
+  test.each(['cancel', 'close'] as const)(
+    '%s releases model registration before a stalled preflight returns',
+    async (ending) => {
+      let release!: (value: RuntimeModelPreflight) => void;
+      const preflight = new Promise<RuntimeModelPreflight>((resolve) => {
+        release = resolve;
+      });
+      let started!: () => void;
+      const registering = new Promise<void>((resolve) => {
+        started = resolve;
+      });
+      const resolveModel = jest.fn(async () => {
+        throw new Error('A cancelled registration must not resolve a serving model.');
+      });
+      const runtime = new PiModelProbeRuntime({
+        preflightModel: () => {
+          started();
+          return preflight;
+        },
+        resolveModel,
+      });
+      const session = await runtime.open();
+      const events: RuntimeEvent[] = [];
+      const draining = (async () => {
+        for await (const event of session.execute({
+          sessionId: 'registering-probe',
+          turnId: 'registering-turn',
+          model: reference,
+          instructions: '',
+          input: [{ type: 'text', text: 'Check.' }],
+          history: [],
+          contextCheckpoint: null,
+          options: {},
+          tools: [],
+        }))
+          events.push(event);
+      })();
+      const result: RuntimeModelPreflight = {
+        contextWindow: 32768,
+        maxInputTokens: 28672,
+        maxOutputTokens: 4096,
+        inputModalities: ['text'],
+        supportsTools: true,
+      };
+      try {
+        await registering;
+        if (ending === 'cancel') await session.cancel('registering-turn');
+        // Closing must finish while the underlying configuration read is still pending.
+        await session.close();
+        await draining;
+        expect(events).toEqual([{ type: 'cancelled' }]);
+        release(result);
+        await preflight;
+        await Promise.resolve();
+        expect(resolveModel).not.toHaveBeenCalled();
+      } finally {
+        release(result);
+        await session.close();
+        await draining;
+      }
+    },
+  );
+
+  test.each(['unknown-tool', 'invalid-arguments', 'valid-tool'] as const)(
+    'counts %s attempts before they can bypass the diagnostic tool budget',
+    async (kind) => {
+      const result = await runLimitedProbe((request) =>
+        request <= 9
+          ? {
+              ...emptyAssistantMessage(wire),
+              stopReason: 'toolUse',
+              content: [
+                {
+                  type: 'toolCall',
+                  id: `call-${request}`,
+                  name: kind === 'unknown-tool' ? 'unknown_tool' : 'diagnostic_configuration',
+                  arguments: {},
+                  ...(kind === 'invalid-arguments'
+                    ? { argumentsError: 'Invalid JSON object.' }
+                    : {}),
+                },
+              ],
+            }
+          : {
+              ...emptyAssistantMessage(wire),
+              stopReason: 'stop',
+              content: [{ type: 'text', text: 'Finished.' }],
+            },
+      );
+      expect(result.requests).toBe(9);
+      expect(result.reads).toBe(kind === 'valid-tool' ? 8 : 0);
+      expect(result.events).toContainEqual(
+        expect.objectContaining({
+          type: 'failed',
+          error: expect.objectContaining({ code: RUNTIME_EXECUTION_LIMIT_CODE }),
+        }),
+      );
+      expect(result.events).not.toContainEqual({ type: 'completed' });
+    },
+  );
+
+  test('rejects an entire over-budget tool batch before any read can run', async () => {
+    const result = await runLimitedProbe((request) => ({
+      ...emptyAssistantMessage(wire),
+      stopReason: request === 1 ? 'toolUse' : 'stop',
+      content:
+        request === 1
+          ? Array.from({ length: 9 }, (_, index) => ({
+              type: 'toolCall' as const,
+              id: `call-${index}`,
+              name: 'diagnostic_configuration',
+              arguments: {},
+            }))
+          : [{ type: 'text', text: 'Finished.' }],
+    }));
+    expect(result.requests).toBe(1);
+    expect(result.reads).toBe(0);
+    expect(result.events).toContainEqual(
+      expect.objectContaining({
+        type: 'failed',
+        error: expect.objectContaining({ code: RUNTIME_EXECUTION_LIMIT_CODE }),
+      }),
+    );
+  });
+
+  test('allows eight reads and a final model answer within the declared limits', async () => {
+    const result = await runLimitedProbe((request) =>
+      request <= 8
+        ? {
+            ...emptyAssistantMessage(wire),
+            stopReason: 'toolUse',
+            content: [
+              {
+                type: 'toolCall',
+                id: `call-${request}`,
+                name: 'diagnostic_configuration',
+                arguments: {},
+              },
+            ],
+          }
+        : {
+            ...emptyAssistantMessage(wire),
+            stopReason: 'stop',
+            content: [{ type: 'text', text: 'Finished.' }],
+          },
+    );
+    expect(result.requests).toBe(9);
+    expect(result.reads).toBe(8);
+    expect(result.events).toContainEqual({ type: 'completed' });
+    expect(result.events.some((event) => event.type === 'failed')).toBe(false);
+  });
+
+  test('stops before dispatching a provider request beyond the model-call budget', async () => {
+    const result = await runLimitedProbe(
+      (request) =>
+        request <= 3
+          ? {
+              ...emptyAssistantMessage(wire),
+              stopReason: 'toolUse',
+              content: [
+                {
+                  type: 'toolCall',
+                  id: `call-${request}`,
+                  name: 'diagnostic_configuration',
+                  arguments: {},
+                },
+              ],
+            }
+          : {
+              ...emptyAssistantMessage(wire),
+              stopReason: 'stop',
+              content: [{ type: 'text', text: 'Finished.' }],
+            },
+      { modelCalls: 2, toolCalls: 8 },
+    );
+    expect(result.requests).toBe(2);
+    expect(result.reads).toBe(2);
+    expect(result.events).toContainEqual(
+      expect.objectContaining({
+        type: 'failed',
+        error: expect.objectContaining({ code: RUNTIME_EXECUTION_LIMIT_CODE }),
+      }),
+    );
+  });
+
+  test('an isolated diagnosis delivers one final report after reading tool evidence', async () => {
+    const requests: TranscriptContext[] = [];
+    const answer = JSON.stringify({
+      cause: 'Authentication failed.',
+      advice: ['Check the API key.'],
+    });
+    const runtime = isolatedDiagnosticRuntime((context) => {
+      requests.push(context);
+      const message: AssistantMessage =
+        requests.length === 1
+          ? {
+              ...emptyAssistantMessage(wire),
+              stopReason: 'toolUse',
+              content: [
+                {
+                  type: 'toolCall',
+                  id: 'read-incident',
+                  name: 'diagnostic_configuration',
+                  arguments: {},
+                },
+              ],
+            }
+          : {
+              ...emptyAssistantMessage(wire),
+              stopReason: 'stop',
+              content: [{ type: 'text', text: answer }],
+            };
+      const stream = new AssistantMessageEventStream();
+      if (requests.length > 1) {
+        const text = answer.slice(0, 20);
+        const partial: AssistantMessage = {
+          ...message,
+          content: [{ type: 'text', text }],
+        };
+        stream.push({ type: 'start', partial });
+        stream.push({ type: 'text_delta', contentIndex: 0, delta: text, partial });
+      }
+      stream.push({ type: 'done', reason: message.stopReason as 'stop' | 'toolUse', message });
+      return stream;
+    });
+    const session = await runtime.open();
+    const events: RuntimeEvent[] = [];
+    try {
+      for await (const event of session.execute({
+        sessionId: 'diagnostic-session',
+        turnId: 'diagnostic-turn',
+        model: reference,
+        instructions: 'Diagnose the incident.',
+        input: [{ type: 'text', text: 'Read incident evidence.' }],
+        history: [],
+        contextCheckpoint: null,
+        options: {},
+        tools: [
+          {
+            ref: { source: 'builtin', capabilityId: 'diagnostic_configuration' },
+            providerName: 'diagnostic_configuration',
+            displayName: 'Configuration',
+            description: 'Read incident configuration.',
+            inputSchema: { type: 'object', properties: {} },
+            effect: 'read',
+            approval: 'auto',
+            execute: async () => ({ value: { httpStatus: 401 }, artifacts: [] }),
+          },
+        ],
+      }))
+        events.push(event);
+      expect(events).toContainEqual({ type: 'completed' });
+      expect(requests).toHaveLength(2);
+      expect(JSON.stringify(requests[1]?.messages)).toContain('401');
+      expect(
+        events.flatMap((event) =>
+          (event.type === 'part.add' || event.type === 'part.replace') && event.part.type === 'text'
+            ? [event.part.text]
+            : [],
+        ),
+      ).toEqual([answer]);
+      expect(events).toContainEqual(
+        expect.objectContaining({
+          part: expect.objectContaining({
+            type: 'tool',
+            state: 'output-available',
+            output: expect.objectContaining({ value: { httpStatus: 401 } }),
+          }),
+        }),
+      );
+    } finally {
+      await session.close();
+    }
+  });
+
+  test.each([
+    ['auto', 'write'],
+    ['ask', 'read'],
+    ['deny', 'read'],
+  ] as const)(
+    'isolated diagnosis rejects %s/%s capabilities before execution',
+    async (approval, effect) => {
+      let effects = 0;
+      let requests = 0;
+      const runtime = isolatedDiagnosticRuntime(() => {
+        requests++;
+        return new AssistantMessageEventStream();
+      });
+      const session = await runtime.open();
+      const events: RuntimeEvent[] = [];
+      try {
+        for await (const event of session.execute({
+          sessionId: 'blocked-session',
+          turnId: 'blocked-turn',
+          model: reference,
+          instructions: '',
+          input: [{ type: 'text', text: 'Run.' }],
+          history: [],
+          contextCheckpoint: null,
+          options: {},
+          tools: [
+            {
+              ref: { source: 'builtin', capabilityId: 'forbidden' },
+              providerName: 'forbidden',
+              displayName: 'Forbidden',
+              description: 'Not a diagnostic read.',
+              inputSchema: { type: 'object', properties: {} },
+              approval,
+              effect,
+              execute: async () => {
+                effects++;
+                return { value: {}, artifacts: [] };
+              },
+            },
+          ],
+        }))
+          events.push(event);
+        expect(events).toContainEqual(expect.objectContaining({ type: 'failed' }));
+        expect(effects).toBe(0);
+        expect(requests).toBe(0);
+      } finally {
+        await session.close();
+      }
+    },
+  );
+
+  test('model probes deliver the answer and complete without storing a production conversation', async () => {
+    const requests: TranscriptContext[] = [];
+    const identities: unknown[] = [];
+    const runtime = new PiModelProbeRuntime({
+      preflightModel: async () => ({
+        contextWindow: 32768,
+        maxInputTokens: 28672,
+        maxOutputTokens: 4096,
+        inputModalities: ['text'],
+        supportsTools: false,
+      }),
+      resolveModel: async () => ({
+        model: wire,
+        defaultThinkingLevel: 'off',
+        redactionValues: [],
+        supportsTools: false,
+        usageContext: {
+          providerId: reference.providerId,
+          providerName: null,
+          modelId: reference.modelId,
+          modelName: null,
+          pricingSnapshot: null,
+          trustProviderReportedCost: false,
+          reportedCostCurrency: null,
+          credentialReceipt: { attribution: 'unknown' },
+        },
+        streamFn: (_model, context, options) => {
+          requests.push(context);
+          identities.push(options?.identity);
+          const stream = new AssistantMessageEventStream();
+          stream.push({
+            type: 'done',
+            reason: 'stop',
+            message: {
+              ...emptyAssistantMessage(wire),
+              stopReason: 'stop',
+              content: [{ type: 'text', text: 'Probe answer' }],
+            },
+          });
+          return stream;
+        },
+      }),
+    });
+    const session = await runtime.open();
+    const events: RuntimeEvent[] = [];
+    try {
+      for await (const event of session.execute({
+        sessionId: 'probe-session',
+        turnId: 'probe-turn',
+        model: reference,
+        instructions: 'Answer the user.',
+        input: [{ type: 'text', text: 'Hello' }],
+        history: [],
+        contextCheckpoint: null,
+        tools: [],
+        options: {},
+      }))
+        events.push(event);
+      expect(events).toContainEqual({ type: 'completed' });
+      expect(events).toContainEqual(
+        expect.objectContaining({
+          type: 'part.add',
+          part: expect.objectContaining({ type: 'text', text: 'Probe answer' }),
+        }),
+      );
+      expect(requests).toHaveLength(1);
+      expect(requests[0]?.messages.filter((message) => message.role === 'user')).toEqual([
+        expect.objectContaining({ role: 'user', content: 'Hello' }),
+      ]);
+      // Provider checks are attributed to Cherry, not Pi's default identity.
+      expect(identities).toEqual([
+        expect.objectContaining({
+          attribution: expect.objectContaining({ name: 'CherryStudioMobile' }),
+        }),
+      ]);
+    } finally {
+      await session.close();
+    }
+  });
+
+  test('Pi owns the model/tool loop and retained history across submissions and reopened owners', async () => {
+    const storage = new ReopenableMemoryStorage();
+    const requests: TranscriptContext[] = [];
+    let runtime!: PiDurableRuntime;
+    const bridge = createPiDurableModels(
+      {
+        preflightModel: async () => ({
+          contextWindow: 32768,
+          maxInputTokens: 28672,
+          maxOutputTokens: 4096,
+          inputModalities: ['text'],
+          supportsTools: true,
+        }),
+        resolveModel: async () => ({
+          model: wire,
+          defaultThinkingLevel: 'off',
+          redactionValues: [],
+          supportsTools: true,
+          usageContext: {
+            providerId: reference.providerId,
+            providerName: null,
+            modelId: reference.modelId,
+            modelName: null,
+            pricingSnapshot: null,
+            trustProviderReportedCost: false,
+            reportedCostCurrency: null,
+            credentialReceipt: { attribution: 'unknown' },
+          },
+          streamFn: (_model, context) => {
+            requests.push(context);
+            const message: AssistantMessage =
+              requests.length === 1
+                ? {
+                    ...emptyAssistantMessage(wire),
+                    stopReason: 'toolUse',
+                    content: [
+                      {
+                        type: 'thinking',
+                        thinking: 'live thought',
+                        thinkingSignature: 'opaque-live-signature',
+                      },
+                      { type: 'toolCall', id: 'lookup-call', name: 'lookup', arguments: {} },
+                    ],
+                  }
+                : {
+                    ...emptyAssistantMessage(wire),
+                    stopReason: 'stop',
+                    content: [{ type: 'text', text: `Answer ${requests.length}` }],
+                  };
+            const stream = new AssistantMessageEventStream();
+            stream.push({
+              type: 'done',
+              reason: message.stopReason as 'stop' | 'toolUse',
+              message,
+            });
+            return stream;
+          },
+        }),
+      },
+      (affinity) => runtime.requestOptions(affinity),
+    );
+    await bridge.registerModel(reference);
+
+    const instructionBody = 'Ask exactly one question, then wait for the user.';
+    const execute = jest.fn(async () => ({
+      value: { instructions: instructionBody },
+      modelValue: 'Tool value',
+      artifacts: [],
+      instructions: { key: 'guide', text: instructionBody },
+    }));
+    const template: RuntimeTool = {
+      ref: { source: 'builtin', capabilityId: 'lookup' },
+      providerName: 'lookup',
+      displayName: 'Lookup',
+      description: 'Lookup a value.',
+      inputSchema: { type: 'object', properties: {} },
+      approval: 'auto',
+      execute,
+    };
+    function registry() {
+      const registry = createRegistry();
+      const extension = createPiDurableToolExtension({
+        name: 'capabilities',
+        tools: [template],
+        resolve: async (tool, api, context) => {
+          const inputs = await runtime.inputsForTask(api, context);
+          expect(inputs).toHaveLength(1);
+          expect(inputs[0]?.metadata).toEqual({ turnId: 'first-turn' });
+          return { tool, turnId: String(inputs[0]!.metadata!.turnId) };
+        },
+        approve: async () => true,
+      });
+      registry.install(extension);
+      return { registry, extension };
+    }
+    const initial = registry();
+    const settings = {
+      followUpMode: 'one-at-a-time' as const,
+      compaction: { enabled: false },
+      retry: { enabled: false },
+    };
+    runtime = await PiDurableRuntime.open(storage, {
+      models: bridge.models,
+      registry: initial.registry,
+      settings,
+    });
+    try {
+      await runtime.ensureConversation({
+        sessionId: 'business-session',
+        revision: 0,
+        options: { maxOutputTokens: 512 },
+        agent: {
+          model: { provider: reference.providerId, modelId: reference.modelId },
+          instructions: 'Help the user.',
+          extensions: [initial.extension],
+        },
+      });
+      const first = await runtime.submit(
+        'business-session',
+        { type: 'input', requestId: 'first', content: 'First input' },
+        { turnId: 'first-turn' },
+      );
+      expect((await first.wait(BACKGROUND_CONTEXT)).status).toBe('done');
+      expect(execute).toHaveBeenCalledWith(
+        expect.objectContaining({ turnId: 'first-turn', toolCallId: 'lookup-call' }),
+      );
+      expect(requests[1]?.messages).toContainEqual(
+        expect.objectContaining({ role: 'toolResult', toolCallId: 'lookup-call' }),
+      );
+      expect(
+        requests[1]!.messages.filter(
+          (message) => message.role === 'assistant' || message.role === 'toolResult',
+        ),
+      ).toEqual([
+        expect.objectContaining({
+          role: 'assistant',
+          content: [
+            {
+              type: 'thinking',
+              thinking: 'live thought',
+              thinkingSignature: 'opaque-live-signature',
+            },
+            { type: 'toolCall', id: 'lookup-call', name: 'lookup', arguments: {} },
+          ],
+        }),
+        expect.objectContaining({
+          role: 'toolResult',
+          toolCallId: 'lookup-call',
+          content: [{ type: 'text', text: JSON.stringify({ value: 'Tool value', artifacts: [] }) }],
+        }),
+      ]);
+      expect(JSON.stringify(requests[1]?.messages)).toContain('Tool value');
+      expect(getCurrentSystemPrompt(requests[1]!.messages)).toContain(instructionBody);
+      // Providers send a tool result's content; its details keep the full display value.
+      expect(
+        JSON.stringify(
+          requests[1]?.messages.flatMap((message) =>
+            message.role === 'toolResult' ? message.content : [],
+          ),
+        ),
+      ).not.toContain(instructionBody);
+
+      const second = await runtime.submit(
+        'business-session',
+        { type: 'input', requestId: 'second', content: 'Second input' },
+        { turnId: 'second-turn' },
+      );
+      expect((await second.wait(BACKGROUND_CONTEXT)).status).toBe('done');
+      expect(
+        requests[2]?.messages
+          .filter((message) => message.role === 'user')
+          .map((message) => message.content),
+      ).toEqual(['First input', 'Second input']);
+      await runtime.close();
+
+      // A new owner and reconstructed code reuse Pi history; no caller replays earlier turns.
+      const recovered = registry();
+      runtime = await PiDurableRuntime.open(storage, {
+        models: bridge.models,
+        registry: recovered.registry,
+        settings,
+      });
+      const third = await runtime.submit(
+        'business-session',
+        { type: 'input', requestId: 'third', content: 'Third input' },
+        { turnId: 'third-turn' },
+      );
+      expect((await third.wait(BACKGROUND_CONTEXT)).status).toBe('done');
+      expect(
+        requests[3]?.messages
+          .filter((message) => message.role === 'user')
+          .map((message) => message.content),
+      ).toEqual(['First input', 'Second input', 'Third input']);
+      expect(execute).toHaveBeenCalledTimes(1);
+      expect(getCurrentSystemPrompt(requests[3]!.messages)).toContain(instructionBody);
+
+      // Discarding all tool history must not discard this execution's committed instructions.
+      await (await runtime.conversation('business-session'))!.reset(undefined, BACKGROUND_CONTEXT);
+      const recoveredBody = await runtime.submit(
+        'business-session',
+        { type: 'input', requestId: 'after-reset', content: 'Continue' },
+        {},
+      );
+      expect((await recoveredBody.wait(BACKGROUND_CONTEXT)).status).toBe('done');
+      expect(requests[4]!.messages.some((message) => message.role === 'toolResult')).toBe(false);
+      expect(getCurrentSystemPrompt(requests[4]!.messages)).toContain(instructionBody);
+
+      // The next Host configuration replaces the scope; disabled guides cannot leak through the doc.
+      await runtime.configure(
+        'business-session',
+        {
+          model: { provider: reference.providerId, modelId: reference.modelId },
+          instructions: 'Help the user.',
+          extensions: [recovered.extension],
+        },
+        { maxOutputTokens: 512 },
+      );
+      const next = await runtime.submit(
+        'business-session',
+        { type: 'input', requestId: 'new-scope', content: 'A new task' },
+        {},
+      );
+      expect((await next.wait(BACKGROUND_CONTEXT)).status).toBe('done');
+      expect(getCurrentSystemPrompt(requests[5]!.messages)).not.toContain(instructionBody);
+    } finally {
+      await runtime.close();
+    }
+  });
+});

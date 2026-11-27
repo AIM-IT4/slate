@@ -1,0 +1,183 @@
+# Chat Input Behavior
+
+This directory owns the Agent Session composer at the bottom of the chat surface. `ChatInput` is
+exported through `index.ts` and receives the current Agent/Session and the content leaf’s chat controls.
+
+## Current Contract
+
+- Selecting answer text inserts an atomic inline quote at the native editor's caret. The excerpt
+  uses paired quotation marks, retains short selections in full, and shortens long selections.
+  Multiple quotes can be interleaved with ordinary comments. Tapping one opens a compact anchored
+  text popover with its complete snapshot. Deleting a quote removes that occurrence from the next
+  submission; undo can restore it. Submitted messages keep their inline positions, and taking back
+  a queued message reconstructs the editor links. Legacy single-quote messages remain readable.
+  The native input-link event requires the updated development client; gesture behavior still
+  needs user-owned device acceptance.
+
+- An Agent selection owns an isolated Draft composer. Its first send uses `startSession`, which
+  admits the message before atomically creating the Session and first message pair; observation and
+  navigation begin only after that succeeds.
+- Existing Sessions submit through the live `AgentProtocol` client owned by `ChatProvider`.
+- Clearing the composer synchronously hands text and attachments to local message rows. During
+  admission the send action is disabled and the assistant row shows waiting feedback. Persistence and events
+  reuse the IDs allocated by the send action; rejected sends restore the draft and attachments,
+  including content added while waiting. Draft-to-Session handoff preserves the list and composer.
+- The shared composer owns the draft, send recovery, keyboard behavior, and pasted attachment
+  presentation. Draft and existing-Session composers use separate keyed sessions, so navigation
+  cannot reuse one Session's draft in another. Switching Agents inside a Draft keeps the composer:
+  its text and attachments belong to the user, not to the Agent they were written under. An
+  incoming system share opens a fresh Draft composer seeded with its text and library attachments,
+  replacing whatever draft was there; nothing is sent until the user sends it.
+- Sending a message blurs the input, ends editing, and dismisses the keyboard immediately on
+  submission. The empty composer returns to one row; local-send scrolling does not dismiss again.
+- Image attachments are imported into managed storage before send. The Host revalidates their
+  authoritative metadata, model capability, provider endpoint, and request limits before admission.
+- While a submission or the selected branch's answer is active, the send control becomes stop.
+  Before the Host reserves the turn it calls `cancelSubmission` and the draft returns to the
+  composer; afterwards it stops the selected answer by its message and turn IDs. Switching to
+  a completed answer restores the send control; it stays disabled until the other answers finish.
+  A queued follow-up keeps its running ancestor as the stop target.
+- In local and remote chat, the ordinary field and primary actions share one row while the
+  field's software keyboard is hidden. Its keyboard opening reveals the full-width text field
+  and the model and reasoning toolbar. Closing the keyboard restores the single row with the
+  existing draft. Staged attachments occupy their own row.
+- While the keyboard is open, the diagonal expand action is available. It opens a large opaque editing
+  surface below the top safe area, with a collapse action and no heading. Its background fills
+  both screen edges and extends through the footer and bottom safe area. Local and
+  remote conversations share the same field and toolbar; large-editor layout never remounts the
+  native input or clears its buffer. The collapse control shares the top accessory row with
+  attachments; only that row reserves its width. The expanded field below uses the full content
+  width and scrolls natively. The compact height cap remains unchanged.
+- Expansion preserves spatial continuity: the top edge grows upward while toolbar actions stay
+  at the dock's bottom anchor. The isolated composer frame uses the shared 250ms settle curve;
+  backdrop and opaque surface follow that progress, with no opacity on glass-control ancestors.
+  Repeated actions reverse the current animation; stale close completions cannot hide a reopened
+  editor. System Reduce Motion lands directly on the target layout. Keyboard motion uses live
+  controller coordinates and does not receive another timing curve.
+- Collapse and its backdrop preserve the draft and current keyboard state. Android Back first
+  hides a visible keyboard, then collapses the large editor. The main header and transcript
+  accessibility are isolated through the close transition. Send collapses through the existing
+  send boundary; rejected sends retain its existing text/attachment recovery. Leaving the text
+  composer, including switching to an image-generation model, also collapses the large editor.
+  Native input,
+  selection, keyboard continuity, both-theme appearance and performance still require device
+  acceptance; source and unit coverage do not establish native conformance.
+- A completed background press or send blurs the field. The keyboard transition drives the
+  layout even when the system initiates dismissal. The local tools sheet, model picker and
+  native media pickers wait for dismissal before opening. The effort overlay preserves the
+  current keyboard. See the [interaction contract](../../../../../../docs/references/chat/input-interaction.md).
+- Single-model picks save the current Session's model. A draft saves its choice with the first
+  submission. A later pick during that submission saves after the Session is created. A Session
+  without a choice follows the Agent's default model.
+- The Host reads the confirmed conversation model for ordinary submissions. A pending pick for an
+  existing Session, a parallel answer, and an image request each capture an explicit model. Session
+  model writes run in selection order across composer mounts.
+- The reasoning gauge derives its stops from the selected model's `selectableEfforts`, retaining
+  `xhigh` and `max` as distinct values. The frontend's persistent `chat.reasoning_efforts` cache
+  remembers the last user selection per Agent across new conversations and app restarts. Model
+  capabilities adjust the effort locally. A saved Session remembers its adjusted stop, while a
+  draft keeps the shared preference available for compatible models and other conversations.
+  Clearing the cache restores model defaults. Submissions associate the effort with the model
+  whose controls produced it. For the closest supported stop, a tie picks the higher stop. Models
+  without selectable reasoning display `default`. `auto` retains its provider-controlled meaning
+  and shared fallback ordering.
+- The plus action opens a content-height tools sheet with camera, photos, files, workspace,
+  Plugins, Skills, SSH and available MCP prompts. Child sheets cover the menu, keeping its content
+  mounted and inactive. Drag, scrim, Back and Escape dismiss only the top layer; the handle retains
+  an accessible name without a visible title or header buttons. Completing a content selection
+  closes both layers before focusing the input. Workspace selection returns to the tools sheet;
+  file previews preserve its expansion state unless a reference is handed back to the composer.
+  The folder picker keeps New folder in its fixed footer, using the shared folder-name prompt to
+  create a root folder that appears in the selection list.
+  Image chat reuses this menu with image media actions and workspace selection. A history chat
+  whose Agent is unavailable keeps its workspace entry in the header because it has no composer.
+  Reopening waits for the current close to finish; openings queued before that close cannot replay.
+- The composer menu offers media, Plugins, and a separate Skills row. The Plugins row remains visible
+  when none are connected and offers a connection entry. Selecting a plugin inserts an inline
+  reference that expresses the user's intent for that message. Connected plugins remain available
+  to every Agent without a mention or Agent binding; remote MCP tools follow Agent configuration.
+- A short MCP row appears only when the current Agent enables a custom MCP server that has
+  cached prompt templates. Per-tool overrides do not enable that server's prompts. The same
+  covering sheet presentation used by Plugins lists the cached templates and their sources;
+  opening it performs no remote discovery. Selecting a template resolves its messages and adds
+  them to the draft without preview or sending; a template without parameters shows progress in
+  its row and dismissing the menu abandons it. Parameters reuse `UserQuestionSheet`, including
+  its previous/next navigation and retained answers. Required fields gate submission; optional
+  fields can be skipped. Cancelling preserves the draft; Agent changes cancel pending selection.
+- In standard mode, the plus menu also offers SSH when the native runtime is available. Its
+  covering sheet uses the tools menu's input-replacement path and only selects saved servers, inserting an inline
+  mention without sending a message or executing a command. Saved connections, trust, credentials
+  and the remote file browser belong to Plugins > SSH. There is no separate target pill or
+  management/grant control in the picker. The one-hour diagnostics grant is offered when approving
+  a command and remains scoped to the current conversation and connection.
+- Sidebar → Skills → More → Add in Chat opens a fresh draft with a built-in `find-skills` inline
+  reference, using the same rich editor presentation as plugin references. Deleting it cancels the
+  installation intent. The shared chat composer handoff seeds the draft. The user supplies a task or
+  supported source URL and sends explicitly. The structured `find-and-install` intent travels with
+  that message and its retries; it supplies installation
+  intent to the conversation workflow. Rejected sends retain it, successful sends clear the
+  submitted selection, and switching Agents clears it. The Host owns discovery,
+  admission, installation and enabling for the current Agent.
+- **Create Skill** in the same library menu seeds a removable `create-skill` reference. Its `create`
+  action shares the discovery handoff, send, retry and history contract. The Host owns full-content
+  review and explicit save/binding choices. Trial opens a fresh unsent installed-Skill draft.
+- The plus menu selects installed Skills for use. The plugin and Skill pickers keep an Add button
+  in their fixed footer, opening the corresponding management page after both tool sheets close.
+  The Skill management entry carries the current Agent or Session so its chat actions return to
+  that Agent.
+  The file, folder, plugin, and Skill pickers open at the large height and can be dragged to full height.
+  The menu labels the conversation workspace entry Folders; the file picker's heading remains Recent.
+- The menu's Skills row opens a covering sheet like Plugins, listing eligible installed bindings
+  for the current Agent. A row inserts an inline Skill reference and returns to the composer. Selected rows show a checkmark and do not insert
+  duplicates; deleting a reference in the editor removes its selection.
+  Skill references use desktop's ToolCase icon beside their name at the editor's font size. The plus
+  menu, picker rows and sidebar use the same Lucide vector. Native inline icons are tagged separately
+  from pasted media so the iOS paste wrapper keeps them inside the editor instead of uploading them.
+  Submitted messages preserve the inline icon, name and link color through stored text ranges;
+  they do not add a selected-Skill or revision caption below the message.
+  Up to eight explicit selections are submitted as Skill IDs; the Host revalidates
+  them and records name/revision receipts on the user message. Rejected sends retain selections,
+  successful sends clear the submitted selection, and Agent switches clear it. Manual-only Skills
+  remain selectable when user invocation is allowed. Selection never creates an Agent binding.
+- The menu's File tile opens the resizable library picker with only a drag handle at the top.
+  Like the library, each level lists its folders first, then its files newest first. A folder's
+  own timestamp does not change when files are added inside it, so folders are not ordered among
+  files. Folder rows only expand/collapse; their children remain under the folder and reuse the
+  library's cursor pages and batched previews. Expanded directories use the workspace tree's inline
+  paging pattern. File dates are content modification dates, as in the library.
+  Selection belongs to the sheet and survives collapsing or recycling a directory. A fixed footer
+  offers New folder at the library root through the shared folder-name prompt and confirms newly
+  selected files with their count. Already attached files are marked and cannot be added twice.
+  Dismissing by drag, scrim, back, or accessibility escape discards the pending selection. Search is
+  not offered.
+  The app-wide file-change subscription keeps these shared pages current; opening the picker
+  reuses fresh pages without forcing another fetch.
+- Upload files closes the library picker and presents the system document picker from chat. Each
+  chosen file appears in the composer's attachment strip at once with its upload progress, and is
+  uploaded to the library from there: the entry belongs to the library as soon as it lands, so
+  removing the attachment afterwards or leaving the chat keeps the file, and the picker lists it
+  under Recent next time. Removing the tile while it is still uploading cancels that upload.
+- Library selections are ready attachments borrowed by entry ID, so removing one from the composer
+  leaves the library file intact. Camera, photos, and painting keep their existing flows.
+- Accepted follow-ups appear in a collapsible, bounded queue, expanded by default, above the composer until Pi starts them. Each
+  row shows the original text/attachment summary, offers Steer, and can withdraw that one waiting input. The
+  queue comes from the Session observation snapshot and `queue.updated` events, so route changes
+  and process restarts preserve it. Streaming message updates do not invalidate queue subscribers.
+  Queue removal never falls back to stopping an active turn when placement wins the race.
+  Pending reservations remain outside the transcript until execution starts; confirmed withdrawal
+  deletes their unexecuted message pair without invalidating the current model context. Steer
+  promotes the queued input through Pi's native admission. Its question appears in the transcript
+  when accepted; the next assistant reply appears below it when output starts. Failure leaves the
+  queue item available to retry. Pending and accepted actions stay locked until observation removes
+  the item, so repeated taps cannot send it twice. Preview/take-back retains the existing edit flow.
+
+The chat-owned context usage action stays on the right of the composer toolbar while editing or when
+the composer holds content, keeping the resting single-row capsule focused on input and dictation.
+Tapping it opens a keyboard-preserving anchored popover with one progress row: measured occupancy,
+percentage, and declared model capacity in `k token`. The action owns the popover and remounts when
+its Session or context answer changes, so an old measurement cannot reopen it. Usage comes from
+the selected branch's current Pi working context, including the retained answer and tool results.
+Committed background compaction updates the same value without waiting for another answer.
+Without a working copy, the Host estimates the saved checkpoint and normalized message tail in
+memory; estimated occupancy is prefixed with `≈`. It does not display a persisted input count or
+cumulative billing total as current occupancy. A new provider measurement calibrates the count.

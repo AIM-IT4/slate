@@ -1,0 +1,50 @@
+import { memo, type ReactNode } from 'react';
+
+import type { MessageListItem } from '@/frontend/components/Message';
+
+import {
+  ConversationAttachments,
+  ConversationMessageContent,
+} from '../../ConversationMessageContent';
+import { useChatMessageRow } from '../context/ChatMessageRowContext';
+import { type AssistantMessagePresentation, ChatMessage } from './ChatMessage';
+
+type ChatMessageRowProps = {
+  assistantPresentation: AssistantMessagePresentation;
+  isMessageActionsEnabled: boolean;
+  message: MessageListItem;
+  renderUsage?: (message: MessageListItem) => ReactNode;
+};
+
+/** One transcript row: its item from the list plus its own keyed conversation state. */
+export const ChatMessageRow = memo(function ChatMessageRow({
+  assistantPresentation,
+  isMessageActionsEnabled,
+  message,
+  renderUsage,
+}: ChatMessageRowProps) {
+  const row = useChatMessageRow(message.id);
+  return (
+    <ConversationMessageContent
+      messageState={row.messageState}
+      tools={row.tools}
+      attachments={row.attachments}
+    >
+      <ChatMessage
+        assistantPresentation={assistantPresentation}
+        editingContext={row.editingContext}
+        startsEditingContinuation={row.startsEditingContinuation}
+        attachments={
+          message.role === 'user' && row.attachments?.length ? (
+            <ConversationAttachments attachments={row.attachments} />
+          ) : undefined
+        }
+        isMessageActionsEnabled={isMessageActionsEnabled}
+        message={message}
+        renderUsage={renderUsage}
+        shouldShowDisclaimer={row.showsDisclaimer}
+        shouldShowTimestamp={row.showsTimestamp}
+      />
+    </ConversationMessageContent>
+  );
+});

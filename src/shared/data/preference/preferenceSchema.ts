@@ -1,0 +1,256 @@
+/**
+ * Every DB-backed preference the mobile app has.
+ *
+ * Hand-maintained. This used to be generated from desktop's classification.json
+ * and carried all 244 desktop keys; mobile preference data is independent of
+ * desktop, so a key belongs here only when mobile code reads it.
+ *
+ * Key naming: `namespace.sub.key_name` — at least two dot-separated segments,
+ * each lowercase letters, digits, or underscores. Desktop enforces this with
+ * its `data-schema-key/valid-key` ESLint rule, which does not run here; the
+ * shape is asserted in `__tests__/preferenceUtils.test.ts` instead.
+ */
+
+import {
+  DEFAULT_DOCUMENT_PARSER_MODE,
+  type DocumentParserMode,
+  type OcrEngine,
+} from '@/shared/contracts/fileAttachment';
+import type { VoiceEngineId } from '@/shared/contracts/voice';
+import {
+  type AssistantMessageToolbarConfig,
+  DEFAULT_ASSISTANT_MESSAGE_TOOLBAR_CONFIG,
+} from '@/shared/data/types/assistantMessageToolbar';
+import type {
+  WebSearchCompressionMethod,
+  WebSearchProviderId,
+  WebSearchProviderOverrides,
+} from '@/shared/data/types/webSearch';
+
+import type { LanguageVarious } from './preferenceTypes';
+import { ThemeMode } from './preferenceTypes';
+
+export type ModelWebToolsPreference = 'preferred' | 'fallback' | 'disabled';
+
+export const FONT_SIZE_STEPS = [0, 1, 2] as const;
+export type FontSizeStep = (typeof FONT_SIZE_STEPS)[number];
+
+export const NAVIGATION_PINNABLE_TAB_IDS = [
+  'agents',
+  'drawings',
+  'plugins',
+  'marketplace',
+  'files',
+  'devices',
+] as const;
+export type NavigationPinTabId = (typeof NAVIGATION_PINNABLE_TAB_IDS)[number];
+
+/** These defaults are delivered by the organization in enterprise profiles. */
+export const ENTERPRISE_DEFAULT_MODEL_KEYS = [
+  'agent.default_model_id',
+  'agent.session_naming.model_id',
+  'feature.translate.model_id',
+] as const;
+export type EnterpriseDefaultModels = Pick<
+  PreferenceSchema,
+  (typeof ENTERPRISE_DEFAULT_MODEL_KEYS)[number]
+>;
+
+export interface PreferenceSchema {
+  /** Device-local opt-in to foreground shake detection and feedback screenshots. */
+  'app.feedback.shake_enabled': boolean;
+  'app.feedback.shake_hint_decision': 'unseen' | 'accepted' | 'ignored';
+  'app.keep_screen_on.enabled': boolean;
+  'app.language': LanguageVarious | null;
+  'app.onboarding.status':
+    | 'unseen'
+    | 'welcome'
+    | 'privacy'
+    | 'pending'
+    | 'permissions'
+    | 'notifications'
+    | 'login'
+    | 'skipped'
+    | 'completed';
+  /** Opt-out switch for anonymous product analytics. Only honoured under the current policy. */
+  'app.privacy.data_collection.enabled': boolean;
+  /**
+   * Disclosure the user was last shown. Both consent answers record it, so whether
+   * collection runs is carried by the switch above; anything but the latest version
+   * revokes collection and asks again.
+   */
+  'app.privacy.policy_version': string;
+  /** `avatar-file:{uuid}.webp` for a managed avatar image, or a direct image URI. */
+  'app.user.avatar': string;
+  /**
+   * Analytics client identity (UUID). Generated on first use, and replaced by the
+   * desktop's own identity when this device pairs with a computer.
+   */
+  'app.user.id': string;
+  'app.user.name': string;
+
+  'app.background_run_guidance.seen': boolean;
+  /** Device-local audio opt-in; null means unseen, and only explicit confirmation stores true. */
+  'app.background_audio.consent': boolean | null;
+
+  /** iOS presentation only; unfinished conversation execution is always protected. */
+  'chat.background_reply.enabled': boolean;
+  'chat.completion_notifications.enabled': boolean;
+  'chat.multi_model.cards_enabled': boolean;
+  'chat.process.auto_collapse': boolean;
+  'agent.default_model_id': string | null;
+  'chat.web_search.compression.cutoff_limit': number;
+  'chat.web_search.compression.method': WebSearchCompressionMethod;
+  'chat.web_search.default_fetch_urls_provider': WebSearchProviderId;
+  'chat.web_search.default_search_keywords_provider': WebSearchProviderId;
+  'chat.web_search.max_results': number;
+  'chat.web_search.model_tools': ModelWebToolsPreference;
+  'chat.web_search.provider_overrides': WebSearchProviderOverrides;
+  'chat.input.enter_to_send': boolean;
+  'chat.deepseek.safety_check': boolean;
+
+  'feature.paintings.default_model_id': string | null;
+  'feature.quick_assistant.model_id': string | null;
+  'feature.translate.model_id': string | null;
+  /** Null disables voice input and keeps the composer's send action. */
+  'feature.voice.dictation_engine': VoiceEngineId | null;
+  /** Null follows the app language. */
+  'feature.voice.dictation_language': LanguageVarious | null;
+  /** Null uses the first engine this device supports. */
+  'feature.voice.speech_engine': VoiceEngineId | null;
+  /** Audio files use SenseVoice unless the user selects the system's offline recognizer. */
+  'feature.voice.transcription_engine': VoiceEngineId;
+  /** Null follows the app language; independent of microphone dictation. */
+  'feature.voice.transcription_language': LanguageVarious | null;
+  /** Empty uses the system default voice for the app language. */
+  'feature.voice.system_voice': string;
+  'feature.voice.deepseek_voice': 'stella' | 'tide';
+
+  'file.document_parser.mode': DocumentParserMode;
+  'file.ocr.engine': OcrEngine;
+  'file.export.watermark_enabled': boolean;
+
+  'agent.session_naming.enabled': boolean;
+  'agent.session_naming.model_id': string | null;
+  'agent.session_naming.prompt': string;
+
+  'ui.chat.assistant_toolbar_actions': AssistantMessageToolbarConfig;
+  'ui.font_size_step': FontSizeStep;
+  'ui.library.view_mode': 'grid' | 'list';
+  'ui.navigation.pinned_tabs': NavigationPinTabId[];
+  /** The user hid the sidebar a wide window would otherwise keep beside the content. */
+  'ui.sidebar.collapsed': boolean;
+  'ui.sidebar.recent_view_mode': 'agents' | 'sessions';
+  'ui.sidebar.session_tree_enabled': boolean;
+  'ui.theme_mode': ThemeMode;
+}
+
+export const PreferenceDefaults = {
+  'app.feedback.shake_enabled': false,
+  'app.feedback.shake_hint_decision': 'unseen',
+  'app.keep_screen_on.enabled': false,
+  'app.language': null,
+  'app.onboarding.status': 'unseen',
+  'app.privacy.data_collection.enabled': false,
+  // Empty until the consent sheet records a choice, so nothing is collected before
+  // the disclosure is shown. A later policy bump leaves stored installs behind the
+  // current version and shows the sheet again.
+  'app.privacy.policy_version': '',
+  'app.user.avatar': '',
+  'app.user.id': '',
+  'app.user.name': '',
+
+  'app.background_run_guidance.seen': false,
+  'app.background_audio.consent': null,
+
+  'chat.background_reply.enabled': true,
+  'chat.completion_notifications.enabled': true,
+  'chat.multi_model.cards_enabled': true,
+  'chat.process.auto_collapse': true,
+  'agent.default_model_id': null,
+  'chat.web_search.compression.cutoff_limit': 2000,
+  'chat.web_search.compression.method': 'cutoff',
+  'chat.web_search.default_fetch_urls_provider': 'jina',
+  'chat.web_search.default_search_keywords_provider': 'exa-mcp',
+  'chat.web_search.max_results': 5,
+  'chat.web_search.model_tools': 'preferred',
+  'chat.web_search.provider_overrides': {},
+  'chat.input.enter_to_send': false,
+
+  'feature.paintings.default_model_id': null,
+  'feature.quick_assistant.model_id': null,
+  'feature.translate.model_id': null,
+  'chat.deepseek.safety_check': false,
+  'feature.voice.dictation_engine': null,
+  'feature.voice.dictation_language': null,
+  'feature.voice.speech_engine': null,
+  'feature.voice.system_voice': '',
+  'feature.voice.deepseek_voice': 'stella',
+  'feature.voice.transcription_engine': 'sensevoice',
+  'feature.voice.transcription_language': null,
+
+  'file.document_parser.mode': DEFAULT_DOCUMENT_PARSER_MODE,
+  'file.ocr.engine': 'local',
+  'file.export.watermark_enabled': true,
+
+  'agent.session_naming.enabled': true,
+  'agent.session_naming.model_id': null,
+  'agent.session_naming.prompt': '',
+
+  'ui.chat.assistant_toolbar_actions': DEFAULT_ASSISTANT_MESSAGE_TOOLBAR_CONFIG,
+  'ui.font_size_step': 0,
+  'ui.library.view_mode': 'grid',
+  'ui.navigation.pinned_tabs': ['agents'],
+  'ui.sidebar.collapsed': false,
+  'ui.sidebar.recent_view_mode': 'sessions',
+  'ui.sidebar.session_tree_enabled': true,
+  'ui.theme_mode': ThemeMode.light,
+} satisfies PreferenceSchema;
+
+export type PreferenceKeyType = keyof PreferenceSchema;
+
+/** Application choices inherited once by a newly created account/organization profile. */
+export const INHERITABLE_PREFERENCE_KEYS = [
+  'app.background_run_guidance.seen',
+  'app.feedback.shake_enabled',
+  'app.feedback.shake_hint_decision',
+  'app.language',
+  'app.onboarding.status',
+  'app.privacy.data_collection.enabled',
+  'app.privacy.policy_version',
+  'chat.background_reply.enabled',
+  'chat.completion_notifications.enabled',
+  'file.document_parser.mode',
+  'file.export.watermark_enabled',
+  'ui.chat.assistant_toolbar_actions',
+  'ui.font_size_step',
+  'ui.library.view_mode',
+  'ui.navigation.pinned_tabs',
+  'ui.sidebar.collapsed',
+  'ui.sidebar.recent_view_mode',
+  'ui.theme_mode',
+] as const satisfies readonly PreferenceKeyType[];
+
+/**
+ * Preferences that describe this device or its consent rather than the user's content.
+ * Restoring a backup keeps the target device's values for these keys.
+ */
+export const DEVICE_LOCAL_PREFERENCE_KEYS = [
+  'app.background_audio.consent',
+  'app.background_run_guidance.seen',
+  'app.feedback.shake_enabled',
+  'app.feedback.shake_hint_decision',
+  'app.keep_screen_on.enabled',
+  'app.onboarding.status',
+  'app.privacy.data_collection.enabled',
+  'app.privacy.policy_version',
+  'app.user.id',
+  'chat.background_reply.enabled',
+  'chat.completion_notifications.enabled',
+  // Engine support and system voices differ per device.
+  'feature.voice.dictation_engine',
+  'feature.voice.speech_engine',
+  'feature.voice.transcription_engine',
+  'feature.voice.system_voice',
+  'ui.sidebar.collapsed',
+] as const satisfies readonly PreferenceKeyType[];
