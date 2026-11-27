@@ -755,6 +755,8 @@
   "chat.tool.copyFailed": "複製文本失敗，請重試。",
   "chat.tool.copyFullText": "複製完整文本",
   "chat.tool.elapsed": "已耗時 {{seconds}} 秒",
+  "chat.tool.elapsedHours": "已耗時 {{hours}} 小時",
+  "chat.tool.elapsedMinutes": "已耗時 {{minutes}} 分鐘",
   "chat.tool.error": "錯誤",
   "chat.tool.inputReady": "輸入已就緒",
   "chat.tool.jsdoc": "JSDoc",

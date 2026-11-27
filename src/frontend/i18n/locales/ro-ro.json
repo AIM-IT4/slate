@@ -767,6 +767,8 @@
   "chat.tool.copyFailed": "Nu s-a putut copia textul. Vă rugăm să încercați din nou.",
   "chat.tool.copyFullText": "Copiați textul integral",
   "chat.tool.elapsed": "Timp scurs: {{seconds}} s",
+  "chat.tool.elapsedHours": "Timp scurs: {{hours}} h",
+  "chat.tool.elapsedMinutes": "Timp scurs: {{minutes}} min",
   "chat.tool.error": "Eroare",
   "chat.tool.inputReady": "Intrare gata",
   "chat.tool.jsdoc": "JSDoc",

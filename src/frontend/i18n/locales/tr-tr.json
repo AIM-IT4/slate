@@ -761,6 +761,8 @@
   "chat.tool.copyFailed": "Metin kopyalanamadı. Lütfen tekrar deneyin.",
   "chat.tool.copyFullText": "Tam metni kopyala",
   "chat.tool.elapsed": "Geçen süre: {{seconds}} sn",
+  "chat.tool.elapsedHours": "Geçen süre: {{hours}} sa",
+  "chat.tool.elapsedMinutes": "Geçen süre: {{minutes}} dk",
   "chat.tool.error": "Hata",
   "chat.tool.inputReady": "Giriş hazır",
   "chat.tool.jsdoc": "JSDoc",

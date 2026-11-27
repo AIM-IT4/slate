@@ -761,6 +761,8 @@
   "chat.tool.copyFailed": "Δεν ήταν δυνατή η αντιγραφή του κειμένου. Δοκιμάστε ξανά.",
   "chat.tool.copyFullText": "Αντιγραφή πλήρους κειμένου",
   "chat.tool.elapsed": "Χρόνος που πέρασε: {{seconds}} δευτ.",
+  "chat.tool.elapsedHours": "Χρόνος που πέρασε: {{hours}} ώρ.",
+  "chat.tool.elapsedMinutes": "Χρόνος που πέρασε: {{minutes}} λεπ.",
   "chat.tool.error": "Σφάλμα",
   "chat.tool.inputReady": "Είσοδος έτοιμη",
   "chat.tool.jsdoc": "JSDoc",

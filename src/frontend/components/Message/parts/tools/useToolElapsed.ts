@@ -3,10 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { AppState } from 'react-native';
 
 import { useMessageListLiveTailVisible } from '../../list/MessageListLiveTailContext';
+import { toToolElapsed } from './formatToolElapsed';
 
 /** Only the visible activity row ticks; provider messages and process details never do. */
 export function useToolElapsed(startedAt: number | undefined, isRunning: boolean) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const visible = useMessageListLiveTailVisible(isRunning);
   const [now, setNow] = useState(Date.now);
   useEffect(() => {
@@ -27,7 +28,13 @@ export function useToolElapsed(startedAt: number | undefined, isRunning: boolean
       listener.remove();
     };
   }, [isRunning, visible, startedAt]);
-  return isRunning && startedAt !== undefined && Number.isFinite(startedAt)
-    ? t('chat.tool.elapsed', { seconds: Math.max(0, Math.floor((now - startedAt) / 1000)) })
-    : undefined;
+  if (!isRunning || startedAt === undefined || !Number.isFinite(startedAt)) return undefined;
+  const elapsed = toToolElapsed(now - startedAt);
+  if (elapsed.unit === 'seconds') return t('chat.tool.elapsed', { seconds: elapsed.value });
+  const value = new Intl.NumberFormat(i18n.language, { maximumFractionDigits: 1 }).format(
+    elapsed.value,
+  );
+  return elapsed.unit === 'minutes'
+    ? t('chat.tool.elapsedMinutes', { minutes: value })
+    : t('chat.tool.elapsedHours', { hours: value });
 }

@@ -755,6 +755,8 @@
   "chat.tool.copyFailed": "テキストをコピーできませんでした。もう一度試してください。",
   "chat.tool.copyFullText": "全文コピー",
   "chat.tool.elapsed": "経過時間：{{seconds}}秒",
+  "chat.tool.elapsedHours": "経過時間：{{hours}}時間",
+  "chat.tool.elapsedMinutes": "経過時間：{{minutes}}分",
   "chat.tool.error": "エラー",
   "chat.tool.inputReady": "入力準備完了",
   "chat.tool.jsdoc": "JSDoc",

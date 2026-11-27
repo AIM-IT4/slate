@@ -767,6 +767,8 @@
   "chat.tool.copyFailed": "Impossible de copier le texte. Veuillez réessayer.",
   "chat.tool.copyFullText": "Copier le texte intégral",
   "chat.tool.elapsed": "Temps écoulé : {{seconds}} s",
+  "chat.tool.elapsedHours": "Temps écoulé : {{hours}} h",
+  "chat.tool.elapsedMinutes": "Temps écoulé : {{minutes}} min",
   "chat.tool.error": "Erreur",
   "chat.tool.inputReady": "Entrée prête",
   "chat.tool.jsdoc": "JSDoc",

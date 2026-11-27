@@ -755,6 +755,8 @@
   "chat.tool.copyFailed": "Không thể sao chép văn bản. Vui lòng thử lại.",
   "chat.tool.copyFullText": "Sao chép toàn văn",
   "chat.tool.elapsed": "Đã trôi qua {{seconds}} giây",
+  "chat.tool.elapsedHours": "Đã trôi qua {{hours}} giờ",
+  "chat.tool.elapsedMinutes": "Đã trôi qua {{minutes}} phút",
   "chat.tool.error": "Lỗi",
   "chat.tool.inputReady": "Đầu vào đã sẵn sàng",
   "chat.tool.jsdoc": "JSDoc",

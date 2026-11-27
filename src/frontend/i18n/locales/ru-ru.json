@@ -773,6 +773,8 @@
   "chat.tool.copyFailed": "Не удалось скопировать текст. Пожалуйста, попробуйте еще раз.",
   "chat.tool.copyFullText": "Скопировать полный текст",
   "chat.tool.elapsed": "Прошло {{seconds}} с",
+  "chat.tool.elapsedHours": "Прошло {{hours}} ч",
+  "chat.tool.elapsedMinutes": "Прошло {{minutes}} мин",
   "chat.tool.error": "Ошибка",
   "chat.tool.inputReady": "Вход готов",
   "chat.tool.jsdoc": "JSDoc",
