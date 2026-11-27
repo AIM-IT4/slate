@@ -57,6 +57,7 @@ import { ChatInputEffortOverlay } from './components/ChatInputEffortOverlay';
 import { ChatInputMenu } from './components/ChatInputMenu';
 import { ChatInputModelPill } from './components/ChatInputModelPill';
 import { ChatInputQueue } from './components/ChatInputQueue';
+import { ChatInputUsageTile } from './components/ChatInputUsageTile';
 import { type ChatEditDraft, useChatEditDraft } from './hooks/useChatEditDraft';
 import { useChatInputMcpPrompts } from './hooks/useChatInputMcpPrompts';
 import { useChatInputModelPicker } from './hooks/useChatInputModelPicker';
@@ -689,10 +690,12 @@ function TextChatInput({
   return (
     <>
       <View
+        className="gap-2"
         accessibilityElementsHidden={isApprovalPending}
         importantForAccessibility={isApprovalPending ? 'no-hide-descendants' : 'auto'}
         pointerEvents={isApprovalPending ? 'none' : 'auto'}
       >
+        <ChatInputUsageTile />
         <ChatInputEffortOverlay
           onChange={selectReasoningEffort}
           reasoningEffort={reasoningEffort}
