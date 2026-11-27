@@ -33,7 +33,7 @@ def main():
     ]
     checks = {
         "own_package": apk.get_package() == "com.desk2quant.slate",
-        "release_version": apk.get_androidversion_name() == "1.3.0",
+        "release_version": apk.get_androidversion_name() == "1.3.1",
         "not_debuggable": application.get(namespace + "debuggable", "false") == "false",
         "system_backup_disabled": application.get(namespace + "allowBackup") == "false",
         "cleartext_disabled": application.get(namespace + "usesCleartextTraffic") == "false",

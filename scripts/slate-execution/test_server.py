@@ -44,7 +44,7 @@ class ExecutionTests(unittest.TestCase):
         with self.assertRaises(urllib.error.HTTPError) as error:
             self.rpc('tools/list', authorized=False)
         self.assertEqual(error.exception.code, 401)
-        self.assertEqual(len(self.rpc('tools/list')['tools']), 7)
+        self.assertEqual(len(self.rpc('tools/list')['tools']), 8)
         self.assertEqual(self.rpc('initialize', {'protocolVersion':'2025-03-26'})['protocolVersion'], '2025-03-26')
 
     def test_shell_output_idempotency_and_environment(self):
@@ -79,6 +79,30 @@ class ExecutionTests(unittest.TestCase):
         content = self.tool('show_workspace_file', {'path':'plot.png'})['content']
         self.assertEqual(content[0]['type'], 'image')
         self.assertEqual(base64.b64decode(content[0]['data']), png)
+
+
+
+    def test_video_ranges_and_head(self):
+        sample = bytes(range(256)) * 1024
+        (app.ROOT/'clip.mp4').write_bytes(sample)
+        url = self.tool('show_workspace_file', {'path':'clip.mp4'})['content'][0]['uri']
+        req = urllib.request.Request(url, method='HEAD')
+        with urllib.request.urlopen(req) as response:
+            self.assertEqual(int(response.headers['Content-Length']), len(sample))
+            self.assertEqual(response.headers['Accept-Ranges'], 'bytes')
+            self.assertEqual(response.read(), b'')
+        for header, start, end in [('bytes=10-19',10,19),('bytes=-10',len(sample)-10,len(sample)-1),('bytes=100-',100,len(sample)-1)]:
+            with urllib.request.urlopen(urllib.request.Request(url, headers={'Range': header})) as response:
+                self.assertEqual(response.status, 206)
+                self.assertEqual(response.headers['Content-Range'], f'bytes {start}-{end}/{len(sample)}')
+                self.assertEqual(response.read(), sample[start:end+1])
+        with self.assertRaises(urllib.error.HTTPError) as error:
+            urllib.request.urlopen(urllib.request.Request(url,headers={'Range':'bytes=99999999-'}))
+        self.assertEqual(error.exception.code, 416)
+        result = self.tool('run_command', {'request_id':'long-render','command':'true','timeout_seconds':21600})
+        self.assertEqual(json.loads(result['content'][0]['text'])['exit_code'], 0)
+        with self.assertRaises(ValueError):
+            app.validate('run_command', {'request_id':'too-long','command':'true','timeout_seconds':21601})
 
 
 if __name__ == '__main__':

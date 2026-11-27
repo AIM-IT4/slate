@@ -3,6 +3,7 @@ import type { NormalizedMcpResult } from '@cherrystudio/universal/ai/tools/mcpRe
 import { Text, View } from 'react-native';
 
 import { SourceLink } from '../SourceLink';
+import { ExecutionVideo } from './ExecutionVideo';
 
 /** Keep literal command output and generated images visible in the conversation. */
 export function ExecutionPreview({ result }: { result: NormalizedMcpResult }) {
@@ -20,13 +21,18 @@ export function ExecutionPreview({ result }: { result: NormalizedMcpResult }) {
           );
         }
         if (content.kind === 'resource-link' && /^https:\/\//i.test(content.uri)) {
+          const video =
+            content.mimeType?.startsWith('video/') ||
+            /\.(mp4|m4v|webm|mov)(?:[?#]|$)/i.test(content.uri);
           return (
-            <SourceLink
-              key={content.uri}
-              label={content.uri.split('?')[0].split('/').pop() || content.uri}
-              url={content.uri}
-              variant="listItem"
-            />
+            <View key={content.uri} className="gap-2">
+              {video ? <ExecutionVideo uri={content.uri} /> : null}
+              <SourceLink
+                label={content.uri.split('?')[0].split('/').pop() || content.uri}
+                url={content.uri}
+                variant="listItem"
+              />
+            </View>
           );
         }
         if (content.kind !== 'text') return null;

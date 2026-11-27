@@ -18,16 +18,20 @@ export function ExecutionScreen() {
   const { servers, isLoading } = useMcpServersApi();
   const { createServer, updateServer } = useMcpServerMutations();
   const [key, setKey] = useState('');
+  const [endpoint, setEndpoint] = useState(EXECUTION_ENDPOINT);
   const [busy, setBusy] = useState(false);
-  const server = servers.find((entry) => entry.endpointUrl === EXECUTION_ENDPOINT);
+  const server = servers.find((entry) => entry.endpointUrl === endpoint.trim());
 
   async function connect() {
     if (busy || isLoading || !key.trim()) return;
     setBusy(true);
     try {
+      const url = new URL(endpoint.trim());
+      if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash)
+        throw new Error('Invalid execution endpoint');
       const configuration = {
         name: 'Slate Cloud Execution',
-        endpointUrl: EXECUTION_ENDPOINT,
+        endpointUrl: endpoint.trim(),
         isEnabled: true,
         headers: { Authorization: `Bearer ${key.trim()}` },
       };
@@ -49,7 +53,15 @@ export function ExecutionScreen() {
       <PluginPage testID="execution-setup">
         <View className="gap-4">
           <Text className="text-base text-foreground">{t('execution.description')}</Text>
-          <Text className="text-sm text-muted-foreground">{EXECUTION_ENDPOINT}</Text>
+          <Input
+            accessibilityLabel={t('settings.mcp.fields.endpointUrl')}
+            placeholder={t('settings.mcp.fields.endpointUrl')}
+            value={endpoint}
+            onChangeText={setEndpoint}
+            autoCapitalize="none"
+            autoCorrect={false}
+            testID="execution-endpoint"
+          />
           <Text className="text-sm text-muted-foreground">{t('execution.storage')}</Text>
           <Input
             accessibilityLabel={t('execution.key')}
