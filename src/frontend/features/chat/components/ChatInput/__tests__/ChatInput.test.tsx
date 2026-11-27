@@ -25,6 +25,7 @@ jest.mock('@cherrystudio/ui/components', () => ({
   Button: (props: object) => jest.requireActual('react').createElement('Button', props),
   Dialog: (props: object) => jest.requireActual('react').createElement('Dialog', props),
 }));
+jest.mock('../components/ChatInputUsageTile', () => ({ ChatInputUsageTile: () => null }));
 jest.mock('../hooks/useChatEditDraft', () => ({
   useChatEditDraft: () => ({
     beginEditSend: mockBeginEditSend,
