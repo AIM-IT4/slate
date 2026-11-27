@@ -438,7 +438,7 @@ const pageUseEffectMessage =
 const legacyPageUseEffectLimits = {
   'src/app/onboarding/device-connections/pair.tsx': 1,
   'src/frontend/features/chat/ChatScreen.tsx': 1,
-  'src/frontend/features/chat/components/ChatInput/ChatInput.tsx': 2,
+  'src/frontend/features/chat/components/ChatInput/ChatInput.tsx': 1,
   'src/frontend/features/chat/components/ChatInput/components/ChatInputPluginSheet.tsx': 1,
   'src/frontend/features/chat/components/ChatInput/components/ChatInputPromptSheet.tsx': 2,
   'src/frontend/features/chat/components/ChatInput/components/ChatInputSkillSheet.tsx': 1,
@@ -477,7 +477,6 @@ const legacyPageUseEffectLimits = {
   'src/frontend/features/onboarding/components/LogoDraw/hooks/useLogoDrawProgress.ts': 3,
   'src/frontend/features/onboarding/components/OnboardingPage/OnboardingPage.tsx': 2,
   'src/frontend/features/onboarding/setup/AccountOnboardingStep.tsx': 1,
-  'src/frontend/features/onboarding/setup/ModelSourceOnboardingStep.tsx': 1,
   'src/frontend/features/onboarding/setup/NotificationsOnboardingStep.tsx': 1,
   'src/frontend/features/onboarding/setup/useNotificationOnboardingActions.ts': 1,
   'src/frontend/features/onboarding/setup/useOnboardingProgress.ts': 1,
