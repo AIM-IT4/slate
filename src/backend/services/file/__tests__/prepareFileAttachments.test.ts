@@ -63,21 +63,37 @@ describe('prepareFileAttachments', () => {
       issue: { code: 'document-ocr-failed', fileEntryId: FILE_ID, name: 'scan.pdf' },
     });
   });
-  test('rejects the whole request before reading when a later attachment is unsupported', async () => {
-    const request = input([
-      text,
-      { ...text, fileEntryId: SECOND_ID, mediaType: 'application/zip' },
-    ]);
-    await expect(prepareFileAttachments(request)).rejects.toMatchObject({
-      issue: { code: 'unsupported-type', fileEntryId: SECOND_ID },
-    });
+  test('admits archives and unknown binaries by reference without reading their bytes', async () => {
+    const archive = {
+      ...text,
+      fileEntryId: SECOND_ID,
+      mediaType: 'application/zip',
+      name: 'ripping-formats.zip',
+      size: 4_200_000,
+    };
+    const request = input([archive]);
+    const prepared = await prepareFileAttachments(request);
     expect(request.readBytes).not.toHaveBeenCalled();
+    const attachment = prepared.get(SECOND_ID);
+    expect(attachment?.report).toEqual({
+      mode: 'file-reference',
+      sourceTruncated: false,
+      requestTruncated: false,
+    });
+    expect(attachment?.content).toMatchObject({ kind: 'text' });
+    const note = (attachment?.content as { text: string }).text;
+    expect(note).toContain('ripping-formats.zip');
+    expect(note).toContain(SECOND_ID);
+    expect(note).toContain('slate_upload_file_to_instabox');
   });
 
   test('shares image format, size and model admission across chat and painting', async () => {
     for (const purpose of ['chat', 'painting'] as const) {
       for (const [file, acceptsImages, code] of [
-        [{ ...image, mediaType: 'image/heic' }, true, 'unsupported-type'],
+        // Chat admits other image formats as file references; painting needs model-ready pixels.
+        ...(purpose === 'painting'
+          ? ([[{ ...image, mediaType: 'image/heic' }, true, 'unsupported-type']] as const)
+          : []),
         [{ ...image, size: MAX_IMAGE_ATTACHMENT_BYTES + 1 }, true, 'file-bytes'],
       ] as const) {
         await expect(

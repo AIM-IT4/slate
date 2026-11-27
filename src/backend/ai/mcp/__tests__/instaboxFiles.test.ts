@@ -3,7 +3,10 @@ import { createInternalEntryWithPreview } from '@/backend/services/file/filePrev
 
 import {
   INSTABOX_SAVE_FILE_TOOL,
+  INSTABOX_UPLOAD_FILE_TOOL,
   InstaboxFileInput,
+  InstaboxUploadInput,
+  instaboxUploadRequest,
   instaboxFileRequest,
   isInstaboxEndpoint,
   saveInstaboxFileToPhone,
@@ -61,7 +64,7 @@ test('only the exact Instabox endpoint receives the client delivery tool', () =>
   const exec = { name: 'exec', inputSchema: { type: 'object' as const } };
   expect(
     withInstaboxFileTool('https://api.instabox.sh/mcp', [exec]).map((tool) => tool.name),
-  ).toEqual(['exec', INSTABOX_SAVE_FILE_TOOL]);
+  ).toEqual(['exec', INSTABOX_SAVE_FILE_TOOL, INSTABOX_UPLOAD_FILE_TOOL]);
   for (const endpoint of [
     'https://api.instabox.sh.evil.test/mcp',
     'https://evil.test/mcp',
@@ -139,4 +142,21 @@ test('failed transfers never create local records and tell the agent to preserve
   expect(result.value).toMatchObject({ isError: true });
   expect(JSON.stringify(result)).toContain('Do not re-render');
   expect(JSON.stringify(result)).not.toContain('private-test-key');
+});
+
+test('builds an authenticated upload request that creates parent folders and keeps secrets out of the URL', () => {
+  const upload = {
+    machine_id: 'm_example',
+    file_entry_id: '00000000-0000-4000-8000-000000000001',
+    path: '/data/slate/inputs/ripping-formats.zip',
+  };
+  const request = instaboxUploadRequest(upload, { 'X-API-Key': 'private-test-key', Cookie: 'no' });
+  const url = new URL(request.url);
+  expect(url.origin + url.pathname).toBe('https://api.instabox.sh/v1/machines/m_example/files');
+  expect(url.searchParams.get('path')).toBe(upload.path);
+  expect(url.searchParams.get('parents')).toBe('true');
+  expect(request.url).not.toContain('private-test-key');
+  expect(request.headers).toEqual({ Authorization: 'Bearer private-test-key' });
+  expect(InstaboxUploadInput.safeParse({ ...upload, path: '/tmp/x.zip' }).success).toBe(false);
+  expect(InstaboxUploadInput.safeParse({ ...upload, file_entry_id: 'nope' }).success).toBe(false);
 });

@@ -275,26 +275,24 @@ describe('turn attachments', () => {
       ),
     ).toMatchObject({ view: { code: 'CAPABILITY_UNSUPPORTED' } });
 
-    const unsupported = fact(SECOND_ID, 'archive.zip', 'application/zip');
-    const unsupportedResources = createTurnResourceLedger(new Map([[SECOND_ID, unsupported]]), []);
-    expect(
-      captureProtocolError(() =>
-        assertAttachmentRequestSupported(
-          new FakeRuntime(),
-          [
-            {
-              type: 'file',
-              fileEntryId: SECOND_ID,
-              mediaType: unsupported.mediaType,
-              filename: unsupported.name,
-            },
-          ],
-          [],
-          unsupportedResources,
-          IMAGE_MODEL,
-        ),
+    const archive = fact(SECOND_ID, 'archive.zip', 'application/zip');
+    const archiveResources = createTurnResourceLedger(new Map([[SECOND_ID, archive]]), []);
+    expect(() =>
+      assertAttachmentRequestSupported(
+        new FakeRuntime(),
+        [
+          {
+            type: 'file',
+            fileEntryId: SECOND_ID,
+            mediaType: archive.mediaType,
+            filename: archive.name,
+          },
+        ],
+        [],
+        archiveResources,
+        IMAGE_MODEL,
       ),
-    ).toMatchObject({ view: { code: 'ATTACHMENT_INVALID' } });
+    ).not.toThrow();
   });
 
   test('retains OCR text through materialization for current images and history replay on a text model', async () => {

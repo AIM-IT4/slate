@@ -21,6 +21,8 @@ export const MAX_IMAGE_ATTACHMENT_BYTES = 30 * 1024 * 1024;
 // context window and compaction folds old ones. Only document-embedded images, which the user did
 // not pick one by one, draw from this bounded budget alongside the attached images.
 export const MAX_DOCUMENT_IMAGE_TOTAL_BYTES = 20 * 1024 * 1024;
+/** Any other file is attached by reference: its bytes stay on the phone until a tool moves them. */
+export const MAX_BINARY_ATTACHMENT_BYTES = 2 * 1024 * 1024 * 1024;
 export const IMAGE_CONTEXT_TOKEN_RESERVE = 4_096;
 export const MIN_TEXT_CONTEXT_TOKEN_RESERVE = 1_024;
 
@@ -30,7 +32,9 @@ export function fileAttachmentMode(file: Pick<FileAttachmentFact, 'mediaType' | 
   if (isAudioMediaType(file.mediaType)) return 'audio';
   if (isVideoMediaType(file.mediaType)) return 'video';
   if (isSupportedTextAttachment(file)) return 'text';
-  return undefined;
+  // Archives, binaries and unknown formats are admitted as managed-file references. Their bytes
+  // are never decoded into the prompt; tools such as Instabox upload can process them.
+  return 'binary';
 }
 
 /** PDF uses native file access; other documents retain the bounded whole-byte parser path. */
@@ -73,7 +77,9 @@ export function validateFileAttachments(
             ? MAX_AUDIO_FILE_BYTES
             : mode === 'document'
               ? documentAttachmentByteLimit(file.mediaType)
-              : MAX_TEXT_ATTACHMENT_BYTES;
+              : mode === 'binary'
+                ? MAX_BINARY_ATTACHMENT_BYTES
+                : MAX_TEXT_ATTACHMENT_BYTES;
     if (file.size > limit) throw new FileAttachmentError({ ...issue, code: 'file-bytes', limit });
   }
   // Painting models declare how many references they accept; chat images are unbounded.

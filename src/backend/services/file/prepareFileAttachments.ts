@@ -182,6 +182,14 @@ export async function prepareFileAttachments(
       }
       continue;
     }
+    if (mode === 'binary') {
+      result.set(id, {
+        file,
+        content: { kind: 'text', text: binaryAttachmentReference(file) },
+        report: { mode: 'file-reference', sourceTruncated: false, requestTruncated: false },
+      });
+      continue;
+    }
     if (mode === 'audio' || (mode === 'image' && input.target.acceptsImages)) {
       result.set(id, { file, report: { mode, sourceTruncated: false, requestTruncated: false } });
       continue;
@@ -313,4 +321,14 @@ export async function prepareFileAttachments(
     }
   }
   return result;
+}
+
+/** Model-facing note for a file admitted by reference; it carries metadata, never file bytes. */
+export function binaryAttachmentReference(file: FileAttachmentFact): string {
+  return [
+    `Attached file "${file.name}" (${file.mediaType}, ${file.size} bytes) is available as managed file ${file.fileEntryId}.`,
+    'Its bytes have not been sent to the model and it is not decoded as text.',
+    'If slate_upload_file_to_instabox is available, upload it to an Instabox machine with this file_entry_id, then inspect or extract it there (for example unzip, tar, ffprobe or a script).',
+    'Otherwise tell the user which tool is needed, or ask them to extract the relevant contents and attach them directly.',
+  ].join(' ');
 }

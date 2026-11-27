@@ -59,8 +59,11 @@ import type { TraceRecorder } from '../observability';
 import { endMcpTrace } from './endMcpTrace';
 import {
   INSTABOX_SAVE_FILE_TOOL,
+  INSTABOX_UPLOAD_FILE_TOOL,
   isInstaboxEndpoint,
+  isInstaboxLocalTool,
   saveInstaboxFileToPhone,
+  uploadPhoneFileToInstabox,
   withInstaboxFileTool,
 } from './instaboxFiles';
 import { McpAppAccess, type McpAppConnection } from './McpAppAccess';
@@ -730,20 +733,27 @@ export class McpRuntimeService extends BaseService implements McpModule {
     return createMcpRuntimeTools(selections, {
       storeResult: async (result, signal, workspaceFolderId, invocation) => {
         if (
-          invocation?.ref.rawToolName === INSTABOX_SAVE_FILE_TOOL &&
+          invocation &&
+          isInstaboxLocalTool(invocation.ref.rawToolName) &&
           isInstaboxEndpoint(invocation.discovered.endpointUrl)
         ) {
           const server = await mcpServerService.getById(invocation.ref.serverId);
           const state = this.runtimeStates.get(server.id);
           if (
             !server.isEnabled ||
-            server.disabledTools.includes(INSTABOX_SAVE_FILE_TOOL) ||
+            server.disabledTools.includes(invocation.ref.rawToolName) ||
             server.endpointUrl !== invocation.discovered.endpointUrl ||
             !state ||
             state.catalogGeneration !== invocation.discovered.generation ||
             !isSameMcpConnectionConfig(state.connectionConfig, toMcpConnectionConfig(server))
           )
             throw unavailableToolError();
+          if (invocation.ref.rawToolName === INSTABOX_UPLOAD_FILE_TOOL)
+            return uploadPhoneFileToInstabox({
+              input: invocation.input,
+              headers: server.headers,
+              signal: AbortSignal.any([signal, state.abort.signal]),
+            });
           return saveInstaboxFileToPhone({
             input: invocation.input,
             headers: server.headers,
@@ -1217,16 +1227,24 @@ export class McpRuntimeService extends BaseService implements McpModule {
     ) {
       throw unavailableToolError();
     }
-    if (ref.rawToolName === INSTABOX_SAVE_FILE_TOOL && isInstaboxEndpoint(server.endpointUrl)) {
+    if (isInstaboxLocalTool(ref.rawToolName) && isInstaboxEndpoint(server.endpointUrl)) {
       if (
         !withInstaboxFileTool(server.endpointUrl, state.catalog?.tools ?? []).some(
-          (tool) => tool.name === INSTABOX_SAVE_FILE_TOOL,
+          (tool) => tool.name === ref.rawToolName,
         )
       )
         throw unavailableToolError();
       signal.throwIfAborted();
       return {
-        content: [{ type: 'text', text: 'Preparing completed file transfer to this phone.' }],
+        content: [
+          {
+            type: 'text',
+            text:
+              ref.rawToolName === INSTABOX_SAVE_FILE_TOOL
+                ? 'Preparing completed file transfer to this phone.'
+                : 'Preparing file upload to Instabox.',
+          },
+        ],
       };
     }
     const generation = state.generation;

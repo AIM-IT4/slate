@@ -383,4 +383,5 @@ test('prefers available Instabox execution and delivers completed files to the p
   expect(prompt).not.toContain('## Cloud Command Execution');
   expect(prompt).toContain('sha256sum');
   expect(prompt).toContain('do not render it again merely to repair a download');
+  expect(prompt).toContain('slate_upload_file_to_instabox');
 });

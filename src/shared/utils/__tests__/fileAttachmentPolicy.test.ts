@@ -46,6 +46,25 @@ describe('attachment source byte limits', () => {
 });
 
 describe('image attachment limits', () => {
+  test('admits archives and unknown binaries as file references up to 2 GiB', () => {
+    expect(fileAttachmentMode({ mediaType: 'application/zip', name: 'pack.zip' })).toBe('binary');
+    expect(fileAttachmentMode({ mediaType: 'application/octet-stream', name: 'blob.bin' })).toBe(
+      'binary',
+    );
+    const archive = {
+      ...imageFact(0, 2 * 1024 * 1024 * 1024),
+      name: 'pack.zip',
+      mediaType: 'application/zip',
+    };
+    expect(() => validateFileAttachments([archive], MODEL)).not.toThrow();
+    expect(() =>
+      validateFileAttachments([{ ...archive, size: archive.size + 1 }], MODEL),
+    ).toThrow();
+    expect(() =>
+      validateFileAttachments([archive], { purpose: 'painting', acceptsImages: true }),
+    ).toThrow();
+  });
+
   test('classifies RTF as a document before generic text while leaving CSV as text', () => {
     expect(fileAttachmentMode({ mediaType: 'text/rtf', name: 'document.rtf' })).toBe('document');
     expect(fileAttachmentMode({ mediaType: 'text/csv', name: 'data.csv' })).toBe('text');

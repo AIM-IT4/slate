@@ -53,6 +53,7 @@ export const FileAttachmentReportSchema = z.strictObject({
     'provider-document',
     'audio',
     'video',
+    'file-reference',
   ]),
   audio: z
     .strictObject({
