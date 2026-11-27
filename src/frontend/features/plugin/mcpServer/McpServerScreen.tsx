@@ -32,6 +32,7 @@ import { loggerService } from '@/shared/core/logger/LoggerService';
 import { DataApiError, ErrorCode } from '@/shared/data/api/errors';
 import { managedResourcePolicy } from '@/shared/data/managedPolicy';
 import type { McpServer, RemoteMcpServer } from '@/shared/data/types/mcpServer';
+import { isSlateExecutionEndpoint } from '@/shared/utils/slateExecution';
 
 import { PluginPage } from '../components/PluginPage';
 import { McpToolsSection } from './components/McpToolsSection';
@@ -140,10 +141,16 @@ function ManagedMcpServerDetail({ server }: { server: RemoteMcpServer }) {
               <Tabs
                 items={[
                   { value: 'headers', label: t('settings.mcp.fields.headers') },
-                  { value: 'oauth', label: 'OAuth' },
+                  ...(!isSlateExecutionEndpoint(server.endpointUrl)
+                    ? [{ value: 'oauth', label: 'OAuth' }]
+                    : []),
                 ]}
                 onValueChange={ignoreChange}
-                value={server.oauth ? 'oauth' : 'headers'}
+                value={
+                  server.oauth && !isSlateExecutionEndpoint(server.endpointUrl)
+                    ? 'oauth'
+                    : 'headers'
+                }
               />
             </FormField>
             <FormField label={t('settings.mcp.fields.endpointUrl')}>
@@ -287,6 +294,7 @@ function McpServerEditor({ server, serverId }: { server?: McpServer; serverId?: 
       try {
         setIsSaving(true);
         const needsOAuth =
+          !isSlateExecutionEndpoint(form.endpointUrl) &&
           form.authorization === 'oauth' &&
           (reauthorize ||
             savedForm.authorization !== 'oauth' ||
@@ -329,11 +337,23 @@ function McpServerEditor({ server, serverId }: { server?: McpServer; serverId?: 
           return;
         }
         if (serverId) {
-          if (server?.origin !== 'builtin' && server?.oauth && form.authorization === 'headers')
+          if (
+            server?.origin !== 'builtin' &&
+            server?.oauth &&
+            (form.authorization === 'headers' || isSlateExecutionEndpoint(form.endpointUrl))
+          )
             await mcp.disconnectOAuth(serverId);
           await updateServer(serverId, { ...dto.value, isEnabled: server?.isEnabled });
           // Show the stored values, including a name filled in from the endpoint.
-          setForm({ ...form, ...dto.value, headers: serializeMcpHeaders(dto.value.headers) });
+          setForm({
+            ...form,
+            ...dto.value,
+            authorization: isSlateExecutionEndpoint(form.endpointUrl)
+              ? 'headers'
+              : form.authorization,
+            clientId: isSlateExecutionEndpoint(form.endpointUrl) ? '' : form.clientId,
+            headers: serializeMcpHeaders(dto.value.headers),
+          });
         } else {
           connecting = true;
           const serverInfo = await mcp.getServerInfo({
@@ -545,15 +565,17 @@ function McpServerEditor({ server, serverId }: { server?: McpServer; serverId?: 
             <Tabs
               items={[
                 { value: 'headers', label: t('settings.mcp.fields.headers') },
-                { value: 'oauth', label: 'OAuth' },
+                ...(!isSlateExecutionEndpoint(form.endpointUrl)
+                  ? [{ value: 'oauth', label: 'OAuth' }]
+                  : []),
               ]}
               onValueChange={(value) => {
                 if (!isBusy) updateField('authorization', value as 'headers' | 'oauth');
               }}
-              value={form.authorization}
+              value={isSlateExecutionEndpoint(form.endpointUrl) ? 'headers' : form.authorization}
             />
           </FormField>
-          {form.authorization === 'oauth' ? (
+          {form.authorization === 'oauth' && !isSlateExecutionEndpoint(form.endpointUrl) ? (
             <FormField label={t('settings.mcp.oauth.clientId')}>
               <Input
                 accessibilityLabel={t('settings.mcp.oauth.clientId')}
@@ -660,7 +682,10 @@ function getEndpointOrigin(endpointUrl: string): string {
 }
 
 function createFormState(server?: McpServer): McpServerFormState {
-  const oauth = server?.origin !== 'builtin' ? server?.oauth : undefined;
+  const oauth =
+    server?.origin !== 'builtin' && !isSlateExecutionEndpoint(server?.endpointUrl)
+      ? server?.oauth
+      : undefined;
   return {
     authorization: oauth ? 'oauth' : 'headers',
     clientId: oauth?.clientId ?? '',
