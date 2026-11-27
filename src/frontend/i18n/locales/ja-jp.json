@@ -2883,6 +2883,8 @@
   "skills.working": "処理中…",
   "slate.editorial.greeting": "今日は何を考えましょうか？",
   "slate.editorial.prompt": "何でも聞いてください",
+  "slate.preview.expand": "拡大",
+  "slate.preview.title": "インラインプレビュー",
   "slate.privacy.description": "診断情報と利用状況の分析は無効です。会話は選択したAIサービスとツールに送信されます。プロバイダーの認証情報は端末の安全なストレージに保存され、バックアップには含まれません。",
   "slate.privacy.title": "プライバシーを優先",
   "ssh.add": "SSH 接続を追加",

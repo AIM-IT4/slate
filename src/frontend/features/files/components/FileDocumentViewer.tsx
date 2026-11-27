@@ -10,6 +10,7 @@ import {
   type ChatTarget,
 } from '@/frontend/appShell/navigation/chat';
 import { AgentMenu } from '@/frontend/components/AgentMenu';
+import { FileDocumentPreview, useDocumentPreviewPage } from '@/frontend/components/ArtifactPreview';
 import { createReadyAttachmentDraft } from '@/frontend/components/Composer/utils/composerAttachments';
 import { canPreviewDocument, useOpenFileEntry } from '@/frontend/components/FileEntryPreview';
 import type { Agent } from '@/shared/data/types/agent';
@@ -20,11 +21,9 @@ import {
 
 import type { FileViewerSource } from '../fileViewerSource';
 import { useAddFileToChat } from '../hooks/useAddFileToChat';
-import { useDocumentPreviewPage } from '../hooks/useDocumentPreviewPage';
 import { useReturnToChat } from '../hooks/useReturnToChat';
 import { acceptsSelection } from '../hooks/useSelectionSourceChat';
 import { officeSelectionReference } from '../utils/officeSelection';
-import { FileDocumentPreview } from './FileDocumentPreview';
 import { FileMenuGuide } from './FileMenuGuide';
 import { FileViewerFooter } from './FileViewerFooter';
 import { FileViewerHeader } from './FileViewerHeader';

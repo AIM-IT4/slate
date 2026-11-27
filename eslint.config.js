@@ -468,7 +468,6 @@ const legacyPageUseEffectLimits = {
   'src/frontend/features/chat/voice/ChatInputPrimaryAction.tsx': 2,
   'src/frontend/features/drawings/templates/components/TemplateStage.tsx': 2,
   'src/frontend/features/files/FileViewerScreen.tsx': 1,
-  'src/frontend/features/files/components/FileDocumentPreview.tsx': 2,
   'src/frontend/features/files/hooks/useFileImageEdit.ts': 1,
   'src/frontend/features/home/aiUsage/components/AiUsageCalendar.tsx': 1,
   'src/frontend/features/home/aiUsage/hooks/useAiUsageOverview.ts': 1,

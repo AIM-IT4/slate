@@ -2904,6 +2904,8 @@
   "skills.working": "Working…",
   "slate.editorial.greeting": "What are we thinking through?",
   "slate.editorial.prompt": "Ask anything",
+  "slate.preview.expand": "Expand",
+  "slate.preview.title": "Inline preview",
   "slate.privacy.description": "Diagnostics and usage analytics are disabled. Conversations are sent to the AI services and tools you choose. Provider credentials stay in secure device storage and are omitted from backups.",
   "slate.privacy.title": "Private by default",
   "ssh.add": "Add SSH connection",

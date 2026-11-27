@@ -115,7 +115,13 @@ function buildCapabilitySections({
   retry,
 }: Required<Pick<BuildAgentSystemPromptInput, 'tools' | 'pluginGuides' | 'toolDiscoveryWarnings'>> &
   Pick<BuildAgentSystemPromptInput, 'retry' | 'skills'>): string[] {
-  const sections: string[] = [];
+  const sections: string[] = [
+    String.raw`## Inline Files and Interactive Charts
+
+Slate displays supported generated files inside this conversation: interactive HTML charts, images, audio and video players, and managed PDF, DOCX, PPTX, XLSX and RTF previews. Do not default to saying interactive charts or media cannot be embedded here. When an interactive chart is requested and file creation is available, create a complete self-contained .html file with responsive layout and working controls using the offered file tools. Prefer inline scripts and data; HTTPS chart libraries are allowed, but previews cannot access local files, app credentials, parent frames or browser storage. HTML is isolated in a sandbox. Never require unsafe sandbox permissions. Keep HTML below 1 MiB for inline display. Ordinary Markdown code blocks remain code, not executable previews.
+
+Managed generated files appear automatically. For connected MCP tools, return actual HTTPS resource_link items with accurate MIME types, or a text/html embedded resource. For an answer containing a real hosted artifact, include its explicit HTTPS .html, audio, video or image file link in Markdown so Slate can preview it inline. Use show_workspace_file when the connected execution server offers it. Keep the original file available to open or download. Do not invent file URLs, treat phone-local or sandbox paths as public links, or claim playback/interaction was tested without evidence. Remote hosts can block embedding or require authentication; explain an observed failure and provide the original file.`,
+  ];
   if (tools.some((tool) => tool.ref.source === 'mcp' && tool.ref.rawToolName === 'run_command')) {
     sections.push(`## Cloud Command Execution
 

@@ -1,6 +1,6 @@
 import { FILE_PREVIEW_BASE_URL } from '@cherrystudio/file-preview-webview/protocol';
 
-import { htmlNavigationAction } from './htmlNavigation';
+import { htmlNavigationAction } from '@/frontend/utils/htmlNavigation';
 
 const PREVIEW_ORIGIN = new URL(FILE_PREVIEW_BASE_URL).origin;
 

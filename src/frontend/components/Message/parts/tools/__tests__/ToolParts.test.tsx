@@ -17,6 +17,11 @@ const mockMcpAppLauncher = jest.fn(() => null);
 const mockSetStringAsync = jest.fn().mockResolvedValue(true);
 const mockToastShow = jest.fn();
 
+jest.mock('@/frontend/components/InlineArtifact', () => ({
+  InlineArtifact: (props: object) =>
+    jest.requireActual('react').createElement('InlineArtifact', props),
+}));
+
 jest.mock('@/frontend/components/McpApp', () => ({
   McpAppLauncher: () => mockMcpAppLauncher(),
   McpAppConversationBridge: ({ children }: { children: ReactNode }) => children,
@@ -90,6 +95,7 @@ jest.mock('@cherrystudio/ui/components', () => {
   };
 
   return {
+    ContextMenuExclusion: (props: object) => React.createElement(MockView, props),
     BackgroundPressExclusion: (props: object) => React.createElement(MockView, props),
     Button: ({ children, ...props }: { children: ReactNode }) => (
       <MockView {...props}>
@@ -642,8 +648,10 @@ describe('tool message detail sheets', () => {
       renderer?.root
         .findAllByType(View)
         .filter((node) => node.props.source === 'data:image/png;base64,AAAA') ?? [];
-    expect(images).toHaveLength(1);
-    expect(images[0]?.props.className).toBe('h-44 w-full rounded-md');
+    expect(images).toHaveLength(2);
+    expect(images.map((image) => image.props.className)).toEqual(
+      expect.arrayContaining(['h-44 w-full rounded-md', 'h-64 w-full rounded-md']),
+    );
     expect(findText('')).toHaveLength(0);
     expect(findText('chat.mcpTool.response')).toHaveLength(1);
   });
@@ -940,4 +948,38 @@ it('renders failed web search string errors instead of showing no results', asyn
   ).toBe(false);
   expect(renderer.root.findAllByProps({ tone: 'danger' }).length).toBeGreaterThan(0);
   await act(async () => renderer.unmount());
+});
+
+// Regression: typed file output must be visible before expanding tool details, regardless of server name.
+it('shows an interactive HTML resource from a third-party MCP server in the conversation', () => {
+  let renderer: ReactTestRenderer;
+  act(() => {
+    renderer = create(
+      <McpToolPart
+        part={
+          {
+            type: 'dynamic-tool',
+            toolName: 'mcp__instabox__show_file',
+            toolCallId: 'chart-inline',
+            state: 'output-available',
+            input: {},
+            output: {
+              content: [
+                {
+                  type: 'resource_link',
+                  uri: 'https://files.example/chart.html',
+                  mimeType: 'text/html',
+                },
+              ],
+            },
+          } as ToolMessagePart
+        }
+      />,
+    );
+  });
+  expect(renderer!.root.findAllByProps({ testID: 'mcp-tool-part-detail' })).toHaveLength(0);
+  expect(renderer!.root.findByType('InlineArtifact' as never).props.source.uri).toBe(
+    'https://files.example/chart.html',
+  );
+  act(() => renderer!.unmount());
 });

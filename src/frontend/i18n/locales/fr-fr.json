@@ -2925,6 +2925,8 @@
   "skills.working": "Traitement…",
   "slate.editorial.greeting": "À quoi réfléchit-on aujourd’hui ?",
   "slate.editorial.prompt": "Posez votre question",
+  "slate.preview.expand": "Agrandir",
+  "slate.preview.title": "Aperçu intégré",
   "slate.privacy.description": "Les diagnostics et les statistiques d’utilisation sont désactivés. Les conversations sont envoyées aux services d’IA et aux outils que vous choisissez. Les identifiants des fournisseurs restent dans le stockage sécurisé de l’appareil et sont exclus des sauvegardes.",
   "slate.privacy.title": "Confidentialité par défaut",
   "ssh.add": "Ajouter une connexion SSH",

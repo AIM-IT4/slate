@@ -2904,6 +2904,8 @@
   "skills.working": "Wird ausgeführt …",
   "slate.editorial.greeting": "Worüber denken wir nach?",
   "slate.editorial.prompt": "Frag mich etwas",
+  "slate.preview.expand": "Vergrößern",
+  "slate.preview.title": "Inline-Vorschau",
   "slate.privacy.description": "Diagnoseberichte und Nutzungsanalysen sind deaktiviert. Gespräche werden an die von dir gewählten KI-Dienste und Werkzeuge gesendet. Anbieter-Zugangsdaten bleiben im sicheren Gerätespeicher und werden nicht in Sicherungen aufgenommen.",
   "slate.privacy.title": "Standardmäßig privat",
   "ssh.add": "SSH-Verbindung hinzufügen",

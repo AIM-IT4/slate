@@ -18,12 +18,12 @@ import { openExternalUrl } from '@/frontend/utils/openExternalUrl';
 import type { FilePreviewSource } from '@/shared/contracts/file';
 import { loggerService } from '@/shared/core/logger/LoggerService';
 
-import type { DocumentPreviewPage } from '../hooks/useDocumentPreviewPage';
 import {
   documentPreviewNavigationAction,
   isDocumentPreviewOrigin,
-} from '../utils/documentPreviewNavigation';
-import { FilePreviewBridge } from '../utils/filePreviewBridge';
+} from './documentPreviewNavigation';
+import { FilePreviewBridge } from './filePreviewBridge';
+import type { DocumentPreviewPage } from './useDocumentPreviewPage';
 
 const logger = loggerService.withContext('FileDocumentPreview');
 const PreviewWebView = withUniwind(WebView);

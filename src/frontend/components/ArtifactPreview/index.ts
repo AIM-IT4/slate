@@ -4,3 +4,5 @@ export {
   ArtifactPreviewLink,
   ArtifactPreviewTarget,
 } from './components/ArtifactPreviewTransition/ArtifactPreviewTransition';
+export { FileDocumentPreview } from './document/FileDocumentPreview';
+export { useDocumentPreviewPage } from './document/useDocumentPreviewPage';

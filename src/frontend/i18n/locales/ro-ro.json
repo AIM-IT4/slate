@@ -2925,6 +2925,8 @@
   "skills.working": "Se procesează…",
   "slate.editorial.greeting": "La ce ne gândim astăzi?",
   "slate.editorial.prompt": "Întreabă orice",
+  "slate.preview.expand": "Extinde",
+  "slate.preview.title": "Previzualizare în conversație",
   "slate.privacy.description": "Diagnosticarea și analiza utilizării sunt dezactivate. Conversațiile sunt trimise serviciilor AI și instrumentelor pe care le alegi. Datele de autentificare ale furnizorilor rămân în stocarea securizată a dispozitivului și sunt excluse din copiile de siguranță.",
   "slate.privacy.title": "Confidențialitate implicită",
   "ssh.add": "Adaugă o conexiune SSH",

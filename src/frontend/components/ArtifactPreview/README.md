@@ -44,3 +44,8 @@ The browser path is not a region decoder and cannot promise full detail at arbit
 Vertical scrolling belongs to the page list at rest. Pinch/double-tap zoom enables the existing
 image pan and disables list scrolling until reset; file navigation observes the same zoom state.
 System edges remain platform-owned. New gesture and rendering behavior still needs device acceptance.
+
+`FileDocumentPreview` and `useDocumentPreviewPage` share the bundled PDF/Office/RTF renderer between
+full-page file viewing and bounded conversation previews. `document/` owns its range-read protocol
+bridge and navigation policy. Callers own file resolution, loading/failure actions and outer sizing.
+No arbitrary HTML is admitted to this privileged document bridge.

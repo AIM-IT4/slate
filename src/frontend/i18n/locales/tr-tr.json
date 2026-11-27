@@ -2904,6 +2904,8 @@
   "skills.working": "İşleniyor…",
   "slate.editorial.greeting": "Bugün neyi ele alalım?",
   "slate.editorial.prompt": "Dilediğini sor",
+  "slate.preview.expand": "Genişlet",
+  "slate.preview.title": "Satır içi önizleme",
   "slate.privacy.description": "Tanılama ve kullanım analizi devre dışıdır. Sohbetler seçtiğiniz yapay zekâ hizmetlerine ve araçlara gönderilir. Sağlayıcı kimlik bilgileri cihazın güvenli depolamasında kalır ve yedeklere dahil edilmez.",
   "slate.privacy.title": "Varsayılan olarak gizli",
   "ssh.add": "SSH bağlantısı ekle",

@@ -11,7 +11,7 @@ import { useMessageFileRenderer } from './MessageFileRendererContext';
 type MessageFilePart = Extract<CherryMessagePart, { type: 'file' }>;
 
 /**
- * Assistant deliverables: images themselves, and file rows for other kinds. Each file is its own
+ * Assistant deliverables: inline previews and original file actions. Each file is its own
  * block in the message column, so an unavailable one leaves no gap behind.
  */
 export function GeneratedFileStrip({

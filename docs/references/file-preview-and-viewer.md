@@ -1,7 +1,7 @@
 # File Preview And Viewer
 
-> Status: implemented in source; native acceptance pending. Builds, automated tests, and device
-> acceptance were not run for this change. Text excerpts remain a follow-up.
+> Status: inline artifacts implemented in source with focused automated checks. Native gesture,
+> playback and visual acceptance remain pending on a physical phone.
 
 This reference owns how managed files appear, where a tap goes, and how their contents leave the
 app. [File Model](./data/file-model.md) owns bytes, identity, immutability, and deletion.
@@ -306,3 +306,25 @@ unchanged. The first implementation delivers opening, reading, rendered HTML, an
 
 Related: [UI Components](./ui-components.md), [Navigation And Insets](./navigation-and-insets.md),
 [Design Spec](../../DESIGN.md), [Interaction And Gesture Arbitration](./interaction-and-gesture-arbitration.md).
+
+## Inline conversation artifacts
+
+Generated managed files show interactive HTML (complete files up to 1 MiB), audio/video controls,
+PDF/DOCX/PPTX/XLSX/RTF previews and bounded selectable text excerpts directly in chat. Images retain
+their existing rendering. Every non-image output keeps its original open-file action. The composer
+and ordinary user attachment tiles keep their processing/progress behavior. Unsupported formats
+remain file cards. The shared `ArtifactPreview` family owns the existing document engine and narrow
+range-read bridge; full-page viewers and inline documents consume the same implementation.
+
+`InlineArtifact` owns bounded chart and media surfaces. HTML runs inside an opaque-origin iframe
+with scripts enabled but no native bridge, file access, same-origin permission, popups, top navigation
+or shared cookies. HTTPS chart libraries can load. Complete managed HTML avoids remote framing
+headers; remote hosts may refuse embedding. Chart expansion uses the shared dialog. Previews unmount
+on screen blur or app background; media never autoplays.
+
+Explicit HTTPS HTML, image, video and audio MCP resources preview from any server, independently of
+the tool-detail disclosure. MCP-only resource URIs retain their explicit authority-scoped reader.
+Completed Markdown answers preview up to four unique HTTPS HTML/audio/video file links outside
+code blocks; ordinary links and the original download links stay available. Raw HTML code fences
+are never executed. Both preview paths exclude chat background presses and context menus so that
+chart controls and media buttons own their touches.

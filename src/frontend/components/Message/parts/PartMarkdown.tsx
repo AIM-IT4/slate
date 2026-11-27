@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { MarkdownText } from '@/frontend/components/MarkdownText';
 
 import { useMessageListLiveTailVisible } from '../list/MessageListLiveTailContext';
+import { MarkdownArtifacts } from './MarkdownArtifacts';
 import { useMessageSelectionAction } from './MessageSelectionActionContext';
 
 type PartMarkdownProps = {
@@ -36,10 +37,13 @@ export function PartMarkdown({ isStreaming, markdown, messageId }: PartMarkdownP
   }
 
   return (
-    <MarkdownText
-      isStreaming={isStreaming}
-      markdown={isHeld ? shownMarkdown : markdown}
-      selectionAction={selectionAction}
-    />
+    <>
+      <MarkdownText
+        isStreaming={isStreaming}
+        markdown={isHeld ? shownMarkdown : markdown}
+        selectionAction={selectionAction}
+      />
+      {!isStreaming ? <MarkdownArtifacts markdown={markdown} /> : null}
+    </>
   );
 }

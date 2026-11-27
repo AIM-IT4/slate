@@ -5,6 +5,10 @@ import { MessageSelectionActionProvider } from '../MessageSelectionActionContext
 import { PartMarkdown } from '../PartMarkdown';
 
 const mockMarkdownRenders: string[] = [];
+jest.mock('../MarkdownArtifacts', () => ({
+  MarkdownArtifacts: (props: object) =>
+    jest.requireActual('react').createElement('MarkdownArtifacts', props),
+}));
 jest.mock('@/frontend/components/MarkdownText', () => ({
   MarkdownText: (props: { markdown: string }) => {
     mockMarkdownRenders.push(props.markdown);
@@ -88,6 +92,13 @@ describe('PartMarkdown', () => {
     });
     act(() => renderer!.update(<PartMarkdown isStreaming markdown="ab" />));
     expect(shown()).toBe('ab');
+  });
+
+  test('does not mount interactive file surfaces until the streamed answer finishes', () => {
+    render('[Chart](https://files.example/chart.html)', true, true);
+    expect(renderer!.root.findAllByType('MarkdownArtifacts' as never)).toHaveLength(0);
+    render('[Chart](https://files.example/chart.html)', false, true);
+    expect(renderer!.root.findAllByType('MarkdownArtifacts' as never)).toHaveLength(1);
   });
 
   test('offers the host selection action for its message only', () => {

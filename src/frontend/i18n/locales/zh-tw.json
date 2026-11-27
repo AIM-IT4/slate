@@ -2883,6 +2883,8 @@
   "skills.working": "處理中…",
   "slate.editorial.greeting": "今天想聊些什麼？",
   "slate.editorial.prompt": "隨意問點什麼",
+  "slate.preview.expand": "展開",
+  "slate.preview.title": "內嵌預覽",
   "slate.privacy.description": "診斷與使用情況分析已關閉。對話會傳送至你選擇的 AI 服務與工具。供應商憑證保存在裝置的安全儲存空間中，不包含在備份中。",
   "slate.privacy.title": "預設保護隱私",
   "ssh.add": "新增 SSH 連線",

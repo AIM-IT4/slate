@@ -7,6 +7,7 @@ import {
 } from '@cherrystudio/ui/components';
 import { type ReactNode, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { View } from 'react-native';
 
 import type { ReplacePreviewImage } from '@/frontend/appShell/imagePreview';
 import type { ResolvedFile } from '@/shared/contracts/file';
@@ -17,6 +18,7 @@ import { FileEntryImage } from './FileEntryImage';
 import { FileEntryAttachmentSkeleton, FileEntrySkeleton } from './FileEntrySkeleton';
 import { useOpenFileEntry } from './hooks/useOpenFileEntry';
 import { useResolvedFile } from './hooks/useResolvedFile';
+import { ManagedInlinePreview } from './ManagedInlinePreview';
 import { fileEntryPreviewKind, toFilePreviewFile } from './utils/fileEntryPresentation';
 
 const logger = loggerService.withContext('FileEntryPreview');
@@ -62,7 +64,7 @@ export function FileEntryPreview({
   );
 }
 
-/** Assistant artifacts render images directly; other files retain their result row. */
+/** Generated files preview in chat and retain the full file opening action. */
 export function FileEntryAttachment({
   initialAspectRatio,
   entryId,
@@ -89,7 +91,12 @@ export function FileEntryAttachment({
     );
   }
 
-  return <EntryAttachment entry={data.entry} uri={data.uri} />;
+  return (
+    <View className="w-full gap-2">
+      <ManagedInlinePreview key={`${data.entry.id}:${data.entry.updatedAt}`} file={data} />
+      <EntryAttachment entry={data.entry} uri={data.uri} />
+    </View>
+  );
 }
 
 /**

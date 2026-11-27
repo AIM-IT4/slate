@@ -2925,6 +2925,8 @@
   "skills.working": "Procesando…",
   "slate.editorial.greeting": "¿Qué vamos a pensar hoy?",
   "slate.editorial.prompt": "Pregunta lo que quieras",
+  "slate.preview.expand": "Ampliar",
+  "slate.preview.title": "Vista previa integrada",
   "slate.privacy.description": "Los diagnósticos y las estadísticas de uso están desactivados. Las conversaciones se envían a los servicios de IA y las herramientas que elijas. Las credenciales de los proveedores permanecen en el almacenamiento seguro del dispositivo y se excluyen de las copias de seguridad.",
   "slate.privacy.title": "Privacidad por defecto",
   "ssh.add": "Añadir conexión SSH",

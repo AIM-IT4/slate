@@ -2883,6 +2883,8 @@
   "skills.working": "Đang xử lý…",
   "slate.editorial.greeting": "Hôm nay ta sẽ suy nghĩ về điều gì?",
   "slate.editorial.prompt": "Hỏi bất cứ điều gì",
+  "slate.preview.expand": "Mở rộng",
+  "slate.preview.title": "Xem trước trong trò chuyện",
   "slate.privacy.description": "Chẩn đoán và phân tích sử dụng đã bị tắt. Các cuộc trò chuyện được gửi đến dịch vụ AI và công cụ bạn chọn. Thông tin xác thực của nhà cung cấp được giữ trong bộ nhớ bảo mật của thiết bị và không có trong bản sao lưu.",
   "slate.privacy.title": "Riêng tư theo mặc định",
   "ssh.add": "Thêm kết nối SSH",

@@ -4,9 +4,8 @@ import { View } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { withUniwind } from 'uniwind';
 
+import { htmlNavigationAction } from '@/frontend/utils/htmlNavigation';
 import { openExternalUrl } from '@/frontend/utils/openExternalUrl';
-
-import { htmlNavigationAction } from '../utils/htmlNavigation';
 
 const HtmlWebView = withUniwind(WebView);
 // All navigation reaches our policy instead of the wrapper opening unknown schemes.

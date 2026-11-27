@@ -81,8 +81,11 @@ export function McpToolPart({ part }: McpToolPartProps) {
           <MessageDetailValue title={t('chat.mcpTool.arguments')} value={part.input} />
         </McpAppConversationBridge>
       </MessagePart.Tool>
-      {normalizedOutput && toolMetadata?.serverName === 'Slate Cloud Execution' ? (
-        <ExecutionPreview result={normalizedOutput} />
+      {normalizedOutput ? (
+        <ExecutionPreview
+          result={normalizedOutput}
+          mode={toolMetadata?.serverName === 'Slate Cloud Execution' ? 'execution' : 'artifacts'}
+        />
       ) : null}
     </>
   );
