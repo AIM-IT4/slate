@@ -55,7 +55,16 @@ export async function readVideoUriContent(
   );
   if (!server) throw new FileAttachmentError({ ...issue, code: 'video-service-unavailable' });
   const key = `${fact.fileEntryId}:${fact.revision}:${fact.size}:${maxFrames}`;
-  if (cache.has(key)) return cache.get(key)!;
+  const cached = cache.get(key);
+  if (cached) {
+    if (cached.audio?.status === 'failed' || cached.audio?.status === 'partial') {
+      const result = { ...cached, audio: await transcribeVideoAudio(uri, signal) };
+      signal.throwIfAborted();
+      cache.set(key, result);
+      return result;
+    }
+    return cached;
+  }
   let upload: ReturnType<typeof createUploadTask> | undefined;
   const abort = () => {
     void upload?.cancelAsync().catch(() => undefined);

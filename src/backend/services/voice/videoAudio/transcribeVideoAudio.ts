@@ -4,7 +4,7 @@ import type { VideoAudioAnalysis } from '@/shared/contracts/fileAttachment';
 
 import { getVoiceInput } from '../../../../../modules/voice-input';
 import { acquireAsrWork } from '../asrWorkLock';
-import { audioLevels, emptyPcmMetrics, measurePcmWave } from './pcmMetrics';
+import { audioLevels, emptyPcmMetrics, measurePcmWave, whisperPcmSamples } from './pcmMetrics';
 import { openVideoWhisper, supportsVideoAudio } from './whisperModel';
 
 /** Native extraction reads the MP4 audio track directly, 30 seconds at a time, without a microphone. */
@@ -48,7 +48,8 @@ export async function transcribeVideoAudio(
           throw new Error('Invalid audio window');
         const file = new File(decoded.uri);
         if (file.size > 16 * 1024 * 1024) throw new Error('Invalid decoded audio size');
-        const window = measurePcmWave(await file.bytes());
+        const wave = await file.bytes();
+        const window = measurePcmWave(wave);
         signal.throwIfAborted();
         for (const key of Object.keys(metrics) as (keyof typeof metrics)[]) {
           metrics[key] =
@@ -58,7 +59,7 @@ export async function transcribeVideoAudio(
         // Skip near-silent windows to reduce spurious speech recognition.
         if (levels.rmsDbfs > -55) {
           recognizer ??= await openVideoWhisper(signal);
-          const text = await recognizer.recognize(decoded.uri);
+          const text = await recognizer.recognize(whisperPcmSamples(wave));
           signal.throwIfAborted();
           if (text) {
             const remaining = 50_000 - characters;

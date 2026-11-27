@@ -2,7 +2,7 @@
   "expo": {
     "name": "Slate",
     "slug": "slate-ai",
-    "version": "1.8.0",
+    "version": "1.8.1",
     "locales": {
       "de": "./assets/permissions/locales/de.json",
       "el": "./assets/permissions/locales/el.json",
@@ -66,45 +66,33 @@
             "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeProductInteraction",
             "NSPrivacyCollectedDataTypeLinked": false,
             "NSPrivacyCollectedDataTypeTracking": false,
-            "NSPrivacyCollectedDataTypePurposes": [
-              "NSPrivacyCollectedDataTypePurposeAnalytics"
-            ]
+            "NSPrivacyCollectedDataTypePurposes": ["NSPrivacyCollectedDataTypePurposeAnalytics"]
           },
           {
             "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeDeviceID",
             "NSPrivacyCollectedDataTypeLinked": false,
             "NSPrivacyCollectedDataTypeTracking": false,
-            "NSPrivacyCollectedDataTypePurposes": [
-              "NSPrivacyCollectedDataTypePurposeAnalytics"
-            ]
+            "NSPrivacyCollectedDataTypePurposes": ["NSPrivacyCollectedDataTypePurposeAnalytics"]
           }
         ],
         "NSPrivacyAccessedAPITypes": [
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
-            "NSPrivacyAccessedAPITypeReasons": [
-              "CA92.1"
-            ]
+            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
           },
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategorySystemBootTime",
-            "NSPrivacyAccessedAPITypeReasons": [
-              "35F9.1"
-            ]
+            "NSPrivacyAccessedAPITypeReasons": ["35F9.1"]
           },
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
-            "NSPrivacyAccessedAPITypeReasons": [
-              "C617.1"
-            ]
+            "NSPrivacyAccessedAPITypeReasons": ["C617.1"]
           }
         ]
       },
       "entitlements": {
         "com.apple.developer.healthkit": true,
-        "com.apple.security.application-groups": [
-          "group.com.cherryai.cherrystudio-app"
-        ]
+        "com.apple.security.application-groups": ["group.com.cherryai.cherrystudio-app"]
       },
       "infoPlist": {
         "UISupportedInterfaceOrientations~ipad": [
@@ -117,16 +105,11 @@
         "NSHealthShareUsageDescription": "Slate reads the Apple Health data you select when you ask in chat, such as summarizing your sleep and steps over the past week, and with your approval sends it to your selected AI service for analysis.",
         "NSHealthUpdateUsageDescription": "Slate reads selected Apple Health data to answer your health and fitness questions. It does not save or modify data in Apple Health.",
         "NSLocalNetworkUsageDescription": "Allow Slate to connect to the Slate desktop app, AI providers, MCP servers, and SSH devices such as routers and NAS on your local network.",
-        "NSBonjourServices": [
-          "_cherry-remote._tcp"
-        ],
+        "NSBonjourServices": ["_cherry-remote._tcp"],
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": false
         },
-        "UIBackgroundModes": [
-          "audio",
-          "processing"
-        ]
+        "UIBackgroundModes": ["audio", "processing"]
       }
     },
     "android": {
@@ -154,7 +137,7 @@
         "android.permission.POST_NOTIFICATIONS"
       ],
       "allowBackup": false,
-      "versionCode": 17
+      "versionCode": 18
     },
     "web": {
       "output": "static",

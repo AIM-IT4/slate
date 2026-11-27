@@ -16,7 +16,7 @@ export const emptyPcmMetrics = (): PcmMetrics => ({
 });
 
 /** Only the decoder's bounded mono PCM16 windows are admitted. No whole-video byte read. */
-export function measurePcmWave(bytes: Uint8Array): PcmMetrics {
+function parsePcmWave(bytes: Uint8Array) {
   if (bytes.length < 44 || bytes.length > 16 * 1024 * 1024)
     throw new Error('Invalid decoded audio size');
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -46,8 +46,20 @@ export function measurePcmWave(bytes: Uint8Array): PcmMetrics {
     }
     offset = start + length + (length % 2);
   }
-  if (!rate || !dataStart || !dataBytes || dataBytes % 2 || dataBytes / 2 > rate * 30 + 2)
+  if (
+    rate < 1 ||
+    rate > 192000 ||
+    !dataStart ||
+    !dataBytes ||
+    dataBytes % 2 ||
+    dataBytes / 2 > rate * 30 + 2
+  )
     throw new Error('Invalid audio window');
+  return { view, rate, dataStart, dataBytes };
+}
+
+export function measurePcmWave(bytes: Uint8Array): PcmMetrics {
+  const { view, rate, dataStart, dataBytes } = parsePcmWave(bytes);
   const result = emptyPcmMetrics();
   const windowSize = Math.max(1, Math.round(rate * 0.02));
   let power = 0,
@@ -69,6 +81,26 @@ export function measurePcmWave(bytes: Uint8Array): PcmMetrics {
     }
   }
   return result;
+}
+
+/** Bounded mono PCM input, resampled to Whisper's 16 kHz without another Android decoder. */
+export function whisperPcmSamples(bytes: Uint8Array): { sampleRate: number; samples: number[] } {
+  const { view, rate, dataStart, dataBytes } = parsePcmWave(bytes);
+  const sourceCount = dataBytes / 2;
+  const sampleRate = 16000;
+  const count = Math.min(
+    sampleRate * 30,
+    Math.max(1, Math.round((sourceCount * sampleRate) / rate)),
+  );
+  const samples = new Array<number>(count);
+  for (let i = 0; i < count; i++) {
+    const position = Math.min(sourceCount - 1, (i * rate) / sampleRate);
+    const first = Math.floor(position);
+    const left = view.getInt16(dataStart + first * 2, true) / 32768;
+    const right = view.getInt16(dataStart + Math.min(first + 1, sourceCount - 1) * 2, true) / 32768;
+    samples[i] = left + (right - left) * (position - first);
+  }
+  return { sampleRate, samples };
 }
 export function audioLevels(metrics: PcmMetrics) {
   const db = (amplitude: number) =>

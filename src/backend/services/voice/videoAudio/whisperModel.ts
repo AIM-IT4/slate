@@ -41,7 +41,8 @@ export async function openVideoWhisper(signal: AbortSignal) {
   }
   verified = true;
   // Loading is optional so incompatible development clients still display sampled video frames.
-  const sherpa = await import('@siteed/sherpa-onnx.rn');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- share the optional native singleton with dictation
+  const sherpa = require('@siteed/sherpa-onnx.rn') as typeof import('@siteed/sherpa-onnx.rn');
   let released = false;
   const release = async () => {
     if (!released) {
@@ -71,9 +72,10 @@ export async function openVideoWhisper(signal: AbortSignal) {
     throw error;
   }
   return {
-    async recognize(uri: string) {
+    async recognize(audio: { sampleRate: number; samples: number[] }) {
       signal.throwIfAborted();
-      const result = await sherpa.ASR.recognizeFromFile(decodeURIComponent(new URL(uri).pathname));
+      // The window is already PCM. recognizeFromFile tries MediaCodec for audio/raw on Android.
+      const result = await sherpa.ASR.recognizeFromSamples(audio.sampleRate, audio.samples);
       signal.throwIfAborted();
       if (!result.success) throw new Error('Video transcription failed');
       return (result.text ?? '').replace(/<\|[^|]*\|>/g, '').trim();

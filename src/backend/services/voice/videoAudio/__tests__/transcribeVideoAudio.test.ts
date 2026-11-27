@@ -1,9 +1,9 @@
 import { acquireAsrWork } from '../../asrWorkLock';
-import { audioLevels, measurePcmWave } from '../pcmMetrics';
+import { audioLevels, measurePcmWave, whisperPcmSamples } from '../pcmMetrics';
 import { transcribeVideoAudio } from '../transcribeVideoAudio';
 import { openVideoWhisper } from '../whisperModel';
 
-const mockRecognize = jest.fn(async () => 'Narration from the reel.');
+const mockRecognize = jest.fn(async (_audio: unknown) => 'Narration from the reel.');
 const mockRelease = jest.fn(async () => {});
 const mockDecode = jest.fn();
 const mockDelete = jest.fn();
@@ -15,7 +15,7 @@ jest.mock('../../../../../../modules/voice-input', () => ({
 jest.mock('../whisperModel', () => ({
   supportsVideoAudio: () => true,
   openVideoWhisper: jest.fn(async () => ({
-    recognize: (...args: unknown[]) => mockRecognize(...(args as [])),
+    recognize: (audio: unknown) => mockRecognize(audio),
     release: () => mockRelease(),
   })),
 }));
@@ -89,6 +89,61 @@ test('decodes MP4 audio locally and supplies timestamped speech plus measured le
   expect(openVideoWhisper).toHaveBeenCalledTimes(1);
   expect(mockRelease).toHaveBeenCalledTimes(1);
   expect(mockDelete).toHaveBeenCalledTimes(2);
+  expect(mockRecognize.mock.calls[0][0]).toMatchObject({ sampleRate: 16000 });
+  expect((mockRecognize.mock.calls[0][0] as { samples: number[] }).samples).toHaveLength(16000);
+});
+
+test('six queued videos keep native audio work isolated and a silent clip does not block the rest', async () => {
+  let active = 0;
+  let peak = 0;
+  mockDecode.mockImplementation(async (uri: string) => {
+    active++;
+    peak = Math.max(peak, active);
+    await Promise.resolve();
+    active--;
+    if (uri.endsWith('/0.mp4')) throw new Error('No audio track');
+    return { uri: uri + '.wav', totalSeconds: 1, endSeconds: 1 };
+  });
+  const results = await Promise.all(
+    Array.from({ length: 6 }, (_, index) =>
+      transcribeVideoAudio(`file:///${index}.mp4`, new AbortController().signal),
+    ),
+  );
+  expect(results.map((result) => result.status)).toEqual([
+    'no-audio',
+    'transcribed',
+    'transcribed',
+    'transcribed',
+    'transcribed',
+    'transcribed',
+  ]);
+  expect(peak).toBe(1);
+  expect(mockRelease).toHaveBeenCalledTimes(5);
+  expect(mockDelete).toHaveBeenCalledTimes(5);
+});
+
+test('recognizer samples preserve signed PCM amplitudes and reject malformed audio', () => {
+  const bytes = pcm();
+  const view = new DataView(bytes.buffer);
+  view.setInt16(44, -32768, true);
+  view.setInt16(46, 32767, true);
+  const audio = whisperPcmSamples(bytes);
+  expect(audio.sampleRate).toBe(16000);
+  expect(audio.samples.slice(0, 2)).toEqual([-1, 32767 / 32768]);
+  expect(() => whisperPcmSamples(new Uint8Array(20))).toThrow();
+  view.setUint16(22, 2, true);
+  expect(() => whisperPcmSamples(bytes)).toThrow();
+});
+
+test('48 kHz audio is bounded and resampled to the recognizer 16 kHz input', () => {
+  const bytes = pcm();
+  const view = new DataView(bytes.buffer);
+  view.setUint32(24, 48000, true);
+  view.setUint32(28, 96000, true);
+  const audio = whisperPcmSamples(bytes);
+  expect(audio.sampleRate).toBe(16000);
+  expect(audio.samples).toHaveLength(Math.round(16000 / 3));
+  expect(audio.samples[1]).toBe(view.getInt16(50, true) / 32768);
 });
 test('reports missing audio without loading the speech model', async () => {
   mockDecode.mockRejectedValueOnce(new Error('No audio track'));
