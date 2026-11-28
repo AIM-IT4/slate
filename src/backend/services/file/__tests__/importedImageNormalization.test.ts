@@ -10,10 +10,11 @@ import {
 jest.mock('expo-file-system', () => {
   const files = new Map<string, number>();
   return {
+    Paths: { cache: 'file:///cache/' },
     File: class {
       uri: string;
-      constructor(value: string) {
-        this.uri = value;
+      constructor(value: string, name?: string) {
+        this.uri = value + (name ?? '');
       }
       get exists() {
         return files.has(this.uri);
@@ -32,6 +33,9 @@ jest.mock('expo-file-system', () => {
       }
       async base64() {
         return 'normalized-pixels';
+      }
+      writeSync(data: string) {
+        files.set(this.uri, data.length);
       }
       delete() {
         files.delete(this.uri);
@@ -96,11 +100,12 @@ test('bounds low-byte high-resolution request images without modifying their man
   });
   expect(input.data).toBe('compressed-source');
   expect(ImageManipulator.manipulate).toHaveBeenCalledWith(
-    'data:image/png;base64,compressed-source',
+    expect.stringMatching(/^file:\/\/\/cache\/slate-request-image-/),
     { maxHeight: 2048, maxWidth: 2048 },
   );
   expect(native.contexts[0]?.resize).toHaveBeenCalledWith({ width: 410, height: 2048 });
   expect([...testState.files.keys()]).toEqual([SOURCE]);
+  expect(Image.getSize).toHaveBeenCalledWith(expect.stringMatching(/^file:\/\/\/cache\//));
 });
 
 test('preserves a small image at the many-image dimension limit byte for byte', async () => {

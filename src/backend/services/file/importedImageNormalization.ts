@@ -1,4 +1,5 @@
-import { File } from 'expo-file-system';
+import { randomUUID } from 'expo-crypto';
+import { File, Paths } from 'expo-file-system';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { Image } from 'react-native';
 
@@ -44,8 +45,12 @@ export function prepareProviderImage(
   const run = queue.then(async () => {
     signal?.throwIfAborted();
     let encoded: string | undefined;
+    let staged: File | undefined;
     try {
-      const uri = `data:${input.mediaType};base64,${input.data}`;
+      // File-URI metadata reads avoid decoding/caching a full-resolution data-URI bitmap.
+      staged = new File(Paths.cache, `slate-request-image-${randomUUID()}.img`);
+      staged.writeSync(input.data, { encoding: 'base64' });
+      const uri = staged.uri;
       const { width, height } = await Image.getSize(uri);
       signal?.throwIfAborted();
       if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0)
@@ -69,6 +74,12 @@ export function prepareProviderImage(
     } finally {
       if (encoded)
         discardNormalizedImage({ uri: encoded, mediaType: 'image/jpeg', name: 'request.jpg' });
+      if (staged)
+        discardNormalizedImage({
+          uri: staged.uri,
+          mediaType: input.mediaType,
+          name: 'request-source',
+        });
     }
   });
   queue = run.catch(() => undefined);
@@ -202,6 +213,7 @@ async function encodeWithinLimit(
           height: Math.max(1, Math.round(height * scale)),
           width: Math.max(1, Math.round(width * scale)),
         });
+
         rendered = await context.renderAsync();
         const saved = await rendered.saveAsync({
           compress: Math.max(0.6, 0.85 - attempt * 0.05),
