@@ -91,7 +91,7 @@ function ComposerRoot({
         className={
           isExpansionPresented
             ? 'bg-popover'
-            : 'border border-border bg-card ios:shadow-field android:shadow-sm'
+            : 'border border-border bg-card ios:shadow-field android:shadow-md'
         }
         cornerRadius={surfaceRadius}
         style={surfaceStyle}

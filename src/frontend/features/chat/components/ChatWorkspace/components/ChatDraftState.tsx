@@ -1,5 +1,9 @@
 import ChevronRightIcon from '@cherrystudio/app-icons/icons/chevron-right';
 import PlusIcon from '@cherrystudio/app-icons/icons/plus';
+import CodeIcon from '@cherrystudio/app-icons/icons/code';
+import FileTextIcon from '@cherrystudio/app-icons/icons/file-text';
+import SparklesIcon from '@cherrystudio/app-icons/icons/sparkles';
+import MessageCircleIcon from '@cherrystudio/app-icons/icons/message-circle';
 import { BackgroundPressExclusion, Button } from '@cherrystudio/ui/components';
 import { duration } from '@cherrystudio/ui/motion';
 import { useRouter } from 'expo-router';
@@ -17,6 +21,7 @@ import {
 import { useOpenProviderSetup } from '@/frontend/appShell/navigation';
 import { conversationHref } from '@/frontend/appShell/navigation/chat';
 import { AgentAvatar } from '@/frontend/components/Avatar';
+import { useComposerActions, useComposerPresentationState, useComposerState } from '@/frontend/components/Composer';
 import { type ModelTypeFilter, useModelPickerData } from '@/frontend/components/ModelPicker';
 import { useModelChoice } from '@/frontend/components/Policy';
 import { capabilityPolicy } from '@/shared/data/managedPolicy';
@@ -62,7 +67,7 @@ export function ChatDraftState({
     <ChatComposerClearance
       className={
         modelSetup
-          ? 'flex-1 justify-center bg-slate-paper px-6'
+          ? 'flex-1 justify-center bg-slate-paper px-5'
           : 'flex-1 items-center justify-center px-6'
       }
       contentBottomInset={contentBottomInset}
@@ -147,17 +152,20 @@ function LocalDraftContent({
 }
 
 const editorialTitle = {
-  fontFamily: 'PlayfairDisplay-Bold',
-  fontSize: 40,
-  lineHeight: 46,
-  letterSpacing: -1.4,
+  fontWeight: '600' as const,
+  fontSize: 36,
+  lineHeight: 42,
+  letterSpacing: -1.8,
   includeFontPadding: false,
 };
 
 function EditorialGreeting({ children }: PropsWithChildren) {
   const { t } = useTranslation();
   return (
-    <Animated.View entering={greetingEntrance} className="w-full max-w-lg self-center gap-6">
+    <Animated.View entering={greetingEntrance} className="w-full max-w-lg self-center gap-4">
+      <View className="size-12 items-center justify-center rounded-2xl bg-foreground">
+        <SparklesIcon className="size-6 text-background" />
+      </View>
       <Text
         accessibilityRole="header"
         className="max-w-[340px] text-foreground"
@@ -167,6 +175,7 @@ function EditorialGreeting({ children }: PropsWithChildren) {
         {t('slate.editorial.greeting')}
       </Text>
       {children}
+      <QuickPrompts />
       <ConversationSourceBoundary source={{ kind: 'local' }} fallback={() => null}>
         <EditorialRecents />
       </ConversationSourceBoundary>
@@ -174,11 +183,49 @@ function EditorialGreeting({ children }: PropsWithChildren) {
   );
 }
 
+const promptShortcuts = [
+  { label: 'Explore an idea', text: 'Help me explore this idea: ', Icon: SparklesIcon },
+  { label: 'Write something', text: 'Help me draft: ', Icon: MessageCircleIcon },
+  { label: 'Build with code', text: 'Help me build: ', Icon: CodeIcon },
+  { label: 'Analyze a file', text: 'Analyze the attached file and summarize the key findings.', Icon: FileTextIcon },
+] as const;
+
+function QuickPrompts() {
+  const { draft } = useComposerState();
+  const { editDraft } = useComposerActions();
+  const { isEditing } = useComposerPresentationState();
+  if (isEditing || draft.trim()) return null;
+
+  return (
+    <BackgroundPressExclusion>
+      <View className="flex-row flex-wrap gap-2">
+        {promptShortcuts.map(({ label, text, Icon }) => (
+          <Pressable
+            key={label}
+            accessibilityRole="button"
+            accessibilityLabel={label}
+            className="min-h-16 flex-1 basis-[43%] flex-row items-center gap-2 rounded-2xl border border-border bg-card px-3 py-3 active:opacity-60"
+            onPress={() => editDraft(text)}
+          >
+            <View className="size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+              <Icon className="size-4.5 text-primary" />
+            </View>
+            <Text className="min-w-0 flex-1 text-sm font-medium text-foreground" numberOfLines={2}>
+              {label}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+    </BackgroundPressExclusion>
+  );
+}
+
 function EditorialRecents() {
   const { t } = useTranslation();
   const router = useRouter();
   const { items } = useConversationSessions();
-  if (items.length === 0) return null;
+  const { isEditing } = useComposerPresentationState();
+  if (items.length === 0 || isEditing) return null;
 
   return (
     <BackgroundPressExclusion>
@@ -189,7 +236,7 @@ function EditorialRecents() {
         {items.slice(0, 2).map((item) => (
           <Pressable
             accessibilityRole="button"
-            className="min-h-14 flex-row items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 active:opacity-70"
+            className="min-h-11 flex-row items-center gap-3 rounded-xl px-2 py-1 active:opacity-70"
             key={item.ref.sessionId}
             onPress={() => router.replace(conversationHref(item.ref))}
           >

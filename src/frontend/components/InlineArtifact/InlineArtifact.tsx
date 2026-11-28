@@ -1,3 +1,5 @@
+import FileTextIcon from '@cherrystudio/app-icons/icons/file-text';
+import ImageIcon from '@cherrystudio/app-icons/icons/image';
 import { Button, ContentState, Dialog, Image } from '@cherrystudio/ui/components';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -89,11 +91,15 @@ export function InlineArtifact({ source, name }: { source: InlineArtifactSource;
       content()
     );
   return (
-    <View className="w-full gap-2" testID="artifact-inline-preview">
-      <View className="flex-row items-center justify-between gap-2">
-        <Text className="min-w-0 flex-1 text-muted-foreground text-xs" numberOfLines={1}>
-          {title}
-        </Text>
+    <View className="w-full overflow-hidden rounded-2xl border border-border bg-card" testID="artifact-inline-preview">
+      <View className="flex-row items-center gap-2 border-b border-border-subtle px-3 py-2">
+        <View className="size-9 items-center justify-center rounded-xl bg-primary/10">
+          {kind === 'image' || kind === 'video' ? <ImageIcon className="size-5 text-primary" /> : <FileTextIcon className="size-5 text-primary" />}
+        </View>
+        <View className="min-w-0 flex-1">
+          <Text className="text-sm font-semibold text-foreground" numberOfLines={1}>{title}</Text>
+          <Text className="text-xs text-muted-foreground" numberOfLines={1}>{kind.toUpperCase()} · {t('slate.preview.title')}</Text>
+        </View>
         {kind === 'html' ? (
           <Button
             size="inline"
@@ -106,7 +112,7 @@ export function InlineArtifact({ source, name }: { source: InlineArtifactSource;
           </Button>
         ) : null}
       </View>
-      {!expanded ? preview() : <View className="h-12" />}
+      {!expanded ? <View className="overflow-hidden bg-background">{preview()}</View> : <View className="h-12" />}
       {expanded ? (
         <Dialog open onOpenChange={setExpanded} title={title}>
           {preview()}

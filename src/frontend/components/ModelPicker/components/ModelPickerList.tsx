@@ -426,15 +426,15 @@ const ModelPickerRow = memo(function ModelPickerRow({
       className={cn(
         'flex-row items-center gap-3 active:bg-secondary-active dark:active:bg-secondary-active/50',
         density === 'compact' ? 'min-h-11 py-2' : 'min-h-14 py-2.5',
-        contentInset === 'default' && 'px-5',
-        isSelected && 'bg-secondary',
+        contentInset === 'default' && 'mx-4 rounded-2xl px-3',
+        isSelected && 'bg-primary/10',
         isDisabled && 'opacity-40',
       )}
       disabled={isDisabled}
       onPress={handlePress}
       style={trailingInset === undefined ? undefined : { paddingRight: trailingInset }}
     >
-      <View className={cn('h-6 justify-center', density === 'compact' ? 'w-6' : 'w-7')}>
+      <View className={cn('items-center justify-center rounded-xl bg-secondary', density === 'compact' ? 'size-8' : 'size-10')}>
         <ModelAvatar
           artwork={density === 'compact' ? 'brand' : 'model'}
           model={item.model}
@@ -447,7 +447,7 @@ const ModelPickerRow = memo(function ModelPickerRow({
           className={cn(
             'text-foreground',
             density === 'compact' ? 'text-sm' : 'text-base',
-            isSelected ? 'font-semibold' : 'font-medium',
+            isSelected ? 'font-semibold text-primary' : 'font-medium',
           )}
           ellipsizeMode="middle"
           numberOfLines={1}

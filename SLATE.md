@@ -6,6 +6,10 @@ A personal Android fork of Cherry Studio Mobile 0.6.3, rebuilt from its publishe
 
 Light-first white surfaces, cobalt emphasis, labelled bottom navigation, a flat Tools list with direct provider/privacy/appearance shortcuts, new Slate launcher/splash artwork and identity. Original model, MCP, file, image and agent implementations are retained.
 
+## Slate 2.0.1 interaction refresh
+
+The local home screen includes four actionable prompt starters that seed the existing composer without sending. The chat composer exposes its model and supported reasoning controls at rest in a persistent two-row layout. The model picker uses highlighted card-style selection, and inline artifacts receive a unified framed preview. The floating navigation tray and wordmark were restyled. Existing native morph menus, effort slider, attachment transfer, provider settings and secure storage are retained. New prompt-starter strings are English; on-device layout, keyboard and accessibility acceptance remain to be checked.
+
 ## Video audio
 
 Video attachments include sampled frames from Slate Execution plus a locally generated, timestamped

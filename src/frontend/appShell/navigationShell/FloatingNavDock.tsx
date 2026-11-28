@@ -119,7 +119,7 @@ export function FloatingNavDock() {
     <Animated.View
       accessibilityElementsHidden={!isDockVisible}
       accessibilityRole="tablist"
-      className="absolute right-0 bottom-0 left-0 z-20 border-t border-border-subtle bg-background"
+      className="absolute right-0 bottom-0 left-0 z-20 bg-background"
       importantForAccessibility={isDockVisible ? 'auto' : 'no-hide-descendants'}
       pointerEvents={isDockVisible ? 'box-none' : 'none'}
       style={[animatedContainerStyle, { paddingBottom: bottomPadding }]}
@@ -154,7 +154,7 @@ export function FloatingNavDock() {
         ) : null}
         <View
           ref={rowRef}
-          className="flex-row items-center justify-center gap-2 px-4"
+          className="mx-4 flex-row items-center justify-center gap-1 rounded-2xl border border-border bg-card px-2"
           onLayout={handleRowLayout}
           pointerEvents={isDockVisible ? 'auto' : 'none'}
           testID="floating-nav-row"

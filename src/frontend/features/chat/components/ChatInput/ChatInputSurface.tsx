@@ -135,6 +135,7 @@ function ChatInputLayout({
   ) : null;
   return (
     <ComposerEditor
+      active
       restingTrailingActionCount={1}
       attachmentMode={attachmentMode}
       fieldStyle={fieldStyle}
@@ -158,7 +159,7 @@ function ChatInputLayout({
           </Composer.Action>
         </Composer.EditorSecondary>
       ) : null}
-      <View className="ml-auto flex-row items-center gap-1.5" pointerEvents="box-none">
+      <View className="ml-auto shrink-0 flex-row items-center gap-1" pointerEvents="box-none">
         {trailingAction ? (
           <Composer.EditorSecondary>{trailingAction}</Composer.EditorSecondary>
         ) : null}

@@ -110,7 +110,7 @@ export function SlateWordmark() {
       />
       <Text
         className="text-foreground"
-        style={{ fontFamily: 'PlayfairDisplay-Bold', fontSize: 24 }}
+        style={{ fontWeight: '700', fontSize: 23, letterSpacing: -1.2 }}
       >
         Slate
       </Text>

@@ -1,3 +1,4 @@
+import ChevronDownIcon from '@cherrystudio/app-icons/icons/chevron-down';
 import { Composer, LockedMark, LockedTrigger } from '@cherrystudio/ui/components';
 import { type PropsWithChildren, type ReactNode, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -32,13 +33,14 @@ export function ComposerModelPill({ children, icon, label, onPress }: ComposerMo
     return (
       <Composer.Pill
         accessibilityLabel={t('chat.model.select')}
-        className="bg-secondary"
+        className="bg-primary/10"
         disabled={isLocked}
         onPress={handlePress}
       >
         <Text className="min-w-0 shrink font-medium text-foreground text-sm" numberOfLines={1}>
           {t('chat.model.select')}
         </Text>
+        {!isLocked ? <ChevronDownIcon className="size-3 text-primary" /> : null}
       </Composer.Pill>
     );
   }
@@ -46,7 +48,7 @@ export function ComposerModelPill({ children, icon, label, onPress }: ComposerMo
   const pill = (
     <Composer.Pill
       accessibilityLabel={label}
-      className="bg-secondary"
+      className="bg-primary/10"
       disabled={isLocked}
       icon={
         icon ?? (
@@ -62,7 +64,7 @@ export function ComposerModelPill({ children, icon, label, onPress }: ComposerMo
         {label}
       </Text>
       {children}
-      {isLocked ? <LockedMark className="size-3.5" /> : null}
+      {isLocked ? <LockedMark className="size-3.5" /> : <ChevronDownIcon className="size-3 text-primary" />}
     </Composer.Pill>
   );
   // The organization chose the only model: pressing explains that instead of opening a picker.
