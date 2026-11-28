@@ -97,7 +97,18 @@ export function normalizeMcpBinaryContent(value: unknown): unknown {
     return {
       ...direct.metadata,
       ...(result._meta ? { _meta: result._meta } : {}),
-      content: [fileBlock(direct)],
+      content: [
+        fileBlock(direct, result),
+        ...(Object.keys(direct.metadata).length
+          ? [
+              {
+                type: 'text',
+                text: JSON.stringify(stripMcpMetadata(direct.metadata)),
+                ...(result.annotations ? { annotations: result.annotations } : {}),
+              },
+            ]
+          : []),
+      ],
     };
   let changed = false;
   const content: unknown[] = [];

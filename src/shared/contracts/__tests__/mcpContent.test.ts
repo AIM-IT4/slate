@@ -31,6 +31,13 @@ describe('encoded MCP file results', () => {
   });
 
   it('keeps annotations and UI-only metadata private and never promotes nested authority', () => {
+    expect(
+      projectMcpModelContent({ content: data, status: 'ok', annotations: { audience: ['user'] } }),
+    ).toEqual([{ type: 'text', text: '[MCP result has no model-visible content]' }]);
+    expect(projectMcpModelContent({ content: data, status: 'ok' })).toContainEqual({
+      type: 'text',
+      text: '{"status":"ok"}',
+    });
     const result = {
       content: [
         {
