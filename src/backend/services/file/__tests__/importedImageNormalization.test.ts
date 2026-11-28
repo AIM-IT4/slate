@@ -1,7 +1,10 @@
+import { Image } from 'react-native';
+
 import {
   discardNormalizedImage,
   IMPORTED_IMAGE_MAX_BYTES,
   normalizeImportedImage,
+  prepareProviderImage,
 } from '../importedImageNormalization';
 
 jest.mock('expo-file-system', () => {
@@ -27,6 +30,9 @@ jest.mock('expo-file-system', () => {
       get type() {
         return null;
       }
+      async base64() {
+        return 'normalized-pixels';
+      }
       delete() {
         files.delete(this.uri);
       }
@@ -49,8 +55,8 @@ const { ImageManipulator } = jest.requireMock<{
 const SOURCE = 'file:///picker/IMG_0001.png';
 const MIB = 1024 * 1024;
 
-function renderer(sizes: number[]) {
-  const source = { width: 4000, height: 3000, release: jest.fn() };
+function renderer(sizes: number[], dimensions = { width: 4000, height: 3000 }) {
+  const source = { ...dimensions, release: jest.fn() };
   const sourceContext = { renderAsync: async () => source, release: jest.fn() };
   const contexts: { resize: jest.Mock; release: jest.Mock }[] = [];
   const outputs: { saveAsync: jest.Mock; release: jest.Mock }[] = [];
@@ -78,6 +84,44 @@ beforeEach(() => {
   jest.resetAllMocks();
   testState.files.clear();
   testState.files.set(SOURCE, 9 * MIB);
+});
+
+test('bounds low-byte high-resolution request images without modifying their managed source', async () => {
+  jest.spyOn(Image, 'getSize').mockImplementation(async () => ({ width: 1200, height: 6000 }));
+  const native = renderer([300_000], { width: 1200, height: 6000 });
+  const input = { data: 'compressed-source', mediaType: 'image/png' };
+  await expect(prepareProviderImage(input)).resolves.toEqual({
+    data: 'normalized-pixels',
+    mediaType: 'image/jpeg',
+  });
+  expect(input.data).toBe('compressed-source');
+  expect(ImageManipulator.manipulate).toHaveBeenCalledWith(
+    'data:image/png;base64,compressed-source',
+    { maxHeight: 2048, maxWidth: 2048 },
+  );
+  expect(native.contexts[0]?.resize).toHaveBeenCalledWith({ width: 410, height: 2048 });
+  expect([...testState.files.keys()]).toEqual([SOURCE]);
+});
+
+test('preserves a small image at the many-image dimension limit byte for byte', async () => {
+  jest.spyOn(Image, 'getSize').mockImplementation(async () => ({ width: 3000, height: 1500 }));
+  const input = { data: 'original-pixels', mediaType: 'image/png' };
+  await expect(prepareProviderImage(input)).resolves.toBe(input);
+  expect(ImageManipulator.manipulate).not.toHaveBeenCalled();
+});
+
+test('image preparation fails closed and never exposes a data URI in an error', async () => {
+  jest.spyOn(Image, 'getSize').mockImplementation(async () => {
+    throw new Error('data:image/png;base64,private-pixels');
+  });
+  await expect(
+    prepareProviderImage({ data: 'private-pixels', mediaType: 'image/png' }),
+  ).rejects.toThrow('Could not prepare image pixels');
+  const controller = new AbortController();
+  controller.abort();
+  await expect(
+    prepareProviderImage({ data: 'x', mediaType: 'image/png' }, controller.signal),
+  ).rejects.toBeDefined();
 });
 
 test.each([

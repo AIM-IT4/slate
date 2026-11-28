@@ -40,6 +40,7 @@ it already exists.
 | Video soundtrack transcription and signal measurements | `src/backend/services/voice/videoAudio` public sub-entry; bundled speech-model assets, bounded native audio windows and the shared ASR work slot |
 | Audio media-type classification, import-time type inference, and transcription source limits | `src/shared/utils/audioFileTypes.ts` |
 | Image media types, extensions and bounded-header identification | `src/shared/utils/imageFileTypes.ts` |
+| Request-only image dimensions and encoded-byte limits, including replayed history | `prepareProviderImage` in `src/backend/services/file/importedImageNormalization.ts`; `preparePiImagePayload` owns the Anthropic wire traversal |
 | Importing a file into managed storage, including one-time image normalization | `importManagedFile` in `src/backend/services/file/importManagedFile.ts`, used by `fileContent.createInternalEntry` and system share import |
 | AI file implicit metadata | `src/backend/services/file` metadata capability for actual AI producers; shared fields in `shared/data/types/aiContent.ts`, Markdown/HTML carriers and reading projection in `shared/utils/aiContentText.ts`; programmatic sharing/rendering does not add declarations |
 | Reading and writing ZIP archives | `readZipDirectory`, `extractZipEntries` in `src/backend/utils/zipReader.ts`; `writeZipFile` in `src/backend/utils/zipWriter.ts` |

@@ -9,6 +9,7 @@ import {
   readGatewayRequestId,
 } from '@/shared/utils/providerDiagnostics';
 
+import { preparePiImagePayload, type PrepareProviderImage } from './piImagePayload';
 import { piModelPayloadAttributes } from './piModelDiagnostics';
 import type { PiStreamFn } from './piModelTypes';
 import {
@@ -139,6 +140,7 @@ export function resolvePiApiAdapter(
 }
 
 type PiStreamBinding = {
+  prepareImage?: PrepareProviderImage;
   isCloudGateway?: boolean;
   accessToken?: string;
   vertex?: VertexAnthropicOptions['vertex'];
@@ -274,11 +276,19 @@ export async function bindPiStream(
               temperature,
             )
           : resolvedPayload;
-        const requestPayload = applyPiRequestCompatibility(
+        const compatiblePayload = applyPiRequestCompatibility(
           parameterizedPayload,
           adapter.api,
           requestModel.id,
         );
+        const requestPayload = binding.prepareImage
+          ? await preparePiImagePayload(
+              compatiblePayload,
+              adapter.api,
+              options?.signal,
+              binding.prepareImage,
+            )
+          : compatiblePayload;
         trace?.setAttributes(piModelPayloadAttributes(requestPayload, adapter.api));
         return requestPayload;
       },

@@ -29,6 +29,7 @@ import {
   DeepseekDocumentUnavailableError,
   uploadDeepseekDocument,
 } from '@/backend/services/file/deepseekFiles';
+import { prepareProviderImage } from '@/backend/services/file/importedImageNormalization';
 import { createDeepseekConnection } from '@/backend/services/providers/deepseekConnection';
 import { getProviderConfigurationIssue } from '@/backend/services/providers/providerConfiguration';
 import type { VertexAuthClient } from '@/backend/services/providers/vertex';
@@ -330,6 +331,7 @@ export function createPiModelResolver(
         runtimeOptions.maxOutputTokens,
       );
       const streamBinding: Parameters<typeof bindPiStream>[1] = {
+        prepareImage: prepareProviderImage,
         apiKey: vertex
           ? undefined
           : oauth

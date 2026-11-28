@@ -1,5 +1,6 @@
 import { File } from 'expo-file-system';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
+import { Image } from 'react-native';
 
 import { loggerService } from '@/shared/core/logger/LoggerService';
 import { imageMediaTypeFromExtension, isImageFileExtension } from '@/shared/utils/imageFileTypes';
@@ -34,6 +35,45 @@ export type NormalizedImportedImage = {
 
 // Even bounded images retain pixels during encoding; a multi-photo pick must not hold several at once.
 let queue: Promise<unknown> = Promise.resolve();
+
+/** Request-only copy: dimension admission must also cover small-byte and historical images. */
+export function prepareProviderImage(
+  input: { data: string; mediaType: string },
+  signal?: AbortSignal,
+): Promise<{ data: string; mediaType: string }> {
+  const run = queue.then(async () => {
+    signal?.throwIfAborted();
+    let encoded: string | undefined;
+    try {
+      const uri = `data:${input.mediaType};base64,${input.data}`;
+      const { width, height } = await Image.getSize(uri);
+      signal?.throwIfAborted();
+      if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0)
+        throw new Error('Invalid image dimensions');
+      // Anthropic lowers its per-side ceiling to 3000 px for many-image requests.
+      if (
+        Math.max(width, height) <= 3000 &&
+        input.data.length <= Math.ceil(IMPORTED_IMAGE_MAX_BYTES / 3) * 4
+      )
+        return input;
+      encoded = await encodeWithinLimit(uri, SaveFormat.JPEG, IMPORTED_IMAGE_MAX_BYTES);
+      signal?.throwIfAborted();
+      if (!encoded) throw new Error('Image encoding failed');
+      const data = await new File(encoded).base64();
+      signal?.throwIfAborted();
+      return { data, mediaType: 'image/jpeg' };
+    } catch {
+      signal?.throwIfAborted();
+      // Native errors can echo the data URI. Do not leak pixels into diagnostics.
+      throw new Error('Could not prepare image pixels for the provider request.');
+    } finally {
+      if (encoded)
+        discardNormalizedImage({ uri: encoded, mediaType: 'image/jpeg', name: 'request.jpg' });
+    }
+  });
+  queue = run.catch(() => undefined);
+  return run;
+}
 
 /**
  * Bounds an imported still image to what a model request can carry, once, before it becomes a

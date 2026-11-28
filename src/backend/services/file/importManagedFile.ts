@@ -11,7 +11,7 @@ import { discardNormalizedImage, normalizeImportedImage } from './importedImageN
 /**
  * Copies a transient picker, camera, or share URI into managed storage as an imported file.
  * An oversized still image is re-encoded here, once, so the managed file is already what a model
- * request can carry; nothing downstream resizes it again.
+ * request can carry. The provider boundary also checks dimensions on outgoing copies, including history.
  */
 export async function importManagedFile(
   entries: Pick<FileEntryService, 'create' | 'delete'>,
