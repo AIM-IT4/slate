@@ -61,9 +61,8 @@ export function ChatInputPrimaryAction({
   );
 }
 
-// The send glyph's circle fills 938 of its 1024 units, so a 32pt icon draws a 29pt disc. Matching
-// it keeps the slot one size whichever action holds it.
-const DISC_SIZE = 29;
+// Match the 32pt primary send surface without changing the slot geometry.
+const DISC_SIZE = 32;
 /** Listening rests a little smaller and speech grows it back; the editor clips anything larger. */
 const QUIET_SCALE = 0.86;
 
@@ -72,7 +71,7 @@ function DictationButton({ state, level, start, stop }: Dictation) {
   const isActive = state !== 'idle';
   const reducedMotion = useReducedMotion();
   const scale = useSharedValue(1);
-  const glyphColor = useResolveClassNames('text-background').color;
+  const glyphColor = useResolveClassNames(isActive ? 'text-primary-foreground' : 'text-foreground').color;
 
   useEffect(() => {
     if (state === 'listening') void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -107,7 +106,7 @@ function DictationButton({ state, level, start, stop }: Dictation) {
       testID="chat-composer-dictation"
     >
       <Animated.View
-        className="items-center justify-center rounded-full bg-foreground"
+        className={isActive ? 'items-center justify-center rounded-full bg-primary' : 'items-center justify-center rounded-full bg-secondary'}
         style={[{ height: DISC_SIZE, width: DISC_SIZE }, discStyle]}
       >
         {state === 'finishing' ? (
@@ -117,9 +116,9 @@ function DictationButton({ state, level, start, stop }: Dictation) {
             testID="chat-composer-dictation-transcribing"
           />
         ) : isActive ? (
-          <CheckIcon className="size-[17px] text-background" />
+          <CheckIcon className="size-[17px] text-primary-foreground" />
         ) : (
-          <MicIcon className="size-[17px] text-background" />
+          <MicIcon className="size-[17px] text-foreground" />
         )}
       </Animated.View>
     </Composer.Action>

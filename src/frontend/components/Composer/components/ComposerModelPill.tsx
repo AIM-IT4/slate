@@ -32,10 +32,11 @@ export function ComposerModelPill({ children, icon, label, onPress }: ComposerMo
     return (
       <Composer.Pill
         accessibilityLabel={t('chat.model.select')}
+        className="bg-secondary"
         disabled={isLocked}
         onPress={handlePress}
       >
-        <Text className="min-w-0 shrink font-semibold text-foreground text-sm" numberOfLines={1}>
+        <Text className="min-w-0 shrink font-medium text-foreground text-sm" numberOfLines={1}>
           {t('chat.model.select')}
         </Text>
       </Composer.Pill>
@@ -45,6 +46,7 @@ export function ComposerModelPill({ children, icon, label, onPress }: ComposerMo
   const pill = (
     <Composer.Pill
       accessibilityLabel={label}
+      className="bg-secondary"
       disabled={isLocked}
       icon={
         icon ?? (
@@ -56,7 +58,7 @@ export function ComposerModelPill({ children, icon, label, onPress }: ComposerMo
       onPress={handlePress}
       testID="composer-model-button"
     >
-      <Text className="min-w-0 shrink font-semibold text-foreground text-sm" numberOfLines={1}>
+      <Text className="min-w-0 shrink font-medium text-foreground text-sm" numberOfLines={1}>
         {label}
       </Text>
       {children}

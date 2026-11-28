@@ -71,14 +71,14 @@ export const UserMessage = memo(function UserMessage({
             className={
               editingContext === 'continuation'
                 ? 'self-end rounded-[18px] bg-transparent'
-                : 'self-end rounded-[18px] bg-chat-user'
+                : 'self-end rounded-[18px] rounded-br-md bg-chat-user'
             }
             style={styles.bubble}
           >
             {editingContext === 'question' ? (
               <View
                 pointerEvents="none"
-                className="absolute inset-0 rounded-[18px] border-[1.5px] border-border-selected"
+                className="absolute inset-0 rounded-[18px] rounded-br-md border-[1.5px] border-border-selected"
                 testID="editing-question-outline"
               />
             ) : null}

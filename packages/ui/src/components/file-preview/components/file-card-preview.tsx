@@ -34,7 +34,7 @@ export function FileCardPreview({
 
   const filename = (
     <Text
-      className={cn('w-full shrink text-foreground', variant === 'card' ? 'text-base' : 'text-sm')}
+      className={cn('w-full shrink font-medium text-foreground', variant === 'card' ? 'text-base' : 'text-sm')}
       ellipsizeMode="tail"
       numberOfLines={3}
     >
@@ -43,8 +43,16 @@ export function FileCardPreview({
   );
   const icon = (
     <View className="w-full shrink-0 flex-row items-center justify-between gap-2">
-      <Icon className={cn('shrink-0', iconClassName, variant === 'card' ? 'size-7' : 'size-6')} />
-      {badge ? <View className="min-w-0 shrink">{badge}</View> : null}
+      <View className="size-9 items-center justify-center rounded-xl bg-background">
+        <Icon className={cn('shrink-0', iconClassName, variant === 'card' ? 'size-6' : 'size-5')} />
+      </View>
+      {badge ? (
+        <View className="min-w-0 shrink">{badge}</View>
+      ) : file.extensionLabel && variant === 'card' ? (
+        <Text className="shrink text-xs font-medium text-muted-foreground" numberOfLines={1}>
+          {file.extensionLabel}
+        </Text>
+      ) : null}
     </View>
   );
 

@@ -148,19 +148,19 @@ function LocalDraftContent({
 
 const editorialTitle = {
   fontFamily: 'PlayfairDisplay-Bold',
-  fontSize: 44,
-  lineHeight: 48,
-  letterSpacing: -1.65,
+  fontSize: 40,
+  lineHeight: 46,
+  letterSpacing: -1.4,
   includeFontPadding: false,
 };
 
 function EditorialGreeting({ children }: PropsWithChildren) {
   const { t } = useTranslation();
   return (
-    <Animated.View entering={greetingEntrance} className="w-full max-w-lg self-center gap-5">
+    <Animated.View entering={greetingEntrance} className="w-full max-w-lg self-center gap-6">
       <Text
         accessibilityRole="header"
-        className="max-w-[320px] text-foreground"
+        className="max-w-[340px] text-foreground"
         testID="slate-editorial-title"
         style={editorialTitle}
       >
@@ -182,21 +182,23 @@ function EditorialRecents() {
 
   return (
     <BackgroundPressExclusion>
-      <View className="border-t border-border pt-3">
-        <Text className="pb-1 text-sm font-medium text-muted-foreground">
+      <View className="gap-2 pt-2">
+        <Text className="pb-1 text-xs font-semibold text-muted-foreground">
           {t('session.search.recent')}
         </Text>
         {items.slice(0, 2).map((item) => (
           <Pressable
             accessibilityRole="button"
-            className="min-h-12 flex-row items-center gap-3 border-b border-border py-2 active:opacity-60"
+            className="min-h-14 flex-row items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 active:opacity-70"
             key={item.ref.sessionId}
             onPress={() => router.replace(conversationHref(item.ref))}
           >
             <Text className="flex-1 text-base text-foreground" numberOfLines={1}>
               {item.title || t('chat.newSession.title')}
             </Text>
-            <ChevronRightIcon className="size-4 text-muted-foreground" />
+            <View className="size-8 items-center justify-center rounded-full bg-secondary">
+              <ChevronRightIcon className="size-4 text-muted-foreground" />
+            </View>
           </Pressable>
         ))}
       </View>

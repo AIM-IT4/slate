@@ -118,7 +118,7 @@
 @layer theme {
   :root {
     @variant light {
-      --slate-paper: #faf6ef;
+      --slate-paper: #f8f9fc;
       --surface: var(--card);
       --surface-foreground: var(--card-foreground);
       --surface-secondary: var(--muted);

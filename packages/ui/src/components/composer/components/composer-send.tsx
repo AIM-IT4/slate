@@ -1,5 +1,5 @@
 import PauseIcon from '@cherrystudio/app-icons/icons/pause';
-import SendIcon from '@cherrystudio/app-icons/icons/send';
+import ArrowUpIcon from '@cherrystudio/app-icons/icons/arrow-up';
 
 import { cn } from '../../../utils';
 import type { ComposerSendProps } from '../composer.types';
@@ -19,7 +19,7 @@ export function ComposerSend({ testID }: ComposerSendProps) {
   const { send, stop } = useComposerActions('Composer.Send');
   const isStopping = streaming && stop !== undefined;
   const isActive = isStopping || canSend;
-  const Icon = isStopping ? PauseIcon : SendIcon;
+  const Icon = isStopping ? PauseIcon : ArrowUpIcon;
 
   const handlePress = () => {
     if (isStopping) {
@@ -39,7 +39,7 @@ export function ComposerSend({ testID }: ComposerSendProps) {
   return (
     <ComposerAction
       accessibilityLabel={isStopping ? labels.stop : labels.send}
-      className="bg-transparent"
+      className={isActive ? 'bg-primary' : 'bg-secondary'}
       disabled={!isActive}
       onPress={handlePress}
       style={sendStyle}
@@ -47,8 +47,8 @@ export function ComposerSend({ testID }: ComposerSendProps) {
     >
       <Icon
         className={cn(
-          isStopping ? 'size-6' : 'size-8',
-          isActive ? 'text-foreground' : 'text-foreground-disabled',
+          'size-5',
+          isActive ? 'text-primary-foreground' : 'text-foreground-disabled',
         )}
       />
     </ComposerAction>

@@ -37,11 +37,10 @@ const fieldContentStyle = { minHeight: restingInputHeight };
 const restingActionSlotWidth = restingInputHeight + 8;
 const activeToolbarGap = 10;
 const fieldActionInsetStyle = { paddingRight: restingActionSlotWidth };
-// Shorter than the keyboard on purpose: the editor finishes its shape early in the keyboard's
-// travel, so the transcript reads one motion with a small early growth instead of two
-// overlapping ones. Interruptions reverse it; Reduce Motion lands directly.
+// A short, interruptible transition keeps the composer coordinated with the keyboard.
+// System Reduce Motion still lands directly.
 const activeTransitionMotion = {
-  duration: 90,
+  duration: 150,
   easing: easing.settle,
   reduceMotion: ReduceMotion.System,
 } as const;
