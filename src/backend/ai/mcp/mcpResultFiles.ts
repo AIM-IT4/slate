@@ -1,7 +1,12 @@
 import { fileEntryService } from '@/backend/data/services/FileEntryService';
 import { createInternalEntry, discardInternalEntries } from '@/backend/services/file/fileStorage';
-import { mcpModelTextOverflow, readMcpBinaryBlock } from '@/shared/contracts/mcpContent';
-import { fileEntryUrl, type FileEntry } from '@/shared/data/types/file';
+import {
+  mcpModelTextOverflow,
+  normalizeMcpBinaryContent,
+  readMcpBinaryBlock,
+} from '@/shared/contracts/mcpContent';
+import { fileEntryUrl, readableFilename, type FileEntry } from '@/shared/data/types/file';
+import { encodedFileExtension } from '@/shared/utils/encodedFile';
 import { MAX_TEXT_ATTACHMENT_BYTES } from '@/shared/utils/fileAttachmentPolicy';
 
 import type { RuntimeArtifact } from '../agent/runtime/types';
@@ -23,6 +28,7 @@ export async function storeMcpResultFiles(
   images?: McpRetainedImage[];
   fullTextFileEntryId?: string;
 }> {
+  result = normalizeMcpBinaryContent(result);
   const entries: FileEntry[] = [];
   const images: McpRetainedImage[] = [];
   let value = result;
@@ -59,6 +65,13 @@ export async function storeMcpResultFiles(
               source: 'base64',
               data,
               mediaType,
+              name: readableFilename(
+                typeof item.name === 'string' ? item.name.replace(/\.[^.]+$/, '') : 'mcp-result',
+                {
+                  extension: encodedFileExtension(mediaType),
+                  fallback: 'mcp-result',
+                },
+              ),
               provenance: 'generated',
               folderId: workspaceFolderId,
             },

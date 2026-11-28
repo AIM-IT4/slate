@@ -36,6 +36,7 @@ it already exists.
 | Provider failure facts | `normalizeAiError` in `src/backend/ai/normalizeAiError.ts`; `piModelError.ts` adapts Pi terminal messages for turn projection and diagnostics |
 | Provider diagnostic metadata for traces and feedback | `src/shared/utils/providerDiagnostics.ts` projects bounded protocol fields, message roles and Cherry Cloud request IDs |
 | Inline bytes of MCP content blocks | `readMcpBinaryBlock` in `src/shared/contracts/mcpContent.ts` |
+| File-API JSON carrying base64 or data-URI bytes | `readEncodedFile` in `src/shared/utils/encodedFile.ts`; `normalizeMcpBinaryContent` adapts MCP results before storage and model projection |
 | Whether an Agent binding enables a whole MCP server | `enablesMcpServer` in `src/shared/utils/agentMcpBinding.ts` |
 | Video soundtrack transcription and signal measurements | `src/backend/services/voice/videoAudio` public sub-entry; bundled speech-model assets, bounded native audio windows and the shared ASR work slot |
 | Audio media-type classification, import-time type inference, and transcription source limits | `src/shared/utils/audioFileTypes.ts` |

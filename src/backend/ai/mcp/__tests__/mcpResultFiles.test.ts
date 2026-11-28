@@ -22,6 +22,46 @@ beforeEach(() => {
 });
 
 describe('MCP result retention', () => {
+  it('stores encoded JPEG JSON as a real image and never creates a base64 TXT overflow', async () => {
+    const data = '/9j/4AAQSkZJRgABAQAAAQABAAD/' + 'A'.repeat(70_000);
+    const entry = { ...fullTextEntry, filename: 'mcp-result.jpg', mediaType: 'image/jpeg' };
+    mockCreateInternalEntry.mockResolvedValue(entry);
+    const result = await storeMcpResultFiles(
+      { content: [{ type: 'text', text: JSON.stringify({ content: data }) }] },
+      signal(),
+    );
+    expect(mockCreateInternalEntry).toHaveBeenCalledTimes(1);
+    expect(mockCreateInternalEntry).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        source: 'base64',
+        name: 'mcp-result.jpg',
+        mediaType: 'image/jpeg',
+        data,
+      }),
+      expect.any(AbortSignal),
+    );
+    expect(result.fullTextFileEntryId).toBeUndefined();
+    expect(result.images).toEqual([{ fileEntryId: entry.id, mediaType: 'image/jpeg', data }]);
+    expect(JSON.stringify(result.value)).not.toContain(data);
+  });
+
+  it('saves binary file types with the correct extension instead of defaulting to PNG or TXT', async () => {
+    await storeMcpResultFiles(
+      { content: [{ type: 'text', text: '{"content":"JVBERi0xLjQK"}' }] },
+      signal(),
+    );
+    expect(mockCreateInternalEntry).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        source: 'base64',
+        name: 'mcp-result.pdf',
+        mediaType: 'application/pdf',
+      }),
+      expect.any(AbortSignal),
+    );
+  });
+
   it('saves model text over its budget as a readable file and leaves short results alone', async () => {
     const text = 'x'.repeat(70_000);
     await expect(

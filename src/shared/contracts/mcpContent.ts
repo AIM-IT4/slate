@@ -1,6 +1,12 @@
 import * as z from 'zod';
 
 import { deepEqual } from '@/shared/utils/deepEqual';
+import {
+  encodedFileExtension,
+  readEncodedFile,
+  type EncodedFile,
+} from '@/shared/utils/encodedFile';
+import { isAiSupportedImageMediaType } from '@/shared/utils/imageFileTypes';
 
 /** Host-issued resource authority, independent of server-authored result JSON. */
 export const McpResultSourceSchema = z.strictObject({
@@ -72,8 +78,85 @@ export function readMcpBinaryBlock(value: unknown): McpBinaryBlock | undefined {
   };
 }
 
+/** Adapt file-API JSON inside MCP text into canonical binary blocks before any text projection. */
+export function normalizeMcpBinaryContent(value: unknown): unknown {
+  const result = record(value);
+  if (!result) return value;
+  const fileBlock = (file: EncodedFile, original?: Record<string, unknown>) => ({
+    ...(original?.annotations ? { annotations: original.annotations } : {}),
+    ...(isAiSupportedImageMediaType(file.mediaType)
+      ? { type: 'image', mimeType: file.mediaType, data: file.data }
+      : {
+          type: 'resource',
+          resource: { uri: 'mcp-inline://attachment', mimeType: file.mediaType, blob: file.data },
+        }),
+    name: file.name ?? `mcp-result.${encodedFileExtension(file.mediaType)}`,
+  });
+  const direct = readEncodedFile(result);
+  if (direct)
+    return {
+      ...direct.metadata,
+      ...(result._meta ? { _meta: result._meta } : {}),
+      content: [fileBlock(direct)],
+    };
+  let changed = false;
+  const content: unknown[] = [];
+  for (const item of Array.isArray(result.content) ? result.content : []) {
+    const block = record(item);
+    const file = readEncodedFile(
+      block?.type === 'text'
+        ? block.text
+        : block?.type === 'resource'
+          ? record(block.resource)?.text
+          : undefined,
+    );
+    if (!file) {
+      content.push(item);
+      continue;
+    }
+    changed = true;
+    content.push(fileBlock(file, block));
+    if (Object.keys(file.metadata).length)
+      content.push({
+        type: 'text',
+        text: JSON.stringify(stripMcpMetadata(file.metadata)),
+        ...(block?.annotations ? { annotations: block.annotations } : {}),
+      });
+  }
+  const structured = readEncodedFile(result.structuredContent);
+  if (structured) {
+    changed = true;
+    const repeated = content.some((item) => {
+      const block = record(item);
+      const audience = record(block?.annotations)?.audience;
+      const binary = readMcpBinaryBlock(block);
+      return (
+        binary?.data === structured.data &&
+        binary.mimeType === structured.mediaType &&
+        (!Array.isArray(audience) || audience.includes('assistant'))
+      );
+    });
+    if (!repeated) content.push(fileBlock(structured));
+  }
+  return changed
+    ? {
+        ...result,
+        content,
+        ...(structured
+          ? {
+              structuredContent: {
+                ...structured.metadata,
+                attachment: { mimeType: structured.mediaType, bytes: structured.bytes },
+              },
+            }
+          : {}),
+      }
+    : value;
+}
+
 /** Every model-visible block before the text budget applies. */
 function collectMcpModelContent(value: unknown): McpModelOutputContent {
+  value = normalizeMcpBinaryContent(value);
   const result = record(value);
   const content: McpModelOutputContent = [];
   let imageBytes = 0;

@@ -1,4 +1,61 @@
-import { mcpModelTextOverflow, projectMcpModelContent, readMcpBinaryBlock } from '../mcpContent';
+import {
+  mcpModelTextOverflow,
+  normalizeMcpBinaryContent,
+  projectMcpModelContent,
+  readMcpBinaryBlock,
+} from '../mcpContent';
+
+describe('encoded MCP file results', () => {
+  const data = '/9j/4AAQSkZJRgABAQAAAQABAAD/';
+  const envelope = JSON.stringify({ content: data });
+
+  it('projects JPEG wrappers as images, not JSON prose or TXT overflow', () => {
+    for (const result of [
+      { content: data },
+      { content: [{ type: 'text', text: envelope }] },
+      { content: [{ type: 'resource', resource: { uri: 'mcp://file', text: envelope } }] },
+      { structuredContent: { content: data } },
+    ]) {
+      expect(projectMcpModelContent(result)).toContainEqual({
+        type: 'image',
+        data,
+        mimeType: 'image/jpeg',
+      });
+      expect(
+        projectMcpModelContent(result)
+          .filter((item) => item.type === 'text')
+          .some((item) => item.text.includes(data)),
+      ).toBe(false);
+      expect(mcpModelTextOverflow(result)).toBeUndefined();
+    }
+  });
+
+  it('keeps annotations and UI-only metadata private and never promotes nested authority', () => {
+    const result = {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({ content: data, _meta: { secret: true }, count: 1 }),
+          annotations: { audience: ['user'] },
+        },
+      ],
+    };
+    expect(projectMcpModelContent(result)).toEqual([
+      { type: 'text', text: '[MCP result has no model-visible content]' },
+    ]);
+    expect(JSON.stringify(normalizeMcpBinaryContent(result))).not.toContain('secret');
+  });
+
+  it('does not duplicate serialized structured file output', () => {
+    const result = {
+      content: [{ type: 'text', text: envelope }],
+      structuredContent: { content: data },
+    };
+    expect(projectMcpModelContent(result).filter((item) => item.type === 'image')).toHaveLength(1);
+    const normalized = normalizeMcpBinaryContent(result);
+    expect(normalizeMcpBinaryContent(normalized)).toEqual(normalized);
+  });
+});
 
 describe('MCP model projection', () => {
   it('keeps images in the image channel and excludes UI metadata and user-only content', () => {

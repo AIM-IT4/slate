@@ -13,6 +13,18 @@ beforeEach(() => {
   mockOpen.mockReturnValue({ close: mockClose, readBytesSync: mockRead });
 });
 
+it('allows a bounded legacy MCP preview budget and rejects invalid budgets before opening', () => {
+  mockRead.mockReturnValue(new TextEncoder().encode('hello'));
+  expect(readFileText('file:///mcp-result.txt', 5 * FILE_VIEWER_MAX_BYTES).text).toBe('hello');
+  expect(mockRead).toHaveBeenCalledWith(5 * FILE_VIEWER_MAX_BYTES + 1);
+  mockOpen.mockClear();
+  for (const limit of [0, -1, NaN, Infinity, 0.5, 5 * FILE_VIEWER_MAX_BYTES + 1])
+    expect(() => readFileText('file:///mcp-result.txt', limit)).toThrow(
+      'Invalid text preview budget',
+    );
+  expect(mockOpen).not.toHaveBeenCalled();
+});
+
 it('reads bounded bytes with a read-only handle and always closes it', () => {
   mockRead.mockReturnValue(new TextEncoder().encode('hello'));
   expect(readFileText('file:///note.txt')).toEqual({ isTruncated: false, text: 'hello' });

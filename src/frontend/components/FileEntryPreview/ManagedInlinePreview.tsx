@@ -1,7 +1,7 @@
-import { ContentState } from '@cherrystudio/ui/components';
+import { ContentState, Image } from '@cherrystudio/ui/components';
 import { useQuery } from '@tanstack/react-query';
 import { useIsFocused } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 
@@ -11,6 +11,7 @@ import { readFileText } from '@/frontend/utils/readFileText';
 import type { ResolvedFile } from '@/shared/contracts/file';
 
 import { canPreviewDocument, fileEntryPreviewKind } from './utils/fileEntryPresentation';
+import { inlineTextFileContent, isLegacyMcpTextFile } from './utils/inlineTextFile';
 
 export function ManagedInlinePreview({ file }: { file: ResolvedFile }) {
   const focused = useIsFocused();
@@ -32,12 +33,20 @@ export function ManagedInlinePreview({ file }: { file: ResolvedFile }) {
 function InlineTextFile({ file }: { file: ResolvedFile }) {
   const query = useQuery({
     queryKey: ['inline-file-text', file.entry.id, file.entry.updatedAt, file.uri],
-    queryFn: () => readFileText(file.uri),
+    queryFn: () =>
+      readFileText(
+        file.uri,
+        isLegacyMcpTextFile(file.entry.filename) ? 5 * 1024 * 1024 : 1024 * 1024,
+      ),
     staleTime: Infinity,
     gcTime: 60_000,
     retry: false,
     networkMode: 'always',
   });
+  const preview = useMemo(
+    () => (query.data ? inlineTextFileContent(file.entry.filename, query.data) : undefined),
+    [query.data, file.entry.filename],
+  );
   if (!query.data) return null;
   if (fileEntryPreviewKind(file.entry) === 'html') {
     if (query.data.isTruncated) return null;
@@ -45,10 +54,22 @@ function InlineTextFile({ file }: { file: ResolvedFile }) {
       <InlineArtifact name={file.entry.filename} source={{ kind: 'html', html: query.data.text }} />
     );
   }
+  if (preview?.kind === 'image')
+    return <Image source={preview.uri} contentFit="contain" className="h-72 w-full" />;
+  if (preview?.kind === 'audio')
+    return (
+      <InlineArtifact
+        name={file.entry.filename}
+        source={{ kind: 'embedded-audio', data: preview.data, mediaType: preview.mediaType }}
+      />
+    );
+  if (preview?.kind !== 'text') return null;
   return (
-    <Text selectable className="max-h-64 font-mono text-sm text-foreground" numberOfLines={12}>
-      {query.data.text.slice(0, 4000)}
-    </Text>
+    <View className="max-h-48 w-full overflow-hidden">
+      <Text selectable className="font-mono text-sm text-foreground" numberOfLines={8}>
+        {preview.text}
+      </Text>
+    </View>
   );
 }
 
