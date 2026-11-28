@@ -611,26 +611,22 @@ test('late operations from a superseded generation cannot overwrite its successo
   expect([...mockTaskNotifications.values()]).toEqual([{ ongoing: true, title: 'New generation' }]);
 });
 
-test('foreground completions remain silent and the completion preference controls alerts only', async () => {
+test('foreground and background completions alert once and respect the completion preference', async () => {
   const first = runtime.createPresenter<BackgroundReplyActivityProps>().start(props('responding'));
   runtime.acquire('chat');
   await first.update(props('completed'));
   setAppState('background');
   await first.end('default', { ...props('completed'), title: 'Late title' });
-  expect(mockTaskNative.showBackgroundTaskNotification.mock.calls.some((call) => call[5])).toBe(
-    false,
-  );
+  const completionCalls = () => mockTaskNative.showBackgroundTaskNotification.mock.calls.filter((call) => call[5]);
+  expect(completionCalls()).toHaveLength(1);
+  expect(completionCalls()[0][7]).toEqual(expect.objectContaining({ completion: true }));
   completionNotificationsEnabled.mockReturnValue(false);
   const second = runtime.createPresenter<BackgroundReplyActivityProps>().start(props('responding'));
   await second.update(props('completed'));
-  expect(mockTaskNative.showBackgroundTaskNotification.mock.calls.some((call) => call[5])).toBe(
-    false,
-  );
+  expect(completionCalls()).toHaveLength(1);
   const failed = runtime.createPresenter<BackgroundReplyActivityProps>().start(props('responding'));
   await failed.update(props('failed'));
-  expect(
-    mockTaskNative.showBackgroundTaskNotification.mock.calls.filter((call) => call[5]),
-  ).toHaveLength(1);
+  expect(completionCalls()).toHaveLength(2);
   completionNotificationsEnabled.mockReturnValue(true);
 });
 

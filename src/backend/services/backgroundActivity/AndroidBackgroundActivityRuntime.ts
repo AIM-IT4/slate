@@ -565,6 +565,11 @@ export class AndroidBackgroundActivityRuntime
     const { props } = record;
     const phase = props.phase;
     const terminal = isTerminal(phase);
+    const task = parseBackgroundTaskUrl(record.deepLinkUrl, record.deepLinkUrl?.split('://')[0] ?? '');
+    const isChatCompletion = phase === 'completed' && task?.kind !== 'painting';
+    // A terminal reply can be updated again while the presenter settles. Alert only once.
+    if (isChatCompletion && record.attention === 'terminal') return;
+    const completionAlert = isChatCompletion && this.environment.isReplyCompletionNotificationEnabled();
     const kind = terminal
       ? 'terminal'
       : phase === 'awaiting-approval' || phase === 'awaiting-answer'
@@ -575,10 +580,11 @@ export class AndroidBackgroundActivityRuntime
     const shouldAlert =
       kind !== undefined &&
       record.attention !== kind &&
-      (requiresAttention ||
-        (phase === 'completed' && this.environment.isReplyCompletionNotificationEnabled())) &&
-      (requiresAttention || record.phaseStartedInBackground) &&
-      AppState.currentState === 'background';
+      (completionAlert ||
+        ((requiresAttention ||
+          (phase === 'completed' && this.environment.isReplyCompletionNotificationEnabled())) &&
+          (requiresAttention || record.phaseStartedInBackground) &&
+          AppState.currentState === 'background'));
     if (
       kind &&
       record.attention !== kind &&
@@ -597,16 +603,22 @@ export class AndroidBackgroundActivityRuntime
     await this.native?.showBackgroundTaskNotification?.(
       record.id,
       props.title.slice(0, 120),
-      [props.detail, props.preview].filter(Boolean).join('\n').slice(0, 600),
+      completionAlert
+        ? this.environment.translate('chat.backgroundReply.completed')
+        : [props.detail, props.preview].filter(Boolean).join('\n').slice(0, 600),
       record.deepLinkUrl ?? null,
       !terminal,
       shouldAlert,
       this.environment.translate(
-        shouldAlert
-          ? 'notifications.android.attentionChannel'
-          : 'notifications.android.runningTitle',
+        completionAlert
+          ? 'notifications.android.completionChannel'
+          : shouldAlert
+            ? 'notifications.android.attentionChannel'
+            : 'notifications.android.runningTitle',
       ),
       {
+        // Use a dedicated completion notification, independent of foreground-service cleanup.
+        ...(completionAlert ? { completion: true } : {}),
         // The title names the task; the header marks whether it runs on the PC or this phone.
         subText: this.environment.translate(
           parseBackgroundTaskUrl(record.deepLinkUrl, record.deepLinkUrl?.split('://')[0] ?? '')

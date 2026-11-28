@@ -74,6 +74,8 @@ export interface SystemIntegrationNativeModule {
       subText?: string;
       /** A standing PC connection notice; it shows no post time. */
       connection?: boolean;
+      /** A completed chat has its own alert channel and notification identity. */
+      completion?: boolean;
       actions?: {
         /** Connection notices remain ordinary ongoing notifications, separate from task Live Updates. */
         promoted?: boolean;

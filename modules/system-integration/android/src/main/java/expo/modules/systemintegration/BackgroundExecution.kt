@@ -19,6 +19,7 @@ internal object BackgroundExecution {
   private const val OWNER = "cherry-background-activity"
   private const val RUNNING_CHANNEL = "RN_BACKGROUND_ACTIONS_CHANNEL"
   private const val ATTENTION_CHANNEL = "generation-updates"
+  private const val COMPLETION_CHANNEL = "slate-chat-completions"
   /**
    * DESIGN.md notification brand red. Android draws the small-icon mask black on light
    * accents (luminance > 0.179), so `brand` #FF5757 is darkened to keep the mark white.
@@ -59,14 +60,17 @@ internal object BackgroundExecution {
     @Suppress("UNCHECKED_CAST")
     val actions = options?.get("actions") as? Map<String, Any?>
     val manager = context.getSystemService(NotificationManager::class.java)
-    val channelId = if (alert) ATTENTION_CHANNEL else RUNNING_CHANNEL
+    val completion = !ongoing && options?.get("completion") == true
+    val deliveryId = if (completion) notificationId(context, completionKey(id)) else id
+    if (ongoing) dismissCompletion(context, id)
+    val channelId = if (completion) COMPLETION_CHANNEL else if (alert) ATTENTION_CHANNEL else RUNNING_CHANNEL
     manager.createNotificationChannel(NotificationChannel(channelId, channelName,
       if (alert) NotificationManager.IMPORTANCE_HIGH else NotificationManager.IMPORTANCE_LOW))
     val intent = if (url != null) Intent(Intent.ACTION_VIEW, Uri.parse(url)).setPackage(context.packageName)
       else context.packageManager.getLaunchIntentForPackage(context.packageName)
         ?: Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER).setPackage(context.packageName)
     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-    val contentIntent = PendingIntent.getActivity(context, id, intent,
+    val contentIntent = PendingIntent.getActivity(context, deliveryId, intent,
       PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     val extras = Bundle().apply {
       putString("owner", OWNER)
@@ -111,7 +115,10 @@ internal object BackgroundExecution {
         if (Build.VERSION.SDK_INT < 36) builder.addAction(replyAction)
       }
     }
-    manager.notify(id, builder.build())
+    if (completion) builder.setCategory(NotificationCompat.CATEGORY_MESSAGE)
+    manager.notify(deliveryId, builder.build())
+    // Leave the finished alert separate from service and progress-card cleanup.
+    if (completion) manager.cancel(id)
     // Android 16 CDD 3.8.3.1/H-0-5 hides RemoteInput on promoted Live Updates.
     // Keep the status chip and offer text entry in a separate ordinary notice.
     if (Build.VERSION.SDK_INT >= 36 && replyAction != null) {
@@ -123,6 +130,14 @@ internal object BackgroundExecution {
         .addAction(replyAction).setOngoing(false).setAutoCancel(false)
         .setSilent(true).setOnlyAlertOnce(true).addExtras(replyExtras).build())
     } else dismissReply(context, id)
+  }
+
+  private fun completionKey(id: Int) = "$OWNER:completion:$id"
+
+  private fun dismissCompletion(context: Context, id: Int) {
+    val store = context.getSharedPreferences("background-task-notifications", Context.MODE_PRIVATE)
+    val key = completionKey(id)
+    if (store.contains(key)) context.getSystemService(NotificationManager::class.java).cancel(store.getInt(key, 0))
   }
 
   private fun replyKey(id: Int) = "$OWNER:reply:$id"
@@ -167,6 +182,7 @@ internal object BackgroundExecution {
     val store = context.getSharedPreferences("background-task-notifications", Context.MODE_PRIVATE)
     if (!store.contains(key)) return
     val id = store.getInt(key, 0)
+    dismissCompletion(context, id)
     val manager = context.getSystemService(NotificationManager::class.java)
     if (manager.activeNotifications.any { it.id == id && it.notification.extras.getBoolean("terminal") })
       manager.cancel(id)
