@@ -100,3 +100,5 @@ paths use SHA-256 identities; managed files keep their entry/revision cache keys
 Sharing and system opening do not invoke AI metadata writing. Branded copies are programmatic
 renders and do not acquire or restore AI declarations; unchanged copies retain their source bytes.
 Actual AI producers complete their own file declarations before publication.
+
+`useSaveFileToDevice` exposes the system folder picker and copies managed originals through the native filesystem without re-encoding. Inline attachments show its explicit Save to device action above the preview. Existing files are preserved with numbered destination names, repeated presses are serialized, and picker cancellation is quiet. No storage-wide permission or media-library permission is requested.

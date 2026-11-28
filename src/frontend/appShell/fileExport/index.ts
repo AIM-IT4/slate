@@ -9,3 +9,4 @@ export {
   FileSharingError,
 } from './shareFile';
 export { useSaveImageToPhotos, useSaveImagesToPhotos } from './useSaveImageToPhotos';
+export { useSaveFileToDevice } from './useSaveFileToDevice';

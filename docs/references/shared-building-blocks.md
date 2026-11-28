@@ -96,6 +96,7 @@ Installed libraries cover these primitives: `@noble/hashes` (hashing in JavaScri
 
 | Need | Owner |
 | --- | --- |
+| Saving original managed files to a device folder | `useSaveFileToDevice` in `src/frontend/appShell/fileExport`; native folder picker and streaming copy, independent of embedded media controls |
 | Model selection and chat capability filtering | `ModelPickerDrawer` in `src/frontend/components/ModelPicker`; use its existing `chat` variant for the filter menu and capability badges |
 | Cherry empty-state artwork | `EmptyIllustration` in `src/frontend/components/EmptyIllustration`. The caller confirms the empty state and passes the artwork to CherryUI `ContentState.Empty`. |
 | Provider selection | `ProviderPickerDrawer` in `src/frontend/components/ProviderPicker`; caller-owned candidates/search, matching model-picker sheet and row visuals |

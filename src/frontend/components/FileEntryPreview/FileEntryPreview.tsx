@@ -1,4 +1,6 @@
+import DownloadIcon from '@cherrystudio/app-icons/icons/download';
 import {
+  Button,
   FileAttachmentPreview,
   FilePreview,
   type FilePreviewOperation,
@@ -9,6 +11,7 @@ import { type ReactNode, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
+import { useSaveFileToDevice } from '@/frontend/appShell/fileExport';
 import type { ReplacePreviewImage } from '@/frontend/appShell/imagePreview';
 import type { ResolvedFile } from '@/shared/contracts/file';
 import { loggerService } from '@/shared/core/logger/LoggerService';
@@ -82,19 +85,45 @@ export function FileEntryAttachment({
 
   if (fileEntryPreviewKind(data.entry) === 'image') {
     return (
-      <FileEntryImage
-        entry={data.entry}
-        initialAspectRatio={initialAspectRatio}
-        key={data.entry.id}
-        uri={data.uri}
-      />
+      <View className="w-full gap-2">
+        <SaveAttachment file={data} />
+        <FileEntryImage
+          entry={data.entry}
+          initialAspectRatio={initialAspectRatio}
+          key={data.entry.id}
+          uri={data.uri}
+        />
+      </View>
     );
   }
 
   return (
     <View className="w-full gap-2">
+      <SaveAttachment file={data} />
       <ManagedInlinePreview key={`${data.entry.id}:${data.entry.updatedAt}`} file={data} />
       <EntryAttachment entry={data.entry} uri={data.uri} />
+    </View>
+  );
+}
+
+/** Keep saving outside the embedded player's platform-dependent controls. */
+function SaveAttachment({ file }: { file: ResolvedFile }) {
+  const { t } = useTranslation();
+  const { isSaving, save } = useSaveFileToDevice();
+  return (
+    <View className="flex-row justify-end">
+      <Button
+        icon={<DownloadIcon />}
+        size="field"
+        variant="tonal"
+        loading={isSaving}
+        disabled={isSaving}
+        onPress={() => void save(file)}
+        accessibilityLabel={t('fileViewer.saveToDevice')}
+        testID="file-attachment-save"
+      >
+        <Button.Label>{t('fileViewer.saveToDevice')}</Button.Label>
+      </Button>
     </View>
   );
 }
